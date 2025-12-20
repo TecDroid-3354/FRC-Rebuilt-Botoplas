@@ -64,12 +64,9 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOLimelight(camera0Name, drive::getRotation),
-                new VisionIOLimelight(camera1Name, drive::getRotation));
-        // vision =
-        //     new Vision(
-        //         demoDrive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        //         new VisionIOPhotonVision(camera1Name, robotToCamera1));
+                new VisionIOLimelight(camera1Name, drive::getRotation),
+                new VisionIOLimelight(camera2Name, drive::getRotation),
+                new VisionIOLimelight(camera3Name, drive::getRotation));
         break;
 
       case SIM:
@@ -78,13 +75,17 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                new VisionIOPhotonVisionSim(camera1Name, robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(camera2Name, robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(camera3Name, robotToCamera1, drive::getPose));
         break;
 
       default:
         // Replayed robot, disable IO implementations
         // (Use same number of dummy implementations as the real robot)
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement,
+                new VisionIO() {}, new VisionIO() {},
+                new VisionIO() {}, new VisionIO() {});
         break;
     }
 

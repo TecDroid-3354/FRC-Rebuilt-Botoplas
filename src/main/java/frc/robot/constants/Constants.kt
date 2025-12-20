@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.RobotBase
  */
 object Constants {
     val driverControllerId = 0
+    // Used in Botzilla for everything besides the drive base, which is why is not used here.
     const val ALTERNATE_CANBUS_NAME = "canivore"
 
     val simMode: Mode = Mode.SIM
