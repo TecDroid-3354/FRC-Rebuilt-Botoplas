@@ -16,16 +16,26 @@ package frc.robot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
-import frc.robot.subsystems.drive.DemoDrive;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.DriveCommands;
+import frc.robot.constants.Constants;
+import frc.robot.constants.SwerveTunerConstants;
+import frc.robot.subsystems.drivetrain.Drive;
+import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
+import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+
+import java.util.function.DoubleSupplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -36,8 +46,14 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 public class RobotContainer {
   private final Vision vision;
 
-  private final DemoDrive drive = new DemoDrive(); // Demo drive subsystem, sim only
-  private final CommandGenericHID keyboard = new CommandGenericHID(0); // Keyboard 0 on port 0
+  private final Drive drive = new Drive(
+                  new GyroIOPigeon2(),
+                  new ModuleIOTalonFX(SwerveTunerConstants.FrontLeft),
+                  new ModuleIOTalonFX(SwerveTunerConstants.FrontRight),
+                  new ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
+                  new ModuleIOTalonFX(SwerveTunerConstants.BackRight)
+          );
+  private final CommandXboxController controller = new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -85,27 +101,22 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // Joystick drive command
     drive.setDefaultCommand(
-        Commands.run(
-            () -> {
-              drive.run(-keyboard.getRawAxis(1), -keyboard.getRawAxis(0));
-            },
-            drive));
+            DriveCommands.joystickDrive(
+                    drive,
+                    () -> -controller.getLeftY() * 0.8 ,
+                    () -> -controller.getLeftX() * 0.8 ,
+                    () -> controller.getRightX() * 0.6
+            )
+    );
 
-    // Auto aim command example
-    @SuppressWarnings("resource")
-    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
-    aimController.enableContinuousInput(-Math.PI, Math.PI);
-    keyboard
-        .button(1)
-        .whileTrue(
-            Commands.startRun(
-                () -> {
-                  aimController.reset();
-                },
-                () -> {
-                  drive.run(0.0, aimController.calculate(vision.getTargetX(0).getRadians()));
-                },
-                drive));
+    // Reset gyro to 0° when Start button is pressed
+    controller.start().onTrue(
+            Commands.runOnce(
+                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    drive
+                )
+            );
+
   }
 
   /**

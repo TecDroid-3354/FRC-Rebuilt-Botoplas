@@ -10,28 +10,40 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
+package frc.robot.constants
 
-package frc.robot;
-
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.DriverStation.Alliance
+import edu.wpi.first.wpilibj.RobotBase
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
  * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
  * (log replay from a file).
  */
-public final class Constants {
-  public static final Mode simMode = Mode.SIM;
-  public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
+object Constants {
+    val driverControllerId = 0
+    const val ALTERNATE_CANBUS_NAME = "canivore"
 
-  public static enum Mode {
-    /** Running on a real robot. */
-    REAL,
+    val simMode: Mode = Mode.SIM
+    @JvmField
+    val currentMode: Mode = if (RobotBase.isReal()) Mode.REAL else simMode
 
-    /** Running a physics simulator. */
-    SIM,
+    enum class Mode {
+        /** Running on a real robot.  */
+        REAL,
 
-    /** Replaying from a log file. */
-    REPLAY
-  }
+        /** Running a physics simulator.  */
+        SIM,
+
+        /** Replaying from a log file.  */
+        REPLAY
+    }
+
+    @JvmField
+    val isFlipped: () -> Boolean =
+        {
+            DriverStation.getAlliance().isPresent
+                    && DriverStation.getAlliance().get() == Alliance.Red
+        }
 }
