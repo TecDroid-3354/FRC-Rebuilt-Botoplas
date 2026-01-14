@@ -102,6 +102,10 @@ public class RobotContainer {
                 )
             );
 
+    controller.a().whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
+
+    controller.b().whileTrue(DriveCommands.feedforwardCharacterization(drive));
+
   }
 
   /**

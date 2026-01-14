@@ -97,9 +97,9 @@ public class ModuleIOTalonFX implements ModuleIO {
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
           constants) {
     this.constants = constants;
-    driveTalon = new TalonFX(constants.DriveMotorId, CANBus.roboRIO(SwerveTunerConstants.DrivetrainConstants.CANBusName));
-    turnTalon = new TalonFX(constants.SteerMotorId, CANBus.roboRIO(SwerveTunerConstants.DrivetrainConstants.CANBusName));
-    cancoder = new CANcoder(constants.EncoderId, CANBus.roboRIO(SwerveTunerConstants.DrivetrainConstants.CANBusName));
+    driveTalon = new TalonFX(constants.DriveMotorId, SwerveTunerConstants.kCANBus);
+    turnTalon = new TalonFX(constants.SteerMotorId, SwerveTunerConstants.kCANBus);
+    cancoder = new CANcoder(constants.EncoderId, SwerveTunerConstants.kCANBus);
 
     // Configure drive motor
     var driveConfig = constants.DriveMotorInitialConfigs;
