@@ -7,7 +7,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj2.command.Subsystem
 
-class Intake() : Subsystem {
+class ExampleSubsystem() : Subsystem {
     private val motorController = TalonFX(ExampleConstants.MOTOR_ID)
 
     init {
