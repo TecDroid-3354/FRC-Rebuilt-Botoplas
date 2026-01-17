@@ -30,6 +30,8 @@ object Constants {
     @JvmField
     val currentMode: Mode = if (RobotBase.isReal()) Mode.REAL else simMode
 
+    val tuningMode = false
+
     enum class Mode {
         /** Running on a real robot.  */
         REAL,
