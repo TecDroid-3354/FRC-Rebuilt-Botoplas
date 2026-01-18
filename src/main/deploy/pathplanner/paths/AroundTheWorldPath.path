@@ -1,0 +1,102 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.0,
+        "y": 7.0
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.54922891566265,
+        "y": 7.477228915662651
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.434144578313253,
+        "y": 6.887132530120482
+      },
+      "prevControl": {
+        "x": 6.0842197968427625,
+        "y": 7.823910330515437
+      },
+      "nextControl": {
+        "x": 7.483204819277107,
+        "y": 4.078710843373495
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.073530120481928,
+        "y": 0.669265060240964
+      },
+      "prevControl": {
+        "x": 7.569373860109976,
+        "y": 1.3943246894929884
+      },
+      "nextControl": {
+        "x": 3.5710843373493972,
+        "y": -0.5437108433734925
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.0,
+        "y": 4.483036144578314
+      },
+      "prevControl": {
+        "x": 0.9795963855421688,
+        "y": 3.283719879518073
+      },
+      "nextControl": {
+        "x": 3.0204036144578312,
+        "y": 5.682352409638555
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.0,
+        "y": 1.2156506024096394
+      },
+      "prevControl": {
+        "x": 2.5278463855421687,
+        "y": 3.2468388554216867
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": "Autonomous Test-Solo",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
