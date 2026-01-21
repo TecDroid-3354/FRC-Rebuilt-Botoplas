@@ -28,6 +28,7 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -39,16 +40,26 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
   private final Vision vision;
 
+  // -------------------------------
+  // Subsystems
+  // -------------------------------
   private final Drive drive = new Drive(
-                  new GyroIOPigeon2(),
-                  new ModuleIOTalonFX(SwerveTunerConstants.FrontLeft),
-                  new ModuleIOTalonFX(SwerveTunerConstants.FrontRight),
-                  new ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
-                  new ModuleIOTalonFX(SwerveTunerConstants.BackRight)
-          );
-  private final CommandXboxController controller = new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
+          new GyroIOPigeon2(),
+          new ModuleIOTalonFX(SwerveTunerConstants.FrontLeft),
+          new ModuleIOTalonFX(SwerveTunerConstants.FrontRight),
+          new ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
+          new ModuleIOTalonFX(SwerveTunerConstants.BackRight));
+
+  private final Intake intake = new Intake();
+
+  // -------------------------------
+  // Controllers
+  // -------------------------------
+  private final CommandXboxController controller =
+          new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -56,20 +67,24 @@ public class RobotContainer {
       case REAL:
         // Real robot, instantiate hardware IO implementations
         vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOLimelight(camera0Name, drive::getRotation),
-                new VisionIOLimelight(camera1Name, drive::getRotation),
-                new VisionIOLimelight(camera2Name, drive::getRotation),
-                new VisionIOLimelight(camera3Name, drive::getRotation));
+                new Vision(
+                        drive::addVisionMeasurement,
+                        new VisionIOLimelight(camera0Name, drive::getRotation),
+                        new VisionIOLimelight(camera1Name, drive::getRotation),
+                        new VisionIOLimelight(camera2Name, drive::getRotation),
+                        new VisionIOLimelight(camera3Name, drive::getRotation));
         break;
 
       default:
         // Replayed robot, disable IO implementations
         // (Use same number of dummy implementations as the real robot)
-        vision = new Vision(drive::addVisionMeasurement,
-                new VisionIO() {}, new VisionIO() {},
-                new VisionIO() {}, new VisionIO() {});
+        vision =
+                new Vision(
+                        drive::addVisionMeasurement,
+                        new VisionIO() {},
+                        new VisionIO() {},
+                        new VisionIO() {},
+                        new VisionIO() {});
         break;
     }
 
@@ -84,28 +99,49 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // Joystick drive command
+
+    // -------------------------------
+    // Drive (default command)
+    // -------------------------------
     drive.setDefaultCommand(
             DriveCommands.joystickDrive(
                     drive,
-                    () -> -controller.getLeftY() * 0.8 ,
-                    () -> -controller.getLeftX() * 0.8 ,
-                    () -> controller.getRightX() * 0.6
-            )
-    );
+                    () -> -controller.getLeftY() * 0.8,
+                    () -> -controller.getLeftX() * 0.8,
+                    () -> controller.getRightX() * 0.6));
 
-    // Reset gyro to 0° when Start button is pressed
-    controller.start().onTrue(
-            Commands.runOnce(
-                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive
-                )
-            );
+    // -------------------------------
+    // Intake bindings
+    // -------------------------------
+
+    // Right bumper → deploy intake + run rollers while held
+    controller
+            .rightBumper()
+            .whileTrue(Commands.run(intake::enableIntake, intake))
+            .onFalse(Commands.runOnce(intake::stopIntake, intake));
+
+    // Left bumper → force retract + stop
+    controller
+            .leftBumper()
+            .onTrue(Commands.runOnce(intake::stopIntake, intake));
+
+    // -------------------------------
+    // Other bindings
+    // -------------------------------
+
+    // Reset gyro to 0° when Start button is pressed
+    controller
+            .start()
+            .onTrue(
+                    Commands.runOnce(
+                            () ->
+                                    drive.setPose(
+                                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                            drive));
 
     controller.a().whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
 
     controller.b().whileTrue(DriveCommands.feedforwardCharacterization(drive));
-
   }
 
   /**
