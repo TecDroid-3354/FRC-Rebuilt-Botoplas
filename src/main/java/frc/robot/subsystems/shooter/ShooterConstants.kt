@@ -6,12 +6,12 @@ import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Time
-import frc.robot.utils.seconds
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.NumericId
 import frc.template.utils.mechanical.Reduction
+import frc.template.utils.seconds
 import java.util.Optional
 
 object ShooterConstants {
