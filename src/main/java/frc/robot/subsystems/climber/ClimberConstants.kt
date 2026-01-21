@@ -14,11 +14,11 @@ object ClimberConstants {
 
         object PhysicalLimits {
                 //Gear ratio (known later)
-                const val GEAR_RATIO = 7.0.rotations / 3.0.rotations
+                val GEAR_RATIO = 7.0.rotations / 3.0.rotations
 
                 //Positions
-                const val IDLE_POSITION = 0.0.rotations
-                const val CLIMB_POSITION = 1.2.rotations
+                val IDLE_POSITION = 0.0.rotations
+                val CLIMB_POSITION = 1.2.rotations
 
                 val LIMITS = MeasureLimits(0.0.rotations, 1.3.rotations)
         }

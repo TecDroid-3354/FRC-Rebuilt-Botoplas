@@ -7,11 +7,14 @@ import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.wpilibj2.command.Subsystem
+import edu.wpi.first.wpilibj2.command.SubsystemBase
+import frc.template.utils.devices.NumericId
+import frc.template.utils.devices.OpTalonFX
 
-class Climber() : Subsystem {
+class Climber() : SubsystemBase() {
 
-    private val leader = TalonFX(ClimberConstants.Identification.LEADER_MOTOR_ID)
-    private val follower = TalonFX(ClimberConstants.Identification.FOLLOWER_MOTOR_ID)
+    private val leader = OpTalonFX(NumericId(ClimberConstants.Identification.LEADER_MOTOR_ID))
+    private val follower = OpTalonFX(NumericId(ClimberConstants.Identification.FOLLOWER_MOTOR_ID))
 
     private val absolute: CANcoder = CANcoder(ClimberConstants.Identification.ABSOLUTE_ID)
 
@@ -19,7 +22,7 @@ class Climber() : Subsystem {
 
     init {
         //Set "follower" motor to mimic "leader" motor
-        follower.setControl(Follower(leader.deviceID, MotorAlignmentValue.Opposed))
+        follower.follow(leader.getMotorInstance(), MotorAlignmentValue.Opposed)
 
         //Match relative encoder with absolute encoder
         syncRelativeToAbsolute()
@@ -35,7 +38,7 @@ class Climber() : Subsystem {
 
         val motorPosition = desiredPosition * ClimberConstants.PhysicalLimits.GEAR_RATIO
 
-        leader.setControl(positionRequest.withPosition(motorPosition))
+        leader.positionRequest(motorPosition)
 
     }
 
@@ -49,7 +52,7 @@ class Climber() : Subsystem {
 
         val motorPosition = desiredPosition * ClimberConstants.PhysicalLimits.GEAR_RATIO
 
-        leader.setControl(positionRequest.withPosition(motorPosition))
+        leader.positionRequest(motorPosition)
 
     }
 
@@ -63,6 +66,6 @@ class Climber() : Subsystem {
      * Required for correct limit clamping
      */
     private fun syncRelativeToAbsolute() {
-        leader.setPosition(absolute.position.value.times(ClimberConstants.PhysicalLimits.GEAR_RATIO))
+        leader.getMotorInstance().setPosition(absolute.position.value.times(ClimberConstants.PhysicalLimits.GEAR_RATIO))
     }
 }
