@@ -1,7 +1,6 @@
 package frc.robot.subsystems.exampleSubsystem
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration
-import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj2.command.Subsystem
 import frc.template.utils.amps
