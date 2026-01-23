@@ -90,14 +90,14 @@ public class RobotContainer {
                     drive,
                     () -> -controller.getLeftY() * 0.8 ,
                     () -> -controller.getLeftX() * 0.8 ,
-                    () -> controller.getRightX() * 0.6
+                    () -> controller.getRightX() * 0.6 * -1.0
             )
     );
 
     // Reset gyro to 0° when Start button is pressed
     controller.start().onTrue(
             Commands.runOnce(
-                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
                     drive
                 )
             );

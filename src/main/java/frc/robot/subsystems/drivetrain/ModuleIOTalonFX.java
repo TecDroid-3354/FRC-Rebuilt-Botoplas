@@ -14,8 +14,6 @@
 package frc.robot.subsystems.drivetrain;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -38,7 +36,6 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.SwerveTunerConstants;
 
 import java.util.Queue;
-import java.util.function.Supplier;
 
 import static frc.robot.subsystems.drivetrain.PhoenixUtil.tryUntilOk;
 

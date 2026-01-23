@@ -14,7 +14,6 @@
 package frc.robot.subsystems.drivetrain;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
@@ -32,14 +31,15 @@ public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon =
       new Pigeon2(
           SwerveTunerConstants.DrivetrainConstants.Pigeon2Id,
-          new CANBus(SwerveTunerConstants.DrivetrainConstants.CANBusName));
+          SwerveTunerConstants.DrivetrainConstants.CANBusName);
   private final StatusSignal<Angle> yaw = pigeon.getYaw();
   private final Queue<Double> yawPositionQueue;
   private final Queue<Double> yawTimestampQueue;
   private final StatusSignal<AngularVelocity> yawVelocity = pigeon.getAngularVelocityZWorld();
 
   public GyroIOPigeon2() {
-    pigeon.getConfigurator().apply(new Pigeon2Configuration());
+    pigeon.getConfigurator().apply(SwerveTunerConstants.DrivetrainConstants.Pigeon2Configs == null ?
+            new Pigeon2Configuration() : SwerveTunerConstants.DrivetrainConstants.Pigeon2Configs);
     //pigeon.getConfigurator().setYaw(0.0);
     yaw.setUpdateFrequency(Drive.ODOMETRY_FREQUENCY);
     yawVelocity.setUpdateFrequency(50.0);
