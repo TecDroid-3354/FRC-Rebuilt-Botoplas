@@ -30,7 +30,14 @@ object Constants {
     @JvmField
     val currentMode: Mode = if (RobotBase.isReal()) Mode.REAL else simMode
 
-    val tuningMode = false
+    val tuningMode = true
+
+    object AutonomousPaths {
+        const val LEFT_TRENCH_ONE_METER_RIGHT = "1MeterPath"
+        const val LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180 = "5MeterWith180RotationPath"
+        const val LEFT_TRENCH_AROUND_THE_WORLD = "AroundTheWorldPath"
+        const val ZIG_ZAG = "ZigZagPath"
+    }
 
     enum class Mode {
         /** Running on a real robot.  */

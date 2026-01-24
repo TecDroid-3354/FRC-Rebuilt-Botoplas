@@ -15,6 +15,8 @@ package frc.robot;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -31,6 +33,10 @@ import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+import java.io.IOException;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -48,6 +54,10 @@ public class RobotContainer {
                   new ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
                   new ModuleIOTalonFX(SwerveTunerConstants.BackRight)
           );
+
+  // Dashboard inputs
+  private final LoggedDashboardChooser<Command> autoChooser;
+
   private final CommandXboxController controller = new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -72,9 +82,44 @@ public class RobotContainer {
                 new VisionIO() {}, new VisionIO() {});
         break;
     }
+    // Set up auto routines
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    configureAutonomous();
 
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  /**
+   * Use this method to add all autonomous options.
+   * Possible exceptions when PathPlanner is not able to find your Path.
+   * Make sure to call every path through its constant in {@link Constants.AutonomousPaths}
+   * @throws IOException
+   * @throws ParseException
+   */
+  private void configureAutonomous() {
+      try {
+          autoChooser.addOption("LT -> One Meter Right", drive.followTrajectory(PathPlannerPath.fromPathFile(
+                  Constants.AutonomousPaths.LEFT_TRENCH_ONE_METER_RIGHT
+          )));
+
+        autoChooser.addOption("LT -> Five Meter Right While Rotating", drive.followTrajectory(PathPlannerPath.fromPathFile(
+                Constants.AutonomousPaths.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180
+        )));
+
+        autoChooser.addOption("LT -> Through LT to Neutral Zone, Right Trench and Middle Alliance Zone to Right of Alliance Zone",
+                drive.followTrajectory(PathPlannerPath.fromPathFile(
+                        Constants.AutonomousPaths.LEFT_TRENCH_AROUND_THE_WORLD
+                )));
+
+        autoChooser.addOption("LT -> ZigZag", drive.followTrajectory(PathPlannerPath.fromPathFile(
+                Constants.AutonomousPaths.ZIG_ZAG
+        )));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      } catch (ParseException e) {
+          throw new RuntimeException(e);
+      }
   }
 
   /**
@@ -114,6 +159,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Commands.none();
+    return autoChooser.get();
   }
 }
