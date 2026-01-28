@@ -5,10 +5,15 @@
   "pathFolders": [
     "Autonomous Test-RoundTrip",
     "Autonomous Test-Solo",
+<<<<<<< HEAD
     "Outpost + Climb",
     "Sweeper Left",
     "Sweeper Right",
     "Two-Cycler-R"
+=======
+    "Two-Cycler_R",
+    "Sweeper Left"
+>>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,

@@ -45,7 +45,11 @@
     "rotation": 89.99999999977958
   },
   "reversed": false,
+<<<<<<< HEAD
   "folder": "Two-Cycler-R",
+=======
+  "folder": "Two-Cycler_R",
+>>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.00255909727728
