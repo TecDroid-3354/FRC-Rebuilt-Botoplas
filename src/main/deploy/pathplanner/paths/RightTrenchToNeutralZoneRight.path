@@ -21,7 +21,7 @@
       },
       "prevControl": {
         "x": 7.218245363766048,
-        "y": 1.4407988587731824
+        "y": 1.4407988587731826
       },
       "nextControl": null,
       "isLocked": false,
@@ -45,7 +45,7 @@
     "rotation": 88.45184230102204
   },
   "reversed": false,
-  "folder": "New Folder",
+  "folder": "Two-Cycler-R",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
