@@ -192,9 +192,6 @@ public class RobotContainer {
                     () -> controller.getRightX() * 0.6 * -1.0
             )
     );
-                    () -> -controller.getLeftY() * 0.8,
-                    () -> -controller.getLeftX() * 0.8,
-                    () -> controller.getRightX() * 0.6));
 
     // -------------------------------
     // Intake bindings
