@@ -3,6 +3,8 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
+    "1 cycle + Climb R",
+    "1 Cycle + Climb L",
     "Autonomous Test-RoundTrip",
     "Autonomous Test-Solo",
     "New Folder",
