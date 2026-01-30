@@ -37,6 +37,7 @@ object Constants {
         const val LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180 = "5MeterWith180RotationPath"
         const val LEFT_TRENCH_AROUND_THE_WORLD = "AroundTheWorldPath"
         const val ZIG_ZAG = "ZigZagPath"
+        const val UNDER_RIGHT_TRENCH = "UnderRightTrench"
     }
 
     enum class Mode {

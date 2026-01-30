@@ -73,8 +73,8 @@ public class Drive extends SubsystemBase {
               Math.hypot(SwerveTunerConstants.BackRight.LocationX, SwerveTunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 52.0;
-  private static final double ROBOT_MOI = 6.850;
+  private static final double ROBOT_MASS_KG = 15.0;
+  private static final double ROBOT_MOI = 1.652; // (Roughly) I = (1/12)(mass)(length^2 + width^2), including bumpers and battery
   private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
       new RobotConfig(
@@ -135,10 +135,16 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(6.0, 0.0, 0.0), new PIDConstants(18.0, 0.0, 0.0)),
+            new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
+                    SwerveTunerConstants.autoDrive_kI.get(),
+                    SwerveTunerConstants.autoDrive_kD.get()),
+                new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
+                        SwerveTunerConstants.autoSteer_kI.get(),
+                        SwerveTunerConstants.autoSteer_kD.get())),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
         this);
+
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
@@ -166,6 +172,7 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    updateTunableNumbers();
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
@@ -223,6 +230,33 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+  }
+  
+  private void updateTunableNumbers() {
+    if (SwerveTunerConstants.autoDrive_kP.hasChanged(hashCode())
+            || SwerveTunerConstants.autoDrive_kI.hasChanged(hashCode())
+            || SwerveTunerConstants.autoDrive_kD.hasChanged(hashCode())
+
+            || SwerveTunerConstants.autoSteer_kP.hasChanged(hashCode())
+            || SwerveTunerConstants.autoSteer_kI.hasChanged(hashCode())
+            || SwerveTunerConstants.autoSteer_kD.hasChanged(hashCode())) {
+      AutoBuilder.configure(
+              this::getPose,
+              this::setPose,
+              this::getChassisSpeeds,
+              this::runVelocity,
+              new PPHolonomicDriveController(
+                      new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
+                              SwerveTunerConstants.autoDrive_kI.get(),
+                              SwerveTunerConstants.autoDrive_kD.get()),
+                      new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
+                              SwerveTunerConstants.autoSteer_kI.get(),
+                              SwerveTunerConstants.autoSteer_kD.get())),
+              PP_CONFIG,
+              () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
+              this
+      );
+    }
   }
 
   /**
