@@ -1,0 +1,69 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftTrenchToLeftNeutralZone"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftPickUpFull3Meters"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftPickUpFullsToLeftTrenchShootPosition"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftTrenchToLeftNeutralZone"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftPickUpFull3Meters"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftPickUpFullsToLeftTrenchShootPosition"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

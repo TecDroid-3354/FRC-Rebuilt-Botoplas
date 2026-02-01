@@ -5,8 +5,10 @@
   "pathFolders": [
     "Autonomous Test-RoundTrip",
     "Autonomous Test-Solo",
+    "Autonomus Two-Lycler-L",
     "New Folder",
-    "Sweeper Left"
+    "Sweeper Left",
+    "Autonomous WCP CC"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,
