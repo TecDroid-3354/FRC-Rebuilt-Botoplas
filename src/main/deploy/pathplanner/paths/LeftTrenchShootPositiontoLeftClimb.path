@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.479,
-        "y": 0.574
+        "x": 2.866,
+        "y": 6.877
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.003965763195434,
-        "y": 0.4833380884450788
+        "x": 2.380389610389611,
+        "y": 5.5662987012987015
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.029843081312411,
-        "y": 1.45373751783167
+        "x": 1.6147402597402603,
+        "y": 4.226412337662338
       },
       "prevControl": {
-        "x": 2.745192582025677,
-        "y": 0.7938659058487882
+        "x": 2.3811325301145194,
+        "y": 5.553842688478619
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,17 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 41.98721249581658
+    "rotation": 180.0
   },
   "reversed": false,
-<<<<<<< HEAD
-  "folder": "Two-Cycler-R",
-=======
-  "folder": "Two-Cycler_R",
->>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
+  "folder": "Sweeper Right",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -54.67
   },
   "useDefaultConstraints": true
 }

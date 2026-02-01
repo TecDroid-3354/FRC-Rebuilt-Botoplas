@@ -5,10 +5,22 @@
   "pathFolders": [
     "Autonomous Test-RoundTrip",
     "Autonomous Test-Solo",
+<<<<<<< HEAD
     "Autonomus Two-Lycler-L",
     "New Folder",
     "Sweeper Left",
     "Autonomous WCP CC"
+=======
+<<<<<<< HEAD
+    "Outpost + Climb",
+    "Sweeper Left",
+    "Sweeper Right",
+    "Two-Cycler-R"
+=======
+    "Two-Cycler_R",
+    "Sweeper Left"
+>>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
+>>>>>>> 064ee47bd0fda4dd4d5722223ca6a084aa90f956
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,

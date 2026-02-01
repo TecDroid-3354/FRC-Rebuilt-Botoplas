@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.76,
-        "y": 4.295
+        "x": 7.347,
+        "y": 4.525
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.279659436165581,
-        "y": 5.679015152639317
+        "x": 7.267914769428807,
+        "y": 4.762161392948982
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.0,
-        "y": 7.218
+        "x": 2.952,
+        "y": 7.141
       },
       "prevControl": {
-        "x": 8.7214076989329,
-        "y": 7.900742954992096
+        "x": 8.34694894470637,
+        "y": 8.275766444697597
       },
       "nextControl": null,
       "isLocked": false,
@@ -37,7 +37,7 @@
         "y": 4.024
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 0.8868940754039482,
+      "minWaypointRelativePos": 0.723518850987431,
       "maxWaypointRelativePos": 1.0,
       "name": "Point Towards Zone"
     }
@@ -45,7 +45,7 @@
   "eventMarkers": [
     {
       "name": "shoot",
-      "waypointRelativePos": 1.0,
+      "waypointRelativePos": 0.5,
       "endWaypointRelativePos": 1.0,
       "command": null
     }

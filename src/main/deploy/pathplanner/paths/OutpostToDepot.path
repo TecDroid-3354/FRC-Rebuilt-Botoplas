@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.558,
-        "y": 0.7077850877192975
+        "x": 0.471,
+        "y": 0.66
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.2790021929777087,
-        "y": 1.063585526312703
+        "x": 1.1920021929777085,
+        "y": 1.0158004385934056
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.2116885964864803,
-        "y": 5.881
+        "x": 1.154,
+        "y": 5.949
       },
       "prevControl": {
-        "x": 2.923378005223422,
-        "y": 5.784852178362418
+        "x": 2.865689408736942,
+        "y": 5.852852178362418
       },
       "nextControl": null,
       "isLocked": false,
@@ -59,7 +59,7 @@
   "folder": "Autonomous WCP CC",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 1.022
   },
   "useDefaultConstraints": true
 }

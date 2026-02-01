@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "race",
+          "type": "sequential",
           "data": {
             "commands": [
               {
@@ -30,31 +30,25 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "shoot"
-          }
-        },
-        {
-          "type": "race",
+          "type": "sequential",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "LeftTrenchToLeftNeutralZone"
+                  "pathName": "LeftTrenchToLeftNeutralZoneV2"
                 }
               },
               {
                 "type": "path",
                 "data": {
-                  "pathName": "LeftPickUpFull3Meters"
+                  "pathName": "LeftPickUpFull3MetersV2"
                 }
               },
               {
                 "type": "path",
                 "data": {
-                  "pathName": "LeftPickUpFullsToLeftTrenchShootPosition"
+                  "pathName": "LeftPickUpFull3MetersToShootPositionV2"
                 }
               }
             ]

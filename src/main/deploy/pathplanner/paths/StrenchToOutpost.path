@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 0.6635635964912281,
-        "y": 0.7077850877192975
+        "x": 0.471,
+        "y": 0.66
       },
       "prevControl": {
-        "x": 0.4140293037468016,
-        "y": 0.7230375217722228
+        "x": 0.22146570725557346,
+        "y": 0.6752524340529253
       },
       "nextControl": null,
       "isLocked": false,
@@ -59,7 +59,7 @@
   "folder": "Autonomous WCP CC",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -1.022280997078372
+    "rotation": -1.022
   },
   "useDefaultConstraints": true
 }

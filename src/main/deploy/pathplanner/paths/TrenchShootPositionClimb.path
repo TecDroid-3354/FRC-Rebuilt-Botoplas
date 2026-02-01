@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.5900818511564663,
-        "y": 5.474793524763517
+        "x": 2.2147409997272995,
+        "y": 5.241831685403984
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.596337719298246,
-        "y": 4.208092105263157
+        "x": 1.605953947368421,
+        "y": 4.1984758771929815
       },
       "prevControl": {
-        "x": 1.3082288651042937,
-        "y": 3.697973799317329
+        "x": 1.4709703995417172,
+        "y": 3.9830151532994904
       },
       "nextControl": null,
       "isLocked": false,
@@ -53,13 +53,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 1.0809241866606933
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": "Autonomous WCP CC",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -44.275
   },
   "useDefaultConstraints": true
 }

@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.212,
-        "y": 5.881
+        "x": 1.154,
+        "y": 5.949
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.8125248431953404,
-        "y": 5.9042289659566585
+        "x": 0.7545248431953403,
+        "y": 5.972228965956658
       },
       "isLocked": false,
       "linkedName": null
@@ -53,7 +53,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -44.27477570094075
+    "rotation": -44.275
   },
   "reversed": false,
   "folder": "Autonomous WCP CC",
