@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.479,
-        "y": 0.574
+        "x": 0.471,
+        "y": 0.66
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.003965763195434,
-        "y": 0.4833380884450788
+        "x": 1.1920021929777085,
+        "y": 1.0158004385934056
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.029843081312411,
-        "y": 1.45373751783167
+        "x": 1.154,
+        "y": 5.949
       },
       "prevControl": {
-        "x": 2.745192582025677,
-        "y": 0.7938659058487882
+        "x": 2.865689408736942,
+        "y": 5.852852178362418
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,7 +30,18 @@
   ],
   "rotationTargets": [],
   "constraintZones": [],
-  "pointTowardsZones": [],
+  "pointTowardsZones": [
+    {
+      "fieldPosition": {
+        "x": 4.614,
+        "y": 4.024
+      },
+      "rotationOffset": 0.0,
+      "minWaypointRelativePos": 0.8527827648114891,
+      "maxWaypointRelativePos": 0.0,
+      "name": "Point Towards Zone"
+    }
+  ],
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
@@ -42,17 +53,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 41.98721249581658
+    "rotation": 0.0
   },
   "reversed": false,
-<<<<<<< HEAD
-  "folder": "Two-Cycler-R",
-=======
-  "folder": "Two-Cycler_R",
->>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
+  "folder": "Autonomous WCP CC",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 1.022
   },
   "useDefaultConstraints": true
 }
