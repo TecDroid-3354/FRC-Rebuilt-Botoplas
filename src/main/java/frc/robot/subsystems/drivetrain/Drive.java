@@ -38,6 +38,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -302,6 +303,36 @@ public class Drive extends SubsystemBase {
     return Commands.runOnce(this::stop);
   }
 
+  /**
+   * Constructs a vector from the (x,y) components of the HUB to the (x1, y1) components of the Swerve.
+   * This vector is used to calculate the angle at which the Swerve should be by using atan2.
+   * One third of the current ChassisSpeeds is added to the current pose to account for calculations delay between the
+   * time at which the method was called and the time at which the calculations are received, since the Swerve will be
+   * in a different position.
+   * @return The Swerve required rotation to get the front to target the HUB's center.
+   */
+  @AutoLogOutput(key = "Drive/AlignToHub", unit = "Radians")
+  public Rotation2d getSwerveAngleToHub() {
+      return Constants.isFlipped.invoke() ?
+              Rotation2d.fromRadians(
+                      Math.atan2(
+                              Constants.Field.INSTANCE.getRED_HUB_CENTER_Y().minus(getPose().getMeasureY())
+                                      .plus(Meters.of(getChassisSpeeds().vyMetersPerSecond).div(3))
+                                      .in(Units.Meters),
+                              Constants.Field.INSTANCE.getRED_HUB_CENTER_X().minus(getPose().getMeasureX())
+                                      .plus(Meters.of(getChassisSpeeds().vxMetersPerSecond).div(3))
+                                      .in(Units.Meters)))
+
+              : Rotation2d.fromRadians(
+              Math.atan2(
+                      Constants.Field.INSTANCE.getBLUE_HUB_CENTER_Y().minus(getPose().getMeasureY())
+                              .plus(Meters.of(getChassisSpeeds().vyMetersPerSecond))
+                              .in(Units.Meters),
+                      Constants.Field.INSTANCE.getBLUE_HUB_CENTER_X().minus(getPose().getMeasureX())
+                              .plus(Meters.of(getChassisSpeeds().vxMetersPerSecond))
+                              .in(Units.Meters))
+      );
+  }
   /**
    * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
    * return to their normal orientations the next time a nonzero velocity is requested.

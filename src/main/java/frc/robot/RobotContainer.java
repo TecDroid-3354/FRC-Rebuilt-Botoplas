@@ -22,6 +22,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,6 +43,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -183,11 +185,15 @@ public class RobotContainer {
                 )
             );
 
-      try {
-          controller.a().onTrue
-                  (drive.followTrajectory(PathPlannerPath.fromPathFile(Constants.AutonomousPaths.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180)))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
+    controller.a().whileTrue(DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> -controller.getLeftY() * 0.8,
+                    () -> -controller.getLeftX() * 0.8,
+                    drive::getSwerveAngleToHub
+                    )
+    );
 
+      try {
           controller.b().onTrue
                           (drive.followTrajectory(underTheTrenchTestPathOnTheFly))
                   .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
