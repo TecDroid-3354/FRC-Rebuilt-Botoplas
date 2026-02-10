@@ -12,9 +12,12 @@
 // GNU General Public License for more details.
 package frc.robot.constants
 
+import edu.wpi.first.units.measure.Angle
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj.RobotBase
+import frc.template.utils.meters
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -31,6 +34,13 @@ object Constants {
     val currentMode: Mode = if (RobotBase.isReal()) Mode.REAL else simMode
 
     val tuningMode = true
+
+    object Field {
+        val BLUE_HUB_CENTER_X: Distance = 4.625.meters
+        val BLUE_HUB_CENTER_Y: Distance = 4.030.meters
+        val RED_HUB_CENTER_X : Distance = 11.920.meters
+        val RED_HUB_CENTER_Y : Distance = 4.030.meters
+    }
 
     object AutonomousPaths {
         const val LEFT_TRENCH_ONE_METER_RIGHT = "1MeterPath"
