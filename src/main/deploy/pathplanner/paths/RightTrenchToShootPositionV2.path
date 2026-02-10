@@ -1,0 +1,58 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.479,
+        "y": 0.574
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.003965763195434,
+        "y": 0.4833380884450788
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.029843081312411,
+        "y": 1.45373751783167
+      },
+      "prevControl": {
+        "x": 2.745192582025677,
+        "y": 0.7938659058487882
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 41.98721249581658
+  },
+  "reversed": false,
+<<<<<<< HEAD
+  "folder": "Two-Cycler-R",
+=======
+  "folder": "Two-Cycler_R",
+>>>>>>> 41fc99228b5d73beac146682aca2c11f54834a5a
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
