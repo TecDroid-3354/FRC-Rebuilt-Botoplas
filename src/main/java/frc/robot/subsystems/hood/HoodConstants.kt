@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.controls.MotionMagicVoltage
 import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveModule
 import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.measure.Current
 import frc.template.utils.amps
@@ -31,11 +32,13 @@ object HoodConstants {
     //valores puestos en configuration están en aleatorio por favor de cambiar
 
     object Configuration {
-        val neutralMode: NeutralModeValue = NeutralModeValue.Brake
-        val EXAMPLE_AMP_LIMITS = 50.0.amps
+        private val neutralMode: NeutralModeValue = NeutralModeValue.Brake
+        private val EXAMPLE_AMP_LIMITS = 50.0.amps
+
+        private val motorOrientation = InvertedValue.CounterClockwise_Positive
 
 
-        val controlGains = ControlGains(
+        private val controlGains = ControlGains(
             2.0,
             0.0,
             0.1
@@ -49,7 +52,7 @@ object HoodConstants {
 
 
         val motorConfig: TalonFXConfiguration = KrakenMotors.createTalonFXConfiguration(
-            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, InvertedValue.CounterClockwise_Positive)),
+            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
             Optional.of(KrakenMotors.configureCurrentLimits(EXAMPLE_AMP_LIMITS, false, 0.0.amps)),
             Optional.of(KrakenMotors.configureSlot0(controlGains)),Optional.of(KrakenMotors.configureAngularMotionMagic(angularTargets,
                 PhysicalLimits.REDUCTION)))

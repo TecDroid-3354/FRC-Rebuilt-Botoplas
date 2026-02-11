@@ -8,9 +8,6 @@ class Indexer : Subsystem {
     private val bottomRollerMotor =
         OpTalonFX(IndexerConstants.Identification.BottomRollerMotorID)
 
-    private val lateralRollerMotor =
-        OpTalonFX(IndexerConstants.Identification.LateralRollerMotorID)
-
     private var indexerEnabled = false
 
     init {
@@ -19,9 +16,6 @@ class Indexer : Subsystem {
     //Clear faults of the Motors
     private fun motorConfiguration() {
         bottomRollerMotor.applyConfigAndClearFaults(
-            IndexerConstants.Configuration.motorConfig
-        )
-        lateralRollerMotor.applyConfigAndClearFaults(
             IndexerConstants.Configuration.motorConfig
         )
     }
@@ -36,27 +30,17 @@ class Indexer : Subsystem {
     private fun stopHopperRollers() {
         bottomRollerMotor.getMotorInstance().setVoltage(0.0)
     }
-    //Same comment as above but for the use of the lateral motor
-    private fun enableHopperToShooterRollers() {
-        lateralRollerMotor.getMotorInstance()
-            .setVoltage(IndexerConstants.Voltage.LateralRollerVoltage)
-    }
-    //Same comment as above but for the use of the lateral motor
-    private fun stopHopperToShooterRollers() {
-        lateralRollerMotor.getMotorInstance().setVoltage(0.0)
-    }
+
 
     /* ---------------- Public control methods ---------------- */
 
     fun enableIndexer() {
         enableHopperRollers()
-        enableHopperToShooterRollers()
         indexerEnabled = true
     }
 
     fun stopIndexer() {
         stopHopperRollers()
-        stopHopperToShooterRollers()
         indexerEnabled = false
     }
 

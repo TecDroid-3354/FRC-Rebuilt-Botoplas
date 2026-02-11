@@ -12,12 +12,10 @@ object IndexerConstants {
         //Kraken IDs subject to change
         object Identification {
                 val BottomRollerMotorID = NumericId(5)
-                val LateralRollerMotorID = NumericId(6)
         }
         //The voltage from each roller that is available in the indexer
         object Voltage {
                 const val BottomRollerVoltage = 6.0
-                const val LateralRollerVoltage = 6.0
         }
         //Add the configuration values of AMPS,
         //Brake or Coast

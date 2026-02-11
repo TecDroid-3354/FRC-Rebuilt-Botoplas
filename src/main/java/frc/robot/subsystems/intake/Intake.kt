@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.hardware.CANcoder
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.wpilibj2.command.SubsystemBase
@@ -17,6 +18,7 @@ class Intake : SubsystemBase() {
     // Motors
     private val positionMotor = OpTalonFX(NumericId(IntakeConstants.kPositionMotorId))
     private val rollerMotor = OpTalonFX(NumericId(IntakeConstants.kRollerMotorId))
+    private val positionMotorFollower = OpTalonFX(NumericId(IntakeConstants.kPositionMotorFollowerID))
 
     //Encoder
     private val encoder = CANcoder(IntakeConstants.encoder.id)
@@ -63,6 +65,10 @@ class Intake : SubsystemBase() {
 
         // Apply configuration
         positionMotor.applyConfigAndClearFaults(config)
+
+        //Apply configuration to follower Motors
+        positionMotorFollower.applyConfigAndClearFaults(config)
+        positionMotorFollower.follow(positionMotor.getMotorInstance(), MotorAlignmentValue.Opposed)
 
     }
 

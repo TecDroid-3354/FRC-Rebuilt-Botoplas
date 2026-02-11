@@ -5,6 +5,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.wpilibj2.command.Command
 
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.Subsystem
@@ -13,13 +14,13 @@ import frc.template.utils.devices.OpTalonFX
 
 class Shooter() : Subsystem {
 
-    val motionMagicRequest = MotionMagicVelocityVoltage(0.0)
+    private val motionMagicRequest = MotionMagicVelocityVoltage(0.0)
 
-    val motorController = OpTalonFX(ShooterConstants.Identification.LeadMotorID)
+    private val motorController = OpTalonFX(ShooterConstants.Identification.LeadMotorID)
 
-    val motorFollowerOne = OpTalonFX(ShooterConstants.Identification.MotorFollowerOneID)
-    val motorFollowerTwo = OpTalonFX(ShooterConstants.Identification.MotorFollowerTwoID)
-    val motorFollowerThree = OpTalonFX(ShooterConstants.Identification.MotorFollowerThreeID)
+    private val motorFollowerOne = OpTalonFX(ShooterConstants.Identification.MotorFollowerOneID)
+    private val motorFollowerTwo = OpTalonFX(ShooterConstants.Identification.MotorFollowerTwoID)
+    private val motorFollowerThree = OpTalonFX(ShooterConstants.Identification.MotorFollowerThreeID)
 
     init{
         motorConfiguration()
@@ -42,21 +43,21 @@ class Shooter() : Subsystem {
 
     }
 
-    fun setVelocity(velocity : AngularVelocity){
+    private fun setVelocity(velocity : AngularVelocity){
         motorController.getMotorInstance().setControl(motionMagicRequest.withVelocity(velocity))
     }
 
-    fun stopShooter(){
-        motorController.getMotorInstance().setControl(motionMagicRequest.withVelocity(0.0))
+    private fun stopShooter(){
+         motorController.getMotorInstance().setControl(motionMagicRequest.withVelocity(0.0))
     }
 
-    fun setVelocityCMD(speed : AngularVelocity){
-        val clampedVelocity = speed.coerceIn(RotationsPerSecond.of(-6_000.0)..RotationsPerSecond.of(6_000.0))
-        InstantCommand({  setVelocity(clampedVelocity) }, this)
+    fun setVelocityCMD(speed : AngularVelocity) : Command {
+        val clampedVelocity = speed.coerceIn(RotationsPerSecond.of(-100.0)..RotationsPerSecond.of(100.0))
+        return InstantCommand({  setVelocity(clampedVelocity) }, this)
     }
 
-    fun stopShooterCMD(){
-        InstantCommand({ stopShooter() }, this)
+    fun stopShooterCMD(): Command {
+        return InstantCommand({ stopShooter() }, this)
     }
 
 }

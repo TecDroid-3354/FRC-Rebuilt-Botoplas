@@ -17,6 +17,7 @@ object IntakeConstants {
     // CAN IDs
     const val kPositionMotorId = 20
     const val kRollerMotorId = 21
+    const val kPositionMotorFollowerID = 22
 
 
     // Motor configuration
