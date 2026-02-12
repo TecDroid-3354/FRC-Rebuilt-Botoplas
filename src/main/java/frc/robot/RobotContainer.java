@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.constants.Constants;
 import frc.robot.constants.SwerveTunerConstants;
@@ -41,6 +42,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.io.IOException;
@@ -202,6 +204,7 @@ public class RobotContainer {
     // -------------------------------
 
     // Right bumper → deploy intake + run rollers while held
+      /*
     controller
             .rightBumper()
             .whileTrue(Commands.run(intake::enableIntake, intake))
@@ -211,6 +214,7 @@ public class RobotContainer {
     controller
             .leftBumper()
             .onTrue(Commands.runOnce(intake::stopIntake, intake));
+      */
 
     // Reset gyro to 0° when Start button is pressed
     controller.start().onTrue(
@@ -233,13 +237,35 @@ public class RobotContainer {
                                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                             drive));
 
-    controller.a().whileTrue(DriveCommands.joystickDriveAtAngle(
+    //Characterization
+
+      controller
+              .a().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+
+      controller
+              .b().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+      controller
+              .x().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+
+      controller
+              .y().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+      controller
+              .leftTrigger().onTrue(new InstantCommand(Logger::start));
+
+      controller
+              .leftTrigger().onTrue(new InstantCommand(Logger::end));
+
+  /*  controller.a().whileTrue(DriveCommands.joystickDriveAtAngle(
                     drive,
                     () -> -controller.getLeftY() * 0.8,
                     () -> -controller.getLeftX() * 0.8,
                     drive::getSwerveAngleToHub
                     )
     );
+
+
 
       try {
           controller.b().onTrue
@@ -262,6 +288,8 @@ public class RobotContainer {
       } catch (ParseException e) {
           throw new RuntimeException(e);
       }
+*/
+
 
   }
 
