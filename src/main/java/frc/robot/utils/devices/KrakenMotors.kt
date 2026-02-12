@@ -54,8 +54,8 @@ object KrakenMotors {
      * @param canBusName The canBus that the motor is in.
      * @return A [TalonFX] motor controller with the configuration described above. Sticky faults are cleared.
      */
-    fun createDefaultTalon(id: NumericId, canBusName: String): TalonFX {
-        val talon = TalonFX(id.id, CANBus(canBusName))
+    fun createDefaultTalon(id: Int, canBusName: String): TalonFX {
+        val talon = TalonFX(id, CANBus(canBusName))
         talon.clearStickyFaults()
         talon.configurator.apply(defaultConfig)
         return talon

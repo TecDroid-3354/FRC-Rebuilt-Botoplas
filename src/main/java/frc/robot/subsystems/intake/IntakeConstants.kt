@@ -1,76 +1,131 @@
-package frc.robot.subsystems.intake
-import edu.wpi.first.units.Units
+package frc.robot.subsystems.shooter
+
+import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.NeutralModeValue
+import edu.wpi.first.units.AngleUnit
+import edu.wpi.first.units.Units.Amps
+import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.measure.Angle
+import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Time
 import edu.wpi.first.units.measure.Voltage
-import frc.template.utils.amps
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.devices.NumericId
-import frc.template.utils.devices.RotationalDirection
+import frc.template.utils.degrees
+import frc.template.utils.devices.KrakenMotors
+import frc.template.utils.devices.ThroughBoreBrand
 import frc.template.utils.mechanical.Reduction
-import frc.template.utils.radians
+import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
-
+import frc.template.utils.volts
+import java.util.Optional
 
 object IntakeConstants {
+    /**
+     * Unique ID of every component in the shooter
+     */
+    object Identification {
+        const val ROLLERS_MOTOR_ID          : Int = 1
+        const val LEAD_DEPLOY_MOTOR_ID      : Int = 2
+        const val FOLLOWER_DEPLOY_MOTOR_ID  : Int = 3
+        const val ABSOLUTE_ENCODER_ID       : Int = 4
+    }
 
-    // CAN IDs
-    const val kPositionMotorId = 20
-    const val kRollerMotorId = 21
+    /**
+     * Every physical aspect needed to be considered in code
+     */
+    object PhysicalLimits {
+        val Reduction                   : Reduction = Reduction(1.0)
+        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
+        val DeployablePositionDelta     : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
+    }
 
+    /**
+     * Idle deployable positions for each intake state: retracted and deployed
+     */
+    object RetractilePositions {
+        val RetractedPose               : Angle = 0.0.degrees
+        val DeployedPose                : Angle = 90.0.degrees
+    }
 
-    // Motor configuration
-    val PostionMotor = RotationalDirection.Counterclockwise
-    val RollMotor = RotationalDirection.Counterclockwise
+    /**
+     * Pre-defined voltage targets for the [frc.robot.subsystems.intake.Intake] rollers.
+     * Only these targets should be used since velocity is constant.
+     */
+    object VoltageTargets {
+        val EnabledRollersVoltage         : Voltage = 6.0.volts
+        val DisabledRollersVoltage        : Voltage = 0.0.volts
+    }
 
+    /**
+     * All MOTOR and ENCODER configuration. Every field must be written privately and separately to be called
+     * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
+     */
+    object Configuration {
+        // ----------------------------------------
+        // PUBLIC — Absolute Encoder Configurations
+        // ----------------------------------------
+        object AbsoluteEncoder {
+            val offset                  : Angle = 0.0.degrees
+            val inverted                : Boolean = false
+            val brand                   : ThroughBoreBrand = ThroughBoreBrand.WCP
+        }
 
-    // Current limit in amps
-    val PostionMotorLimitAmps = 40.0.amps
-    val RollerMotorLimitAmps = 40.0.amps
+        // ---------------------------------
+        // PRIVATE — Motor Outputs
+        // ---------------------------------
+        private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
+        private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
 
+        // ---------------------------------
+        // PRIVATE — Current Limits
+        // ---------------------------------
+        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val statorCurrentLimits : Current = Amps.of(40.0)
+        private val statorCurrentEnable : Boolean = false
 
-    // Absolute encoder configuration
+        // ---------------------------------
+        // PRIVATE — Slot 0
+        // ---------------------------------
+        private val controlGains        : ControlGains = ControlGains(
+            p = 0.11, i = 0.0, d = 0.0, f = 0.0,
+            s = 0.25, v = 0.12, a = 0.01, g = 0.0)
 
+        // ---------------------------------
+        // PRIVATE — Motion Magic
+        // ---------------------------------
+        private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
+        private val acceleration        : Time = 0.1.seconds
+        private val jerkTime            : Time = 0.2.seconds
 
-    val encoder= NumericId (1)
+        // -----------------------------------
+        // PUBLIC — Motor Configuration Object
+        // -----------------------------------
+        val motorsConfig = KrakenMotors.createTalonFXConfiguration(
+            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+            Optional.of(KrakenMotors.configureCurrentLimits(
+                supplyCurrentLimits,
+                statorCurrentEnable,
+                statorCurrentLimits)),
+            Optional.of(KrakenMotors.configureSlot0(controlGains)),
+            Optional.of(KrakenMotors.configureAngularMotionMagic(
+                AngularMotionTargets(cruiseVelocity, acceleration,jerkTime),
+                PhysicalLimits.Reduction
+            ))
+        )
+    }
 
-    // Offset applied to absolute encoder reading
-    val kAbsoluteEncoderOffset: Angle = Units.Rotations.of(0.0)
-
-    // Intake Positions (mechanism side)
-
-    val kDeployedPosition: Angle = Units.Rotations.of(1.2)
-    val kRetractedPosition: Angle = Units.Rotations.of(0.0)
-
-
-    // -------------------------------
-// Physical limits (mechanism side)
-// -------------------------------
-    val absoluteMaximum: Angle = Units.Rotations.of(0.0)
-    val absoluteMinumum: Angle = Units.Rotations.of(1.3)
-
-    // -------------------------------
-// Reduction (mechanism -> motor)
-// -------------------------------
-    val kReduction = Reduction(1.0 / 2.0)
-
-
-    // -------------------------------
-// Control gains
-// -------------------------------
-
-    val controlGains = ControlGains(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-    val angularMotionTargets: AngularMotionTargets = AngularMotionTargets(
-        cruiseVelocity = 0.0.radians.per(Units.Seconds),
-        accelerationTimePeriod = 0.0.seconds,
-        jerkTimePeriod = 0.0.seconds
-    )
-
-
-
-    // -------------------------------
-// Roller voltage
-// -------------------------------
-    val kRollerVoltage: Voltage = Units.Volts.of(8.0)
+    /**
+     * Used to store AdvantageScope's tab in which to display [frc.robot.subsystems.intake.Intake] data.
+     * Also used for [frc.robot.utils.controlProfiles.LoggedTunableNumber]
+     */
+    object Telemetry {
+        const val INTAKE_TAB                    : String = "Intake"
+        const val INTAKE_CONNECTED_ALERTS_FIELD : String = "${INTAKE_TAB}/Intake Connection Alerts"
+        const val INTAKE_VOLTAGE_FIELD          : String = "${INTAKE_TAB}/Rollers Component Voltage"
+        const val INTAKE_ANGLE_FIELD            : String = "${INTAKE_TAB}/Deployable Component Angle"
+        const val INTAKE_TARGET_ANGLE_FIELD     : String = "${INTAKE_TAB}/Deployable Component Target Angle"
+        const val INTAKE_DEPLOYABLE_ERROR       : String = "${INTAKE_TAB}/Deployable Component Angle error"
+    }
 }

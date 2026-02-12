@@ -36,6 +36,7 @@ import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -70,13 +71,14 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
-    private final Intake intake = new Intake();
+  private final Intake intake = new Intake();
+  private final Shooter shooter = new Shooter();
 
-    // -------------------------------
-    // Controllers
-    // -------------------------------
-    private final CommandXboxController controller =
-            new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
+  // -------------------------------
+  // Controllers
+  // -------------------------------
+  private final CommandXboxController controller =
+          new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
 
   private List<Waypoint> waypoints;
 

@@ -1,65 +1,142 @@
 package frc.robot.subsystems.indexer
 
+import edu.wpi.first.wpilibj.Alert
+import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.Subsystem
+import frc.robot.subsystems.shooter.ShooterConstants
 import frc.template.utils.devices.OpTalonFX
+import org.littletonrobotics.junction.AutoLogOutput
 
-class Indexer : Subsystem {
-    //Identification of the motors
-    private val bottomRollerMotor =
-        OpTalonFX(IndexerConstants.Identification.BottomRollerMotorID)
+class Indexer() : Subsystem {
+    // -------------------------------
+    // PRIVATE — Motors Declaration
+    // -------------------------------
+    private val bottomRollerMotor: OpTalonFX =
+        OpTalonFX(IndexerConstants.Identification.BOTTOM_ROLLERS_ID)
 
-    private val lateralRollerMotor =
-        OpTalonFX(IndexerConstants.Identification.LateralRollerMotorID)
+    private val lateralRollerMotor: OpTalonFX =
+        OpTalonFX(IndexerConstants.Identification.LATERAL_ROLLERS_ID)
 
+    // -------------------------------
+    // PRIVATE — Enabled flag
+    // -------------------------------
     private var indexerEnabled = false
 
+    // -------------------------------
+    // PRIVATE — Alerts
+    // -------------------------------
+    private val bottomRollersAlert: Alert =
+        Alert(IndexerConstants.Telemetry.INDEXER_CONNECTED_ALERTS_FIELD,
+            "Indexer Bottom Rollers Motor ID ${IndexerConstants.Identification.BOTTOM_ROLLERS_ID} Disconnected",
+            Alert.AlertType.kError)
+    private val lateralRollersAlert: Alert =
+        Alert(IndexerConstants.Telemetry.INDEXER_CONNECTED_ALERTS_FIELD,
+            "Indexer Lateral Rollers Motor ID ${IndexerConstants.Identification.LATERAL_ROLLERS_ID} Disconnected",
+            Alert.AlertType.kError)
+
+
+    /**
+     * Called upon [frc.robot.subsystems.indexer.Indexer] creation. Used to configure motors.
+     */
     init {
-        motorConfiguration()
-    }
-    //Clear faults of the Motors
-    private fun motorConfiguration() {
-        bottomRollerMotor.applyConfigAndClearFaults(
-            IndexerConstants.Configuration.motorConfig
-        )
-        lateralRollerMotor.applyConfigAndClearFaults(
-            IndexerConstants.Configuration.motorConfig
-        )
+        bottomRollerMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.motorConfig)
+        lateralRollerMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.motorConfig)
     }
 
-    /* ---------------- Private motor actions ---------------- */
-    //Apply Indexer constant to enable the roller's voltage
+    /**
+     * Called every 20ms loop. Used to update alerts.
+     * TODO() = Update deployable component motors' PID through here.
+     */
+    override fun periodic() {
+        bottomRollersAlert.set(bottomRollerMotor.isConnected.invoke().not())
+        lateralRollersAlert.set(lateralRollerMotor.isConnected.invoke().not())
+    }
+
+    // --------------------------------
+    // PRIVATE — Component wise control
+    // --------------------------------
+
+    /**
+     * Enables the hopper rollers with the voltage stored in [IndexerConstants.VoltageTargets].
+     * BottomRollerVoltage within the constants is used.
+     */
     private fun enableHopperRollers() {
-        bottomRollerMotor.getMotorInstance()
-            .setVoltage(IndexerConstants.Voltage.BottomRollerVoltage)
+        bottomRollerMotor.voltageRequest(IndexerConstants.VoltageTargets.BottomRollerVoltage)
     }
-    //Apply Indexer constants to disable the roller's voltage
-    private fun stopHopperRollers() {
-        bottomRollerMotor.getMotorInstance().setVoltage(0.0)
-    }
-    //Same comment as above but for the use of the lateral motor
+
+    /**
+     * Enables the hopper to shooter rollers with the voltage stored in [IndexerConstants.VoltageTargets].
+     * LateralRollerVoltage within the constants is used.
+     */
     private fun enableHopperToShooterRollers() {
-        lateralRollerMotor.getMotorInstance()
-            .setVoltage(IndexerConstants.Voltage.LateralRollerVoltage)
+        lateralRollerMotor.voltageRequest(IndexerConstants.VoltageTargets.LateralRollerVoltage)
     }
-    //Same comment as above but for the use of the lateral motor
+
+    /**
+     * Stops hopper (bottom) rollers.
+     */
+    private fun stopHopperRollers() {
+        bottomRollerMotor.stopMotor()
+    }
+
+    /**
+     * Stops hopper (lateral) rollers.
+     */
     private fun stopHopperToShooterRollers() {
-        lateralRollerMotor.getMotorInstance().setVoltage(0.0)
+        lateralRollerMotor.stopMotor()
     }
 
-    /* ---------------- Public control methods ---------------- */
+    // ----------------------------------------
+    // PUBLIC — Runnable subsystem wise control
+    // ----------------------------------------
 
-    fun enableIndexer() {
+    /**
+     * Enables each indexer component. sets [indexerEnabled] to true.
+     */
+    private fun enableIndexer() {
         enableHopperRollers()
         enableHopperToShooterRollers()
         indexerEnabled = true
     }
 
-    fun stopIndexer() {
+    /**
+     * Disables each indexer component. sets [indexerEnabled] to false.
+     */
+    private fun stopIndexer() {
         stopHopperRollers()
         stopHopperToShooterRollers()
         indexerEnabled = false
     }
 
+    // ----------------------------------------
+    // PUBLIC — CMD subsystem wise control
+    // ----------------------------------------
+
+    /**
+     * Command version of [enableIndexer]. Subsystem set as requirement.
+     * @return
+     */
+    fun enableIndexerCMD(): Command {
+        return InstantCommand({ enableIndexer() }, this)
+    }
+
+    /**
+     * Command version of [stopIndexer]. Subsystem set as requirement.
+     */
+    fun stopIndexerCMD(): Command {
+        return InstantCommand({ stopIndexer() }, this)
+    }
+
+    // -------------------------------
+    // PUBLIC — Telemetry methods
+    // -------------------------------
+
+    /**
+     * Returns whether the indexer components are enabled.
+     * This can be seen live in the "Indexer" tab of AdvantageScope.
+     */
+    @AutoLogOutput(key = IndexerConstants.Telemetry.INDEXER_ENABLED_FIELD)
     fun isIndexerEnabled(): Boolean {
         return indexerEnabled
     }
