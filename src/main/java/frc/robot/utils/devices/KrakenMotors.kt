@@ -12,7 +12,6 @@ import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.measure.Current
-import frc.robot.subsystems.exampleSubsystem.ExampleConstants.Identification.CAN_BUS
 import frc.template.utils.Sprocket
 import frc.template.utils.amps
 import frc.template.utils.controlProfiles.AngularMotionTargets

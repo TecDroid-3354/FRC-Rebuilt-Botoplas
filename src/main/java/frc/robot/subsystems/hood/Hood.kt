@@ -1,4 +1,5 @@
 package frc.robot.subsystems.hood
+import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.wpilibj.Alert
@@ -20,7 +21,7 @@ class Hood() : Subsystem {
     // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetPose          : Angle = 0.0.degrees
+    private var targetPose          : Angle = Degrees.zero()
 
     // -------------------------------
     // PRIVATE — Alerts
