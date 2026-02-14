@@ -38,6 +38,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.PerUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -161,7 +162,7 @@ public class Drive extends SubsystemBase {
     sysId =
         new SysIdRoutine(
             new SysIdRoutine.Config(
-                null,
+                    Volts.per(Second).of(1),
                 Volts.of(4),
                 Seconds.of(5),
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),

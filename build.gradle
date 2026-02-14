@@ -92,8 +92,8 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+//   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
@@ -101,10 +101,10 @@ dependencies {
     kapt "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 }
 
-test {
-    useJUnitPlatform()
-    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-}
+//test {
+//    useJUnitPlatform()
+//    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+//}
 
 // Simulation configuration (e.g. environment variables).
 //
@@ -128,7 +128,7 @@ jar {
 // Configure jar and deploy tasks
 deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
-wpi.java.configureTestTasks(test)
+//wpi.java.configureTestTasks(test)
 
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {

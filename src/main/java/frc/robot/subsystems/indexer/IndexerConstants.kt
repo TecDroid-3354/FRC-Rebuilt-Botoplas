@@ -4,46 +4,69 @@ import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Voltage
+import frc.robot.subsystems.shooter.Shooter
 import frc.template.utils.devices.KrakenMotors
-import frc.template.utils.devices.NumericId
+import frc.template.utils.volts
 import java.util.Optional
 
 object IndexerConstants {
-        //Kraken IDs subject to change
+        /**
+         * Unique ID of every component in the shooter
+         */
         object Identification {
-                val BottomRollerMotorID = NumericId(5)
-                val LateralRollerMotorID = NumericId(6)
+                const val BOTTOM_ROLLERS_ID   : Int = 5
+                const val LATERAL_ROLLERS_ID  : Int = 6
         }
-        //The voltage from each roller that is available in the indexer
-        object Voltage {
-                const val BottomRollerVoltage = 6.0
-                const val LateralRollerVoltage = 6.0
+
+        /**
+         * Pre-defined voltage targets for each set of rollers.
+         * Only these targets should be used since velocity is constant.
+         */
+        object VoltageTargets {
+                val BottomRollerVoltage         : Voltage = 6.0.volts
+                val LateralRollerVoltage        : Voltage = 6.0.volts
         }
-        //Add the configuration values of AMPS,
-        //Brake or Coast
-        //And the Rotational Direction
+
+        /**
+         * All MOTOR configuration. Every field must be written privately and separately to be called
+         * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
+         */
         object Configuration {
-                val currentLimit: Current = Amps.of(30.0)
-                val neutralMode = NeutralModeValue.Brake
-                val motorOrientation = InvertedValue.Clockwise_Positive
+                // ---------------------------------
+                // PRIVATE — Motor Outputs
+                // ---------------------------------
+                private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
+                private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+
+                // ---------------------------------
+                // PRIVATE — Current Limits
+                // ---------------------------------
+                private val supplyCurrentLimits : Current = Amps.of(40.0)
+                private val statorCurrentLimits : Current = Amps.of(40.0)
+                private val statorCurrentEnable : Boolean = false
 
                 val motorConfig = KrakenMotors.createTalonFXConfiguration(
                         Optional.of(
-                                KrakenMotors.configureMotorOutputs(
-                                        neutralMode,
-                                        motorOrientation
-                                )
-                        ),
+                                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
                         Optional.of(
                                 KrakenMotors.configureCurrentLimits(
-                                        currentLimit,
-                                        false,
-                                        statorCurrentLimit = Amps.of(0.0)
-                                )
-                        ),
+                                        supplyCurrentLimits,
+                                        statorCurrentEnable,
+                                        statorCurrentLimits
+                                )),
                         Optional.empty(), // slot0 (PID not used)
                         Optional.empty()  // motionMagic (not used)
                 )
+        }
 
+        /**
+         * Used to store AdvantageScope's tab in which to display [Indexer] data.
+         * Also used for [frc.robot.utils.controlProfiles.LoggedTunableNumber]
+         */
+        object Telemetry {
+                const val INDEXER_TAB: String = "Indexer"
+                const val INDEXER_ENABLED_FIELD: String = "${INDEXER_TAB}/Indexer Enabled"
+                const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
         }
 }

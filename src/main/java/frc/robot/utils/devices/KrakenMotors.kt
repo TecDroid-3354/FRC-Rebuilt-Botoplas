@@ -12,7 +12,6 @@ import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.measure.Current
-import frc.robot.subsystems.exampleSubsystem.ExampleConstants.Identification.CAN_BUS
 import frc.template.utils.Sprocket
 import frc.template.utils.amps
 import frc.template.utils.controlProfiles.AngularMotionTargets
@@ -54,8 +53,8 @@ object KrakenMotors {
      * @param canBusName The canBus that the motor is in.
      * @return A [TalonFX] motor controller with the configuration described above. Sticky faults are cleared.
      */
-    fun createDefaultTalon(id: NumericId, canBusName: String): TalonFX {
-        val talon = TalonFX(id.id, CANBus(canBusName))
+    fun createDefaultTalon(id: Int, canBusName: String): TalonFX {
+        val talon = TalonFX(id, CANBus(canBusName))
         talon.clearStickyFaults()
         talon.configurator.apply(defaultConfig)
         return talon

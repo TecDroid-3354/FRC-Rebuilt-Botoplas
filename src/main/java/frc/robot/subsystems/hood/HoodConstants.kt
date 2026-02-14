@@ -1,16 +1,16 @@
 package frc.robot.subsystems.hood
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration
-import com.ctre.phoenix6.controls.MotionMagicVoltage
-import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveModule
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
+import edu.wpi.first.units.AngleUnit
+import edu.wpi.first.units.Units.Amps
+import edu.wpi.first.units.Units.RadiansPerSecond
+import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
-import frc.template.utils.amps
+import edu.wpi.first.units.measure.Time
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
-import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.safety.MeasureLimits
@@ -18,43 +18,84 @@ import frc.template.utils.seconds
 import java.util.Optional
 
 object HoodConstants {
-        object Identification {
-                const val EXAMPLE_ID = 1
-        }
+    /**
+     * Unique ID of every component in the hood
+     */
+    object Identification {
+        const val HOOD_MOTOR_ID : Int = 1
+    }
 
+    /**
+     * Every physical aspect needed to be considered in code
+     */
     object PhysicalLimits {
-            val REDUCTION = Reduction(1.0)
-            val limits = MeasureLimits(0.0.degrees,90.0.degrees)
-        }
+        val Reduction           : Reduction = Reduction(1.0)
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
+    }
 
-
-    //valores puestos en configuration están en aleatorio por favor de cambiar
-
+    /**
+     * All MOTOR configuration. Every field must be written privately and separately to be called
+     * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
+     */
     object Configuration {
-        val neutralMode: NeutralModeValue = NeutralModeValue.Brake
-        val EXAMPLE_AMP_LIMITS = 50.0.amps
+        // ---------------------------------
+        // PRIVATE — Motor Outputs
+        // ---------------------------------
+        private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
+        private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
 
+        // ---------------------------------
+        // PRIVATE — Current Limits
+        // ---------------------------------
+        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val statorCurrentLimits : Current = Amps.of(40.0)
+        private val statorCurrentEnable : Boolean = false
 
-        val controlGains = ControlGains(
-            2.0,
-            0.0,
-            0.1
+        // ---------------------------------
+        // PRIVATE — Slot 0
+        // ---------------------------------
+        private val controlGains        : ControlGains = ControlGains(
+            p = 0.11, i = 0.0, d = 0.0, f = 0.0,
+            s = 0.25, v = 0.12, a = 0.01, g = 0.0)
+
+        // ---------------------------------
+        // PRIVATE — Motion Magic
+        // ---------------------------------
+        private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
+        private val acceleration        : Time = 0.1.seconds
+        private val jerkTime            : Time = 0.2.seconds
+
+        // -----------------------------------
+        // PUBLIC — Motor Configuration Object
+        // -----------------------------------
+        val motorConfig = KrakenMotors.createTalonFXConfiguration(
+            Optional.of(
+                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+            Optional.of(
+                KrakenMotors.configureCurrentLimits(
+                    supplyCurrentLimits,
+                    statorCurrentEnable,
+                    statorCurrentLimits
+                )),
+            Optional.of(
+                KrakenMotors.configureSlot0(controlGains)),
+            Optional.of(
+                KrakenMotors.configureAngularMotionMagic(
+                    AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
+                    PhysicalLimits.Reduction
+                ))
         )
-
-        val angularTargets = AngularMotionTargets(
-            0.0.degreesPerSecond,
-            0.1.seconds,
-            0.1.seconds
-        )
-
-
-        val motorConfig: TalonFXConfiguration = KrakenMotors.createTalonFXConfiguration(
-            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, InvertedValue.CounterClockwise_Positive)),
-            Optional.of(KrakenMotors.configureCurrentLimits(EXAMPLE_AMP_LIMITS, false, 0.0.amps)),
-            Optional.of(KrakenMotors.configureSlot0(controlGains)),Optional.of(KrakenMotors.configureAngularMotionMagic(angularTargets,
-                PhysicalLimits.REDUCTION)))
-
-        val motionMagicRequest = MotionMagicVoltage(0.0)
-
     }
+
+    /**
+     * Used to store AdvantageScope's tab in which to display [Hood] data.
+     * Also used for [frc.robot.utils.controlProfiles.LoggedTunableNumber]
+     */
+    object Telemetry {
+        const val HOOD_TAB          : String = "Hood"
+        const val HOOD_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Angle"
+        const val HOOD_TARGET_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
+        const val HOOD_CONNECTED_ALERTS_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
     }
+
+}
