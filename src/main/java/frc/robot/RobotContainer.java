@@ -36,6 +36,7 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
+import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
@@ -75,6 +76,7 @@ public class RobotContainer {
 
   private final Intake intake = new Intake();
   private final Shooter shooter = new Shooter();
+  private final Hood hood = new Hood();
 
   // -------------------------------
   // Controllers

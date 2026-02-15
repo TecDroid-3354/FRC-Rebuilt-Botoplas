@@ -2,9 +2,14 @@ package frc.robot.subsystems.climber
 
 import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
+import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
-import edu.wpi.first.wpilibj2.command.SubsystemBase
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.robot.subsystems.hood.HoodConstants
+import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
+import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
 import frc.template.utils.rotations
@@ -17,12 +22,12 @@ private enum class ClimberPositions(val pose: Angle) {
     RETRACTED(ClimberConstants.ClimberPositions.RetractedPose)
 }
 
-class Climber() : SubsystemBase() {
+class Climber() : SysIdSubsystem("Climber") {
 
     // ---------------------------------------
     // PRIVATE — Motors Declaration
     // ---------------------------------------
-    private val climberMotorController     : OpTalonFX =
+    private val motorController             : OpTalonFX =
         OpTalonFX(ClimberConstants.Identification.CLIMBER_MOTOR_ID)
 
     // -------------------------------
@@ -41,11 +46,38 @@ class Climber() : SubsystemBase() {
     // -------------------------------
     private var targetPose: ClimberPositions = ClimberPositions.RETRACTED
 
+    /// --------------------------------------------------------------------------------
+    // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
+    // --------------------------------------------------------------------------------
+    override val sysIdForwardRunningCondition: () -> Boolean = { getClimberAngle() < HoodConstants.PhysicalLimits.Limits.maximum }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getClimberAngle() > HoodConstants.PhysicalLimits.Limits.minimum }
+
+    /**
+     * [motorPosition] holds the current motor's position without gear ratios
+     */
+    override val motorPosition: Angle
+        get() = motorController.position.value
+    /**
+     * [motorVelocity] holds the current motor's velocity without gear ratios
+     */
+    override val motorVelocity: AngularVelocity
+        get() = motorController.velocity.value
+    /**
+     * [power] holds the current motor's power
+     */
+    override val power: Double
+        get() = motorController.power.invoke()
+
+    /**
+     * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
+     */
+    private val sysIdRoutines: SysIdRoutines = createIdentificationRoutines().createTests()
+    
     /**
      * Called upon [frc.robot.subsystems.climber.Climber] creation. Used to call motors config method.
      */
     init {
-        climberMotorController.applyConfigAndClearFaults(ClimberConstants.Configuration.motorConfig)
+        motorController.applyConfigAndClearFaults(ClimberConstants.Configuration.motorConfig)
         matchRelativeToAbsolute()
     }
 
@@ -59,11 +91,19 @@ class Climber() : SubsystemBase() {
      * @param angle The desired climber position.
      */
     private fun setPosition(angle: Angle) {
-        climberMotorController.positionRequestSubsystem(
+        motorController.positionRequestSubsystem(
             angle,
             ClimberConstants.PhysicalLimits.Limits,
             ClimberConstants.PhysicalLimits.Reduction
         )
+    }
+
+    /**
+     * Creates a voltage request to the motor controller. Used within the [SysIdSubsystem] interface to
+     * run the characterization methods.
+     */
+    override fun setVoltage(voltage: Voltage) {
+        motorController.voltageRequest(voltage)
     }
 
     // -----------------------------------------
@@ -105,13 +145,45 @@ class Climber() : SubsystemBase() {
     // ---------------------------------
 
     /**
-     * Literally matches the absolute encoder position to the [climberMotorController] to always ensure its angle
+     * Literally matches the absolute encoder position to the [motorController] to always ensure its angle
      * are within the correct [frc.template.utils.safety.MeasureLimits]
      */
     private fun matchRelativeToAbsolute() {
         val absolutePosition = encoder.position
 
-        climberMotorController.getMotorInstance().setPosition(absolutePosition)
+        motorController.getMotorInstance().setPosition(absolutePosition)
+    }
+
+    // -------------------------------
+    // PUBLIC — SysId Routines
+    // -------------------------------
+
+    /**
+     * A Quasistatic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Quasistatic means the magnitude of the supplied voltage will gradually increase.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a quasistatic routine following the specified direction
+     */
+    fun sysIdQuasistaticRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.quasistaticForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.quasistaticBackward
+        }
+    }
+
+    /**
+     * A Dynamic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Dynamic means the magnitude of the supplied voltage is fixed.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a dynamic routine following the specified direction
+     */
+    fun sysIdDynamicRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.dynamicForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.dynamicBackward
+        }
     }
 
     // ---------------------------------
@@ -122,8 +194,8 @@ class Climber() : SubsystemBase() {
      * @return the climber motor's current angle
      */
     @AutoLogOutput(key = ClimberConstants.Telemetry.CLIMBER_ANGLE_FIELD)
-    private fun getDeployableIntakeAngle(): Angle {
-        return ClimberConstants.PhysicalLimits.Reduction.apply(climberMotorController.position.value)
+    private fun getClimberAngle(): Angle {
+        return ClimberConstants.PhysicalLimits.Reduction.apply(motorController.position.value)
     }
 
     /**
@@ -134,7 +206,7 @@ class Climber() : SubsystemBase() {
         return abs(
             targetPose.pose.`in`(Units.Rotations).minus(
                 ClimberConstants.PhysicalLimits.Reduction.apply(
-                    climberMotorController.position.value.`in`(Units.Rotations)
+                    motorController.position.value.`in`(Units.Rotations)
                 )
             )
         ).rotations

@@ -3,12 +3,13 @@ package frc.robot.subsystems.indexer
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
-import edu.wpi.first.wpilibj2.command.Subsystem
-import frc.robot.subsystems.shooter.ShooterConstants
+import edu.wpi.first.wpilibj2.command.SubsystemBase
+import frc.robot.subsystems.shooter.IntakeConstants
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
 
-class Indexer() : Subsystem {
+class Indexer() : SubsystemBase() {
     // -------------------------------
     // PRIVATE — Motors Declaration
     // -------------------------------
@@ -35,7 +36,6 @@ class Indexer() : Subsystem {
             "Indexer Lateral Rollers Motor ID ${IndexerConstants.Identification.LATERAL_ROLLERS_ID} Disconnected",
             Alert.AlertType.kError)
 
-
     /**
      * Called upon [frc.robot.subsystems.indexer.Indexer] creation. Used to configure motors.
      */
@@ -51,6 +51,14 @@ class Indexer() : Subsystem {
     override fun periodic() {
         bottomRollersAlert.set(bottomRollerMotor.isConnected.invoke().not())
         lateralRollersAlert.set(lateralRollerMotor.isConnected.invoke().not())
+
+        if (IndexerConstants.Tunables.bottomRollerVoltage.hasChanged(hashCode())
+            || IndexerConstants.Tunables.lateralRollerVoltage.hasChanged(hashCode())) {
+            updateRollersTargetVoltage(
+                IndexerConstants.Tunables.bottomRollerVoltage.get(),
+                IndexerConstants.Tunables.lateralRollerVoltage.get()
+            )
+        }
     }
 
     // --------------------------------
@@ -140,4 +148,14 @@ class Indexer() : Subsystem {
     fun isIndexerEnabled(): Boolean {
         return indexerEnabled
     }
+    /**
+     * Used to update the voltage targets of the rollers component.
+     * @param bottomRollerVoltage Voltage target for bottom rollores. Received live
+     * @param lateralRollerVoltage Voltage target for lateral rollers. Received live
+     */
+    private fun updateRollersTargetVoltage(bottomRollerVoltage: Double, lateralRollerVoltage: Double) {
+        IndexerConstants.VoltageTargets.BottomRollerVoltage = bottomRollerVoltage.volts
+        IndexerConstants.VoltageTargets.LateralRollerVoltage = lateralRollerVoltage.volts
+    }
+    
 }

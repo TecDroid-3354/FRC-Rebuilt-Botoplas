@@ -5,7 +5,9 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Voltage
+import frc.robot.subsystems.shooter.IntakeConstants
 import frc.robot.subsystems.shooter.Shooter
+import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.volts
 import java.util.Optional
@@ -24,8 +26,13 @@ object IndexerConstants {
          * Only these targets should be used since velocity is constant.
          */
         object VoltageTargets {
-                val BottomRollerVoltage         : Voltage = 6.0.volts
-                val LateralRollerVoltage        : Voltage = 6.0.volts
+                var BottomRollerVoltage         : Voltage = 6.0.volts
+                var LateralRollerVoltage        : Voltage = 6.0.volts
+        }
+
+        object Tunables {
+                val bottomRollerVoltage         : LoggedTunableNumber = LoggedTunableNumber("${{Telemetry.INDEXER_TAB}}/Bottom Rollers voltage", 10.0)
+                val lateralRollerVoltage        : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Lateral Rollers voltage", 10.0)
         }
 
         /**

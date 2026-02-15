@@ -1,24 +1,26 @@
 package frc.robot.subsystems.shooter
 
+import com.ctre.phoenix6.configs.Slot0Configs
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
-import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.Units.DegreesPerSecond
-import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 
 import edu.wpi.first.wpilibj2.command.InstantCommand
-import edu.wpi.first.wpilibj2.command.Subsystem
-import frc.template.utils.degrees
-import frc.template.utils.degreesPerSecond
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
+import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
+import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
 import org.littletonrobotics.junction.AutoLogOutput
 
-class Shooter() : Subsystem {
+class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
     // PRIVATE — Motors Declaration
     // -------------------------------
@@ -69,6 +71,33 @@ class Shooter() : Subsystem {
             "Right Shooter Third Motor ID ${ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_THIRD_ID} Disconnected",
             Alert.AlertType.kError)
 
+    // --------------------------------------------------------------------------------
+    // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
+    // --------------------------------------------------------------------------------
+    override val sysIdForwardRunningCondition: () -> Boolean = { getShooterAngularVelocity() < ShooterConstants.Control.MAX_RPS }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getShooterAngularVelocity() > ShooterConstants.Control.MIN_RPS }
+
+    /**
+     * [motorPosition] holds the current motor's position without gear ratios
+     */
+    override val motorPosition: Angle
+        get() = leadMotorController.position.value
+    /**
+     * [motorVelocity] holds the current motor's velocity without gear ratios
+     */
+    override val motorVelocity: AngularVelocity
+        get() = leadMotorController.velocity.value
+    /**
+     * [power] holds the current motor's power
+     */
+    override val power: Double
+        get() = leadMotorController.power.invoke()
+
+    /**
+     * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
+     */
+    private val sysIdRoutines: SysIdRoutines = createIdentificationRoutines().createTests()
+
     /**
      * Called upon [frc.robot.subsystems.shooter.Shooter] creation. Used to call motors config method.
      */
@@ -77,8 +106,7 @@ class Shooter() : Subsystem {
     }
 
     /**
-     * Called every 20ms loop. Used to update alerts.
-     * TODO() = Update deployable component motors' PID through here.
+     * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF values.
      */
     override fun periodic() {
         leadLeftFirstAlert.set(leadMotorController.isConnected.invoke().not())
@@ -87,6 +115,15 @@ class Shooter() : Subsystem {
         followerRightFirstAlert.set(followerRightMotorFirst.isConnected.invoke().not())
         followerRightSecondAlert.set(followerRightMotorSecond.isConnected.invoke().not())
         followerRightThirdAlert.set(followerRightMotorThird.isConnected.invoke().not())
+
+        if (ShooterConstants.Tunables.motorkP.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorkI.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorkD.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorkF.hasChanged(hashCode())) {
+            updateMotorsPIDF(
+                ShooterConstants.Tunables.motorkP.get(), ShooterConstants.Tunables.motorkI.get(),
+                ShooterConstants.Tunables.motorkD.get(), ShooterConstants.Tunables.motorkF.get())
+        }
     }
 
     // ---------------------------------
@@ -114,6 +151,10 @@ class Shooter() : Subsystem {
         leadMotorController.stopMotor()
     }
 
+    override fun setVoltage(voltage: Voltage) {
+        leadMotorController.voltageRequest(voltage)
+    }
+
     // -------------------------------
     // PUBLIC — CMD Motors Control
     // -------------------------------
@@ -136,6 +177,38 @@ class Shooter() : Subsystem {
     }
 
     // -------------------------------
+    // PUBLIC — SysId Routines
+    // -------------------------------
+
+    /**
+     * A Quasistatic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Quasistatic means the magnitude of the supplied voltage will gradually increase.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a quasistatic routine following the specified direction
+     */
+    fun sysIdQuasistaticRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.quasistaticForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.quasistaticBackward
+        }
+    }
+
+    /**
+     * A Dynamic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Dynamic means the magnitude of the supplied voltage is fixed.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a dynamic routine following the specified direction
+     */
+    fun sysIdDynamicRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.dynamicForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.dynamicBackward
+        }
+    }
+
+    // -------------------------------
     // PUBLIC — Telemetry methods
     // -------------------------------
 
@@ -149,7 +222,7 @@ class Shooter() : Subsystem {
     }
 
     /**
-     * Returns the [AngularVelocity] reported by the lead motor.
+     * Returns the target [AngularVelocity].
      * This can be seen live in the "Shooter" tab of AdvantageScope.
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_TARGET_RPM_FIELD)
@@ -179,5 +252,30 @@ class Shooter() : Subsystem {
         followerRightMotorFirst.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
         followerRightMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
         followerRightMotorThird.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
+    }
+
+    /**
+     * Used to update the PIDF of all motors. Initial configuration remains the same, only [Slot0Configs] regarding
+     * kP, kI, kD and kF are changed depending on the value passed to the [frc.robot.utils.controlProfiles.LoggedTunableNumber]
+     * @param kP P coefficient received live
+     * @param kI I coefficient received live
+     * @param kD D coefficient received live
+     * @param kF F coefficient received live
+     */
+    private fun updateMotorsPIDF(kP: Double, kI: Double, kD: Double, kF: Double) {
+        val newSlot0Configs: Slot0Configs = KrakenMotors.configureSlot0(
+            ControlGains(kP, kI, kD, kF,
+                ShooterConstants.Configuration.controlGains.s,
+                ShooterConstants.Configuration.controlGains.v,
+                ShooterConstants.Configuration.controlGains.a,
+                ShooterConstants.Configuration.controlGains.g)
+        )
+
+        leadMotorController.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
+        followerLeftMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
+        followerLeftMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
+        followerRightMotorFirst.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
+        followerRightMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
+        followerRightMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
     }
 }

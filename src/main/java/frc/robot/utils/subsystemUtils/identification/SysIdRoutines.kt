@@ -1,14 +1,18 @@
-package frc.template.utils.subsystemUtils.identification
+package frc.robot.utils.subsystemUtils.identification
 
 import edu.wpi.first.units.Units.*
+import edu.wpi.first.units.measure.Angle
+import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.MutAngle
 import edu.wpi.first.units.measure.MutAngularVelocity
 import edu.wpi.first.units.measure.MutVoltage
+import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.RobotController
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
-import frc.template.utils.subsystemUtils.generic.TdSubsystem
+import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
+import java.util.function.Consumer
 
 class SysIdRoutines(
     val quasistaticForward: Command,
@@ -17,10 +21,19 @@ class SysIdRoutines(
     val dynamicBackward: Command
 ) {}
 
+/**
+ * Motor variables and setVoltage methods are called separetaly to enable the use of
+ * protected variables within [SysIdSubsystem]. This is to keep only usable methods visible
+ * when accessing a [SysIdSubsystem] object.
+ */
 class GenericSysIdRoutine(val name: String,
-                          val subsystem: TdSubsystem,
+                          val subsystem: SysIdSubsystem,
                           var forwardsRunningCondition : () -> Boolean = { true },
-                          var backwardsRunningCondition : () -> Boolean = { true }
+                          var backwardsRunningCondition : () -> Boolean = { true },
+                          var motorPower: () -> Double,
+                          var motorPosition: () -> Angle,
+                          var motorVelocity: () -> AngularVelocity,
+                          subsystemSetVoltage : Consumer<Voltage>,
     ) {
     private val position: MutAngle = Radians.mutable(0.0)
     private val velocity: MutAngularVelocity = RadiansPerSecond.mutable(0.0)
@@ -29,12 +42,12 @@ class GenericSysIdRoutine(val name: String,
     private val routine: SysIdRoutine = SysIdRoutine(
         SysIdRoutine.Config(),
         SysIdRoutine.Mechanism(
-            subsystem::setVoltage,
+            subsystemSetVoltage,
             { log: SysIdRoutineLog ->
                 log.motor(name)
-                    .voltage(voltage.mut_replace(RobotController.getBatteryVoltage() * subsystem.power, Volts))
-                    .angularPosition(position.mut_replace(subsystem.motorPosition))
-                    .angularVelocity(velocity.mut_replace(subsystem.motorVelocity))
+                    .voltage(voltage.mut_replace(RobotController.getBatteryVoltage() * motorPower.invoke(), Volts))
+                    .angularPosition(position.mut_replace(motorPosition.invoke()))
+                    .angularVelocity(velocity.mut_replace(motorVelocity.invoke()))
             },
             subsystem
         )
