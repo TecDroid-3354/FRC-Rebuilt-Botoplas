@@ -38,7 +38,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.PerUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -51,6 +50,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.Mode;
+import frc.robot.constants.RobotConstants;
 import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.utils.LocalADStarAK;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -75,17 +75,14 @@ public class Drive extends SubsystemBase {
               Math.hypot(SwerveTunerConstants.BackRight.LocationX, SwerveTunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 15.0;
-  private static final double ROBOT_MOI = 1.652; // (Roughly) I = (1/12)(mass)(length^2 + width^2), including bumpers and battery
-  private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
       new RobotConfig(
-          ROBOT_MASS_KG,
-          ROBOT_MOI,
+              RobotConstants.RobotPhysics.INSTANCE.getRobotMass(),
+          RobotConstants.RobotPhysics.INSTANCE.getRobotMOI(),
           new ModuleConfig(
               SwerveTunerConstants.FrontLeft.WheelRadius,
               SwerveTunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-              WHEEL_COF,
+              RobotConstants.RobotPhysics.WHEEL_COF,
               DCMotor.getKrakenX60Foc(1)
                   .withReduction(SwerveTunerConstants.FrontLeft.DriveMotorGearRatio),
               SwerveTunerConstants.FrontLeft.SlipCurrent,

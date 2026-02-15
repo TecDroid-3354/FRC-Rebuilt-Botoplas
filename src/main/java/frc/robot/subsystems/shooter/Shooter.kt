@@ -6,6 +6,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.Units.DegreesPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
@@ -144,6 +145,15 @@ class Shooter() : SysIdSubsystem("Shooter") {
     }
 
     /**
+     * Uses the interpolation object to get the suitable [AngularVelocity] of the shooter motors for the FUELS to
+     * reach the HUB. This [AngularVelocity] is then passed to [setVelocity]
+     * @param distanceToHUB The current distance from chassis to HUB.
+     */
+    private fun setInterpolatedVelocity(distanceToHUB: Distance) {
+        // TODO() = Implement Interpolation
+    }
+
+    /**
      * Stops all [frc.robot.subsystems.shooter.Shooter] motors.
      */
     private fun stopShooter() {
@@ -166,6 +176,15 @@ class Shooter() : SysIdSubsystem("Shooter") {
      */
     fun setVelocityCMD(velocity : AngularVelocity): Command {
         return InstantCommand({ setVelocity(velocity) }, this)
+    }
+
+    /**
+     * Command version of [setInterpolatedVelocity]. Subsystem set as requirement.
+     * @param distanceToHUB The current distance from chassis to HUB.
+     * @return an [InstantCommand] calling [setInterpolatedVelocity]
+     */
+    fun setInterpolatedVelocityCMD(distanceToHUB: Distance): Command {
+        return InstantCommand({ setInterpolatedVelocity(distanceToHUB) }, this)
     }
 
     /**

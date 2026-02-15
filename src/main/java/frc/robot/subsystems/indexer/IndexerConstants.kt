@@ -26,8 +26,8 @@ object IndexerConstants {
          * Only these targets should be used since velocity is constant.
          */
         object VoltageTargets {
-                var BottomRollerVoltage         : Voltage = 6.0.volts
-                var LateralRollerVoltage        : Voltage = 6.0.volts
+                var BottomRollerVoltage         : Voltage = Tunables.bottomRollerVoltage.get().volts
+                var LateralRollerVoltage        : Voltage = Tunables.lateralRollerVoltage.get().volts
         }
 
         object Tunables {

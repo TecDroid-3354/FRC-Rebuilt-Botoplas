@@ -101,7 +101,8 @@ class Intake() : SubsystemBase() {
             || IntakeConstants.Tunables.motorkF.hasChanged(hashCode())) {
             updateDeployableMotorsPIDF(
                 IntakeConstants.Tunables.motorkP.get(), IntakeConstants.Tunables.motorkI.get(),
-                IntakeConstants.Tunables.motorkD.get(), IntakeConstants.Tunables.motorkF.get())
+                IntakeConstants.Tunables.motorkD.get(), IntakeConstants.Tunables.motorkF.get()
+            )
         }
 
         if (IntakeConstants.Tunables.enabledRollersVoltage.hasChanged(hashCode())

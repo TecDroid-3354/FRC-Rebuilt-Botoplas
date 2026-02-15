@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.constants.Constants;
+import frc.robot.constants.RobotConstants;
 import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
@@ -74,15 +75,11 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  private final Intake intake = new Intake();
-  private final Shooter shooter = new Shooter();
-  private final Hood hood = new Hood();
-
   // -------------------------------
   // Controllers
   // -------------------------------
   private final CommandXboxController controller =
-          new CommandXboxController(Constants.INSTANCE.getDriverControllerId());
+          new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_ID);
 
   private List<Waypoint> waypoints;
 
@@ -137,24 +134,24 @@ public class RobotContainer {
   private void configureAutonomous() {
       try {
           autoChooser.addOption("LT -> One Meter Right", drive.followTrajectory(PathPlannerPath.fromPathFile(
-                  Constants.AutonomousPaths.LEFT_TRENCH_ONE_METER_RIGHT
+                  RobotConstants.AutonomousPathStrings.LEFT_TRENCH_ONE_METER_RIGHT
           )));
 
         autoChooser.addOption("LT -> Five Meter Right While Rotating", drive.followTrajectory(PathPlannerPath.fromPathFile(
-                Constants.AutonomousPaths.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180
+                RobotConstants.AutonomousPathStrings.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180
         )));
 
         autoChooser.addOption("LT -> Through LT to Neutral Zone, Right Trench and Middle Alliance Zone to Right of Alliance Zone",
                 drive.followTrajectory(PathPlannerPath.fromPathFile(
-                        Constants.AutonomousPaths.LEFT_TRENCH_AROUND_THE_WORLD
+                        RobotConstants.AutonomousPathStrings.LEFT_TRENCH_AROUND_THE_WORLD
                 )));
 
         autoChooser.addOption("LT -> ZigZag", drive.followTrajectory(PathPlannerPath.fromPathFile(
-                Constants.AutonomousPaths.ZIG_ZAG
+                RobotConstants.AutonomousPathStrings.ZIG_ZAG
         )));
 
         autoChooser.addOption("RT -> Under", drive.followTrajectory(PathPlannerPath.fromPathFile(
-                Constants.AutonomousPaths.UNDER_RIGHT_TRENCH
+                RobotConstants.AutonomousPathStrings.UNDER_RIGHT_TRENCH
         )));
       } catch (IOException e) {
           throw new RuntimeException(e);

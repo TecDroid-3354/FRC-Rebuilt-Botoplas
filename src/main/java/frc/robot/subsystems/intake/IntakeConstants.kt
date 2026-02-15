@@ -103,7 +103,7 @@ object IntakeConstants {
         // ---------------------------------
         // PUBLIC — Slot 0
         // ---------------------------------
-        val controlGains        : ControlGains = ControlGains(
+        val controlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.25, v = 0.12, a = 0.01, g = 0.0)
 

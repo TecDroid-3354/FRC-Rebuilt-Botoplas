@@ -45,8 +45,7 @@ class Indexer() : SubsystemBase() {
     }
 
     /**
-     * Called every 20ms loop. Used to update alerts.
-     * TODO() = Update deployable component motors' PID through here.
+     * Called every 20ms loop. Used to update alerts and keep track of changes in voltage target values.
      */
     override fun periodic() {
         bottomRollersAlert.set(bottomRollerMotor.isConnected.invoke().not())
@@ -148,6 +147,7 @@ class Indexer() : SubsystemBase() {
     fun isIndexerEnabled(): Boolean {
         return indexerEnabled
     }
+
     /**
      * Used to update the voltage targets of the rollers component.
      * @param bottomRollerVoltage Voltage target for bottom rollores. Received live
@@ -157,5 +157,4 @@ class Indexer() : SubsystemBase() {
         IndexerConstants.VoltageTargets.BottomRollerVoltage = bottomRollerVoltage.volts
         IndexerConstants.VoltageTargets.LateralRollerVoltage = lateralRollerVoltage.volts
     }
-    
 }

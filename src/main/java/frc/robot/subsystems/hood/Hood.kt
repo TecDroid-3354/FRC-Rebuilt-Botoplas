@@ -1,4 +1,5 @@
 package frc.robot.subsystems.hood
+import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
@@ -9,6 +10,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
+import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import org.littletonrobotics.junction.AutoLogOutput
 
@@ -22,7 +25,7 @@ class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetPose          : Angle = Degrees.zero()
+    private var targetAngle          : Angle = Degrees.zero()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -67,11 +70,20 @@ class Hood() : SysIdSubsystem("Hood") {
     }
 
     /**
-     * Called every 20ms loop. Used to update alerts.
-     * TODO() = Update motor's PID through here.
+     * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF values.
      */
     override fun periodic() {
         hoodConnectedAlert.set(motorController.isConnected.invoke().not())
+
+        if (HoodConstants.Tunables.motorkP.hasChanged(hashCode())
+            || HoodConstants.Tunables.motorkI.hasChanged(hashCode())
+            || HoodConstants.Tunables.motorkD.hasChanged(hashCode())
+            || HoodConstants.Tunables.motorkF.hasChanged(hashCode())) {
+            updateHoodMotorPIDF(
+                HoodConstants.Tunables.motorkP.get(), HoodConstants.Tunables.motorkI.get(),
+                HoodConstants.Tunables.motorkD.get(), HoodConstants.Tunables.motorkF.get()
+            )
+        }
     }
 
     // ---------------------------------
@@ -84,7 +96,7 @@ class Hood() : SysIdSubsystem("Hood") {
      * @param angle The desired [frc.robot.subsystems.hood.Hood] angle.
      */
     private fun setAngle(angle: Angle) {
-        targetPose = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
+        targetAngle = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
         motorController.positionRequestSubsystem(angle,
             HoodConstants.PhysicalLimits.Limits,
             HoodConstants.PhysicalLimits.Reduction)
@@ -108,7 +120,7 @@ class Hood() : SysIdSubsystem("Hood") {
      * @return an [InstantCommand] calling [setAngle]
      */
     fun setAngleCMD(angle: Angle): Command {
-        return InstantCommand({ setAngle(angle)},this)
+        return InstantCommand({ setAngle(angle)}, this)
     }
 
     // -------------------------------
@@ -165,7 +177,7 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_TARGET_ANGLE_FIELD)
     fun getHoodTargetAngle(): Angle {
-        return targetPose
+        return targetAngle
     }
 
     // -------------------------------
@@ -186,5 +198,27 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun brakeCMD(): Command {
         return InstantCommand({ motorController.brake() }, this)
+    }
+
+    /**
+     * Used to update the PIDF of the hood motor. Initial configuration remains the same, only [Slot0Configs] regarding
+     * kP, kI, kD and kF are changed depending on the value passed to the [frc.robot.utils.controlProfiles.LoggedTunableNumber]
+     * @param kP P coefficient received live
+     * @param kI I coefficient received live
+     * @param kD D coefficient received live
+     * @param kF F coefficient received live
+     */
+    private fun updateHoodMotorPIDF(kP: Double, kI: Double, kD: Double, kF: Double) {
+        val newSlot0Configs: Slot0Configs = KrakenMotors.configureSlot0(
+            ControlGains(
+                kP, kI, kD, kF,
+                HoodConstants.Configuration.controlGains.s,
+                HoodConstants.Configuration.controlGains.v,
+                HoodConstants.Configuration.controlGains.a,
+                HoodConstants.Configuration.controlGains.g
+            )
+        )
+
+        motorController.applyConfigAndClearFaults(HoodConstants.Configuration.motorConfig.withSlot0(newSlot0Configs))
     }
 }
