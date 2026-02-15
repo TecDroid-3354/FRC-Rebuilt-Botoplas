@@ -8,6 +8,8 @@ import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Time
+import frc.robot.subsystems.shooter.IntakeConstants
+import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
@@ -34,6 +36,16 @@ object HoodConstants {
     }
 
     /**
+     * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
+     */
+    object Tunables {
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.1)
+        val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
+        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.0)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
+    }
+
+    /**
      * All MOTOR configuration. Every field must be written privately and separately to be called
      * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
      */
@@ -52,10 +64,10 @@ object HoodConstants {
         private val statorCurrentEnable : Boolean = false
 
         // ---------------------------------
-        // PRIVATE — Slot 0
+        // PUBLIC — Slot 0
         // ---------------------------------
-        private val controlGains        : ControlGains = ControlGains(
-            p = 0.11, i = 0.0, d = 0.0, f = 0.0,
+        val controlGains                : ControlGains = ControlGains(
+            p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.25, v = 0.12, a = 0.01, g = 0.0)
 
         // ---------------------------------
@@ -95,7 +107,7 @@ object HoodConstants {
         const val HOOD_TAB          : String = "Hood"
         const val HOOD_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Angle"
         const val HOOD_TARGET_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
-        const val HOOD_CONNECTED_ALERTS_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
+        const val HOOD_CONNECTED_ALERTS_FIELD  : String = "${HOOD_TAB}/Hood Connection alert"
     }
 
 }

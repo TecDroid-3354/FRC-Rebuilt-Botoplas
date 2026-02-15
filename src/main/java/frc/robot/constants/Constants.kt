@@ -25,10 +25,6 @@ import frc.template.utils.meters
  * (log replay from a file).
  */
 object Constants {
-    val driverControllerId = 0
-    // Used in Botzilla for everything besides the drive base, which is why is not used here.
-    const val ALTERNATE_CANBUS_NAME = "canivore"
-
     val simMode: Mode = Mode.SIM
     @JvmField
     val currentMode: Mode = if (RobotBase.isReal()) Mode.REAL else simMode
@@ -40,14 +36,6 @@ object Constants {
         val BLUE_HUB_CENTER_Y: Distance = 4.030.meters
         val RED_HUB_CENTER_X : Distance = 11.920.meters
         val RED_HUB_CENTER_Y : Distance = 4.030.meters
-    }
-
-    object AutonomousPaths {
-        const val LEFT_TRENCH_ONE_METER_RIGHT = "1MeterPath"
-        const val LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180 = "5MeterWith180RotationPath"
-        const val LEFT_TRENCH_AROUND_THE_WORLD = "AroundTheWorldPath"
-        const val ZIG_ZAG = "ZigZagPath"
-        const val UNDER_RIGHT_TRENCH = "UnderRightTrench"
     }
 
     enum class Mode {

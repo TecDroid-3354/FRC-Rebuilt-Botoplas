@@ -10,6 +10,7 @@ import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Time
 import edu.wpi.first.units.measure.Voltage
+import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
@@ -38,15 +39,15 @@ object IntakeConstants {
     object PhysicalLimits {
         val Reduction                   : Reduction = Reduction(1.0)
         val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
-        val DeployablePositionDelta     : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
+        val DeployableAngleDelta     : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
     }
 
     /**
      * Idle deployable positions for each intake state: retracted and deployed
      */
-    object RetractilePositions {
-        val RetractedPose               : Angle = 0.0.degrees
-        val DeployedPose                : Angle = 90.0.degrees
+    object RetractileAngles {
+        val RetractedAngle               : Angle = 0.0.degrees
+        val DeployedAngle                : Angle = 90.0.degrees
     }
 
     /**
@@ -54,8 +55,21 @@ object IntakeConstants {
      * Only these targets should be used since velocity is constant.
      */
     object VoltageTargets {
-        val EnabledRollersVoltage         : Voltage = 6.0.volts
-        val DisabledRollersVoltage        : Voltage = 0.0.volts
+        var EnabledRollersVoltage           : Voltage = Tunables.enabledRollersVoltage.get().volts
+        var IdleRollersVoltage              : Voltage = Tunables.idleRollersVoltage.get().volts
+    }
+
+    /**
+     * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
+     */
+    object Tunables {
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kP", 0.1)
+        val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kI", 0.0)
+        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
+
+        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${{Telemetry.INTAKE_TAB}}/Enabled Rollers Voltage", 6.0)
+        val idleRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
     }
 
     /**
@@ -75,8 +89,9 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
-        private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
-        private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+        private val neutralMode                     : NeutralModeValue = NeutralModeValue.Brake
+        private val deployableMotorsOrientation     : InvertedValue = InvertedValue.Clockwise_Positive
+        private val rollerMotorOrientation          : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------
         // PRIVATE — Current Limits
@@ -86,10 +101,10 @@ object IntakeConstants {
         private val statorCurrentEnable : Boolean = false
 
         // ---------------------------------
-        // PRIVATE — Slot 0
+        // PUBLIC — Slot 0
         // ---------------------------------
-        private val controlGains        : ControlGains = ControlGains(
-            p = 0.11, i = 0.0, d = 0.0, f = 0.0,
+        val controlGains                : ControlGains = ControlGains(
+            p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.25, v = 0.12, a = 0.01, g = 0.0)
 
         // ---------------------------------
@@ -102,8 +117,8 @@ object IntakeConstants {
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
         // -----------------------------------
-        val motorsConfig = KrakenMotors.createTalonFXConfiguration(
-            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+        val deployableMotorsConfig = KrakenMotors.createTalonFXConfiguration(
+            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, deployableMotorsOrientation)),
             Optional.of(KrakenMotors.configureCurrentLimits(
                 supplyCurrentLimits,
                 statorCurrentEnable,
@@ -113,6 +128,16 @@ object IntakeConstants {
                 AngularMotionTargets(cruiseVelocity, acceleration,jerkTime),
                 PhysicalLimits.Reduction
             ))
+        )
+
+        val rollerMotorConfig = KrakenMotors.createTalonFXConfiguration(
+            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, rollerMotorOrientation)),
+            Optional.of(KrakenMotors.configureCurrentLimits(
+                supplyCurrentLimits,
+                statorCurrentEnable,
+                statorCurrentLimits)),
+            Optional.empty(),
+            Optional.empty()
         )
     }
 
