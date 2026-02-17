@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 
 import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
@@ -20,6 +21,7 @@ import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.function.Supplier
 
 class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
@@ -181,10 +183,10 @@ class Shooter() : SysIdSubsystem("Shooter") {
     /**
      * Command version of [setInterpolatedVelocity]. Subsystem set as requirement.
      * @param distanceToHUB The current distance from chassis to HUB.
-     * @return an [InstantCommand] calling [setInterpolatedVelocity]
+     * @return a [RunCommand] calling [setInterpolatedVelocity]
      */
-    fun setInterpolatedVelocityCMD(distanceToHUB: Distance): Command {
-        return InstantCommand({ setInterpolatedVelocity(distanceToHUB) }, this)
+    fun setInterpolatedVelocityCMD(distanceToHUB: Supplier<Distance>): Command {
+        return RunCommand({ setInterpolatedVelocity(distanceToHUB.get()) }, this)
     }
 
     /**

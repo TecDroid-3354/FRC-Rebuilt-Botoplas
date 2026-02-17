@@ -15,14 +15,9 @@ package frc.robot;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.*;
-import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,9 +32,6 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
-import frc.robot.subsystems.hood.Hood;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -49,7 +41,6 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -79,7 +70,7 @@ public class RobotContainer {
   // Controllers
   // -------------------------------
   private final CommandXboxController controller =
-          new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_ID);
+          new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT);
 
   private List<Waypoint> waypoints;
 
@@ -127,7 +118,7 @@ public class RobotContainer {
   /**
    * Use this method to add all autonomous options.
    * Possible exceptions when PathPlanner is not able to find your Path.
-   * Make sure to call every path through its constant in {@link Constants.AutonomousPaths}
+   * Make sure to call every path through its constant in {@link RobotConstants.AutonomousPathStrings}
    * @throws IOException
    * @throws ParseException
    */
@@ -192,9 +183,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
             DriveCommands.joystickDrive(
                     drive,
-                    () -> -controller.getLeftY() * 0.8 ,
-                    () -> -controller.getLeftX() * 0.8 ,
-                    () -> controller.getRightX() * 0.6 * -1.0
+                    () -> -controller.getLeftY() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER ,
+                    () -> -controller.getLeftX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER ,
+                    () -> controller.getRightX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Z_MULTIPLIER
             )
     );
 
