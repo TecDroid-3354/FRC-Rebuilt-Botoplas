@@ -15,14 +15,9 @@ package frc.robot;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.*;
-import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,9 +32,6 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
-import frc.robot.subsystems.hood.Hood;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -49,7 +41,6 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -79,14 +70,7 @@ public class RobotContainer {
   // Controllers
   // -------------------------------
   private final CommandXboxController controller =
-          new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_ID);
-
-  private List<Waypoint> waypoints;
-
-  PathConstraints constraints = new PathConstraints(3.5, 3.5,
-          3 * Math.PI, 4 * Math.PI); // The constraints for this path.
-
-  private PathPlannerPath underTheTrenchTestPathOnTheFly;
+          new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -118,8 +102,6 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Choices");
     configureAutonomous();
 
-    configureOnTheFlyWaypoints();
-
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -127,7 +109,7 @@ public class RobotContainer {
   /**
    * Use this method to add all autonomous options.
    * Possible exceptions when PathPlanner is not able to find your Path.
-   * Make sure to call every path through its constant in {@link Constants.AutonomousPaths}
+   * Make sure to call every path through its constant in {@link RobotConstants.AutonomousPathStrings}
    * @throws IOException
    * @throws ParseException
    */
@@ -160,24 +142,6 @@ public class RobotContainer {
       }
   }
 
-  private void configureOnTheFlyWaypoints() {
-      waypoints = PathPlannerPath.waypointsFromPoses(
-              new Pose2d(3.172, 0.677, Rotation2d.fromDegrees(0)),
-              new Pose2d(7.019, 0.677, Rotation2d.fromDegrees(0))
-      );
-
-    // Create the path using the waypoints created above
-      underTheTrenchTestPathOnTheFly = new PathPlannerPath(
-              waypoints,
-              constraints,
-              null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
-              new GoalEndState(0.0, Rotation2d.fromDegrees(0)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-      );
-
-    // Prevent the path from being flipped if the coordinates are already correct
-      underTheTrenchTestPathOnTheFly.preventFlipping = !Constants.isFlipped.invoke();
-  }
-
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
@@ -192,9 +156,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
             DriveCommands.joystickDrive(
                     drive,
-                    () -> -controller.getLeftY() * 0.8 ,
-                    () -> -controller.getLeftX() * 0.8 ,
-                    () -> controller.getRightX() * 0.6 * -1.0
+                    () -> -controller.getLeftY() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER ,
+                    () -> -controller.getLeftX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER ,
+                    () -> controller.getRightX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Z_MULTIPLIER
             )
     );
 
@@ -255,41 +219,6 @@ public class RobotContainer {
 
       controller
               .leftTrigger().onTrue(new InstantCommand(Logger::end));
-
-  /*  controller.a().whileTrue(DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -controller.getLeftY() * 0.8,
-                    () -> -controller.getLeftX() * 0.8,
-                    drive::getSwerveAngleToHub
-                    )
-    );
-
-
-
-      try {
-          controller.b().onTrue
-                          (drive.followTrajectory(underTheTrenchTestPathOnTheFly))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-
-          controller.y().onTrue
-                          (AutoBuilder.pathfindToPose(
-                                  new Pose2d(10.7, 7.45, Rotation2d.fromDegrees(180)),
-                                  constraints))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-
-          controller.x().onTrue
-                          (AutoBuilder.pathfindThenFollowPath(
-                                  PathPlannerPath.fromPathFile(Constants.AutonomousPaths.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180),
-                                  constraints))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      } catch (ParseException e) {
-          throw new RuntimeException(e);
-      }
-*/
-
-
   }
 
   /**

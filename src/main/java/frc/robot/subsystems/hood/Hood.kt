@@ -3,10 +3,12 @@ import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
@@ -14,6 +16,7 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.function.Supplier
 
 class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
@@ -103,6 +106,26 @@ class Hood() : SysIdSubsystem("Hood") {
     }
 
     /**
+     * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
+     * reach the HUB based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
+     * This [Angle] is then passed to [setAngle]
+     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
+     */
+    private fun setVelocityDrivenInterpolatedAngle(shooterRPMs: AngularVelocity) {
+        // TODO() = Implement Interpolation
+    }
+
+    /**
+     * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
+     * reach the HUB based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the HUB.
+     * This [Angle] is then passed to [setAngle]
+     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     */
+    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB: Distance) {
+        // TODO() = Implement Interpolation
+    }
+
+    /**
      * Creates a voltage request to the motor controller. Used within the [SysIdSubsystem] interface to
      * run the characterization methods. [sysIdSetVoltage]
      */
@@ -121,6 +144,24 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun setAngleCMD(angle: Angle): Command {
         return InstantCommand({ setAngle(angle)}, this)
+    }
+
+    /**
+     * Command version of [setVelocityDrivenInterpolatedAngle]. Subsystem set as requirement.
+     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
+     * @return a [RunCommand] calling [setVelocityDrivenInterpolatedAngle]
+     */
+    fun setVelocityDrivenInterpolatedAngleCMD(shooterRPMs: Supplier<AngularVelocity>): Command {
+        return RunCommand({ setVelocityDrivenInterpolatedAngle(shooterRPMs.get()) }, this)
+    }
+
+    /**
+     * Command version of [setDistanceDrivenInterpolatedAngle]. Subsystem set as requirement.
+     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     * @return a [RunCommand] calling [setDistanceDrivenInterpolatedAngle]
+     */
+    fun setDistanceDrivenInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
+        return RunCommand({ setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
     }
 
     // -------------------------------

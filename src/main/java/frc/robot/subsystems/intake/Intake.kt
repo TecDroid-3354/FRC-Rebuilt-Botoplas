@@ -180,7 +180,7 @@ class Intake() : SubsystemBase() {
      * Deploys the intake and then enables the rollers through a [SequentialCommandGroup]
      * @return A sequential command group that sets a pose and enables the rollers
      */
-    fun deployCMD(): Command {
+    fun enableIntakeCMD(): Command {
         return SequentialCommandGroup(
             setPositionCMD(IntakeConstants.RetractileAngles.DeployedAngle),
             WaitUntilCommand { getDeployableError()
@@ -194,11 +194,15 @@ class Intake() : SubsystemBase() {
      * Retracts the intake and then enables the rollers through a [SequentialCommandGroup]
      * @return A sequential command group that sets a pose and disables the rollers
      */
-    fun retractCMD(): Command {
+    fun disableIntakeCMD(): Command {
         return SequentialCommandGroup(
             setVoltageCMD(IntakeConstants.VoltageTargets.IdleRollersVoltage),
             setPositionCMD(IntakeConstants.RetractileAngles.RetractedAngle)
         )
+    }
+
+    fun setDeployableAngleOnly(angle: Angle): Command {
+        return setPositionCMD(angle)
     }
 
     // ---------------------------------
@@ -246,7 +250,7 @@ class Intake() : SubsystemBase() {
      * @return The error between the deployable component [targetAngle] and its current position.
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_DEPLOYABLE_ERROR)
-    private fun getDeployableError(): Angle {
+    fun getDeployableError(): Angle {
         return abs(
             targetAngle.`in`(Units.Rotations).minus(
                 IntakeConstants.PhysicalLimits.Reduction.apply(

@@ -39,7 +39,7 @@ object IntakeConstants {
     object PhysicalLimits {
         val Reduction                   : Reduction = Reduction(1.0)
         val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
-        val DeployableAngleDelta     : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
+        val DeployableAngleDelta        : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
     }
 
     /**
