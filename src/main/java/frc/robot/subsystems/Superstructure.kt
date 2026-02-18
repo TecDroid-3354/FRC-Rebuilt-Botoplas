@@ -11,6 +11,9 @@ import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.wpilibj.XboxController
 import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.RunCommand
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
 import frc.robot.commands.DriveCommands
 import frc.robot.constants.Constants.isFlipped
@@ -20,35 +23,60 @@ import frc.robot.subsystems.drivetrain.Drive
 import frc.robot.subsystems.hood.Hood
 import frc.robot.subsystems.indexer.Indexer
 import frc.robot.subsystems.intake.Intake
+import frc.robot.subsystems.shooter.IntakeConstants
 import frc.robot.subsystems.shooter.Shooter
 import frc.template.utils.meters
 import frc.template.utils.radians
+import java.util.function.DoubleSupplier
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
 
-class Superstructure(private val drive: Drive, private val intake: Intake, private val indexer: Indexer,
-                    private val shooter: Shooter, private val hood: Hood) {
+class Superstructure(private val controller: XboxController, private val drive: Drive, private val intake: Intake,
+                     private val indexer: Indexer, private val shooter: Shooter, private val hood: Hood) {
 
     /**
-     * Intended for TeleOp shooting. This method locks the Swerve angle to target the HUB, interpolates the [Hood]
-     * angle and waits for the Swerve angle to be within tolerance before interpolating the [Shooter] velocity.
-     * - Controller is needed for the [DriveCommands.joystickDriveAtAngle] command.
-     * @param controller The driver controller object.
-     * @return A [edu.wpi.first.wpilibj2.command.ParallelCommandGroup] with the above specifications.
+     * Intended for TeleOp shooting. Starts by enabling the [Shooter] interpolation, waiting until the Swerve
+     * is in place to shoot, then changing [Hood] interpolation from distance driven to shooter velocity driven,
+     * and finally enabling the indexer to start the actual shooting.
+     * @return A [SequentialCommandGroup] with the above specifications.
      */
-    fun shootSequenceCMD(controller: XboxController): Command {
-        return DriveCommands.joystickDriveAtAngle(
-            drive,
-            { -controller.leftY * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
-            { -controller.leftX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            ::getSwerveToHubAngle
-        ).alongWith(
-            hood.setInterpolatedAngleCMD(::getSwerveToHubDistance),
+    fun shootSequenceCMD(): Command {
+        return SequentialCommandGroup(
+            shooter.setInterpolatedVelocityCMD(::getSwerveToHubDistance),
             WaitUntilCommand {
                 abs(drive.pose.rotation.minus(Rotation2d(getSwerveToHubAngle())).degrees) <
                         RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING.`in`(Degrees) },
-            shooter.setInterpolatedVelocityCMD(::getSwerveToHubDistance)
+            hood.setVelocityDrivenInterpolatedAngleCMD(shooter::getShooterAngularVelocity),
+            indexer.enableIndexerCMD()
+        )
+    }
+
+    /**
+     * Intended to be Initial Command of Shooting State. Locks the Swerve angle so that it targets the HUB.
+     * During this command, the controller's right joystick is not used. Translation is still under the driver's
+     * control.
+     * @return A [RunCommand] that locks the Swerve angle to target the HUB.
+     */
+    fun driveTargetingHUB(): Command {
+        return DriveCommands.joystickDriveAtAngle(
+            drive,
+            { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
+            { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
+            ::getSwerveToHubAngle
+        )
+    }
+
+    /**
+     * Intended to be End Command of Shooting State. Gives back the full Swerve control to the driver.
+     * @return A [RunCommand] with the Swerve's default command.
+     */
+    fun driveFollowingDriverInput(): Command {
+        return DriveCommands.joystickDrive(
+            drive,
+            { -controller.leftY * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
+            { -controller.leftX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
+            { controller.rightX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Z_MULTIPLIER }
         )
     }
 
@@ -78,6 +106,41 @@ class Superstructure(private val drive: Drive, private val intake: Intake, priva
         val yAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.second.plus(drive.chassisSpeeds.vyMetersPerSecond.div(3).meters)
 
         return atan2(yAdjustedWithVelocity.`in`(Meters), xAdjustedWithVelocity.`in`(Meters)).radians
+    }
+
+    /**
+     * Intended to run during Shooting State. Switches the [Hood] interpolation from distance driven to velocity
+     * driven, allowing it to correct for [Shooter] RPMs losses.
+     * @return A [RunCommand] interpolating the [Hood] angle based on the [Shooter] velocity.
+     */
+    fun shootingHoodInterpolation(): Command {
+        return hood.setVelocityDrivenInterpolatedAngleCMD { shooter.getShooterAngularVelocity() }
+    }
+
+    /**
+     * Intended to run before Shooting State. To prepare the [Hood], distance driven interpolation is performed.
+     * This interpolation method must change during Shooting State to correct for any RPM losses.
+     * @return A [RunCommand] interpolating the [Hood] angle based on the distance from Swerve to HUB.
+     */
+    fun preShootingHoodInterpolation(): Command {
+        return hood.setDistanceDrivenInterpolatedAngleCMD { getSwerveToHubDistance() }
+    }
+
+    /**
+     * Due to hopper's design, there is the possibility of FUELS getting stuck during Shooting State. To correct this,
+     * the deployable component of the intake must go backwards and upwards in intervals of 15 - 30 degrees, pushing
+     * FUELS towards the indexer and therefore, the [Shooter].
+     * @return A [RunCommand] that makes the intake "dance" by moving it 15 degrees up and down, with its maximum
+     *      being the intake's retracted angle.
+     */
+    fun intakeShootingDanceCMD(): Command {
+        return RunCommand({
+            intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.RetractedAngle
+                .plus(RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_DELTA))
+            WaitUntilCommand { intake.getDeployableError() < RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_TOLERANCE }
+            intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.RetractedAngle)
+            WaitUntilCommand { intake.getDeployableError() < RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_TOLERANCE }
+        }, intake)
     }
 
     /**

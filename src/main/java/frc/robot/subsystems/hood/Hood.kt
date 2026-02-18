@@ -107,10 +107,21 @@ class Hood() : SysIdSubsystem("Hood") {
 
     /**
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
-     * reach the HUB. This [Angle] is then passed to [setAngle]
-     * @param distanceToHUB The current distance from chassis to HUB.
+     * reach the HUB based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
+     * This [Angle] is then passed to [setAngle]
+     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
      */
-    private fun setInterpolatedAngle(distanceToHUB: Distance) {
+    private fun setVelocityDrivenInterpolatedAngle(shooterRPMs: AngularVelocity) {
+        // TODO() = Implement Interpolation
+    }
+
+    /**
+     * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
+     * reach the HUB based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the HUB.
+     * This [Angle] is then passed to [setAngle]
+     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     */
+    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB: Distance) {
         // TODO() = Implement Interpolation
     }
 
@@ -136,12 +147,21 @@ class Hood() : SysIdSubsystem("Hood") {
     }
 
     /**
-     * Command version of [setInterpolatedAngle]. Subsystem set as requirement.
-     * @param distanceToHUB The current distance from chassis to HUB.
-     * @return a [RunCommand] calling [setInterpolatedAngle]
+     * Command version of [setVelocityDrivenInterpolatedAngle]. Subsystem set as requirement.
+     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
+     * @return a [RunCommand] calling [setVelocityDrivenInterpolatedAngle]
      */
-    fun setInterpolatedAngleCMD(distanceToHUB: Supplier<Distance>): Command {
-        return RunCommand({ setInterpolatedAngle(distanceToHUB.get()) }, this)
+    fun setVelocityDrivenInterpolatedAngleCMD(shooterRPMs: Supplier<AngularVelocity>): Command {
+        return RunCommand({ setVelocityDrivenInterpolatedAngle(shooterRPMs.get()) }, this)
+    }
+
+    /**
+     * Command version of [setDistanceDrivenInterpolatedAngle]. Subsystem set as requirement.
+     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     * @return a [RunCommand] calling [setDistanceDrivenInterpolatedAngle]
+     */
+    fun setDistanceDrivenInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
+        return RunCommand({ setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
     }
 
     // -------------------------------

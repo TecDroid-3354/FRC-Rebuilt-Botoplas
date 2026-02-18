@@ -26,7 +26,7 @@ object RobotConstants {
         val RobotMass       : Mass              = Kilograms.of(15.0)
         val RobotLength     : Distance          = 27.0.inches
         val RobotWidth      : Distance          = 27.0.inches
-        val RobotMOI        : MomentOfInertia   = KilogramSquareMeters.of(
+        val RobotMOI        : MomentOfInertia   = KilogramSquareMeters.of( // As per PathPlanner rough estimate
             (1/12) * (RobotMass.`in`(Kilograms)) * (RobotLength.`in`(Meters).pow(2) + RobotWidth.`in`(Meters).pow(2))
         )
         const val WHEEL_COF : Double            = 1.2
@@ -57,9 +57,14 @@ object RobotConstants {
         const val DRIVER_CONTROLLER_X_MULTIPLIER: Double = 0.8
         const val DRIVER_CONTROLLER_Y_MULTIPLIER: Double = 0.8
         const val DRIVER_CONTROLLER_Z_MULTIPLIER: Double = -(0.6)
+
+        const val SWERVE_LOCKED_ANGLE_X_MULTIPLIER: Double = 0.5
+        const val SWERVE_LOCKED_ANGLE_Y_MULTIPLIER: Double = 0.5
     }
 
     object Control {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 5.0.degrees
+        val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 15.0.degrees
+        val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
     }
 }

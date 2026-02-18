@@ -238,7 +238,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * This can be seen live in the "Shooter" tab of AdvantageScope.
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_RPM_FIELD)
-    private fun getShooterAngularVelocity(): AngularVelocity {
+    fun getShooterAngularVelocity(): AngularVelocity {
         return leadMotorController.velocity.value
     }
 

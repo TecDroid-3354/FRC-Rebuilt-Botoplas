@@ -72,13 +72,6 @@ public class RobotContainer {
   private final CommandXboxController controller =
           new CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT);
 
-  private List<Waypoint> waypoints;
-
-  PathConstraints constraints = new PathConstraints(3.5, 3.5,
-          3 * Math.PI, 4 * Math.PI); // The constraints for this path.
-
-  private PathPlannerPath underTheTrenchTestPathOnTheFly;
-
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -108,8 +101,6 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices");
     configureAutonomous();
-
-    configureOnTheFlyWaypoints();
 
     // Configure the button bindings
     configureButtonBindings();
@@ -149,24 +140,6 @@ public class RobotContainer {
       } catch (ParseException e) {
           throw new RuntimeException(e);
       }
-  }
-
-  private void configureOnTheFlyWaypoints() {
-      waypoints = PathPlannerPath.waypointsFromPoses(
-              new Pose2d(3.172, 0.677, Rotation2d.fromDegrees(0)),
-              new Pose2d(7.019, 0.677, Rotation2d.fromDegrees(0))
-      );
-
-    // Create the path using the waypoints created above
-      underTheTrenchTestPathOnTheFly = new PathPlannerPath(
-              waypoints,
-              constraints,
-              null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
-              new GoalEndState(0.0, Rotation2d.fromDegrees(0)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-      );
-
-    // Prevent the path from being flipped if the coordinates are already correct
-      underTheTrenchTestPathOnTheFly.preventFlipping = !Constants.isFlipped.invoke();
   }
 
   /**
@@ -246,41 +219,6 @@ public class RobotContainer {
 
       controller
               .leftTrigger().onTrue(new InstantCommand(Logger::end));
-
-  /*  controller.a().whileTrue(DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -controller.getLeftY() * 0.8,
-                    () -> -controller.getLeftX() * 0.8,
-                    drive::getSwerveAngleToHub
-                    )
-    );
-
-
-
-      try {
-          controller.b().onTrue
-                          (drive.followTrajectory(underTheTrenchTestPathOnTheFly))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-
-          controller.y().onTrue
-                          (AutoBuilder.pathfindToPose(
-                                  new Pose2d(10.7, 7.45, Rotation2d.fromDegrees(180)),
-                                  constraints))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-
-          controller.x().onTrue
-                          (AutoBuilder.pathfindThenFollowPath(
-                                  PathPlannerPath.fromPathFile(Constants.AutonomousPaths.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180),
-                                  constraints))
-                  .onFalse(new InstantCommand(() -> {if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();}));
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      } catch (ParseException e) {
-          throw new RuntimeException(e);
-      }
-*/
-
-
   }
 
   /**
