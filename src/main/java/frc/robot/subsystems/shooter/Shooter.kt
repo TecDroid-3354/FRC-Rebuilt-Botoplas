@@ -20,7 +20,9 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
+import org.littletonrobotics.junction.AutoLog
 import org.littletonrobotics.junction.AutoLogOutput
+import org.littletonrobotics.junction.Logger
 import java.util.function.Supplier
 
 class Shooter() : SysIdSubsystem("Shooter") {
@@ -32,14 +34,10 @@ class Shooter() : SysIdSubsystem("Shooter") {
 
     private val followerLeftMotorSecond : OpTalonFX =
         OpTalonFX(ShooterConstants.Identification.FOLLOWER_LEFT_SHOOTER_SECOND_ID)
-    private val followerLeftMotorThird : OpTalonFX =
-        OpTalonFX(ShooterConstants.Identification.FOLLOWER_LEFT_SHOOTER_THIRD_ID)
     private val followerRightMotorFirst : OpTalonFX =
         OpTalonFX(ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_FIRST_ID)
     private val followerRightMotorSecond: OpTalonFX =
         OpTalonFX(ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_SECOND_ID)
-    private val followerRightMotorThird: OpTalonFX =
-        OpTalonFX(ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_THIRD_ID)
 
     // -------------------------------
     // PRIVATE — Useful variables
@@ -57,10 +55,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
         Alert(ShooterConstants.Telemetry.SHOOTER_CONNECTED_ALERTS_FIELD,
             "Left Shooter Second Motor ID ${ShooterConstants.Identification.FOLLOWER_LEFT_SHOOTER_SECOND_ID} Disconnected",
             Alert.AlertType.kError)
-    private val followerLeftThirdAlert      : Alert =
-        Alert(ShooterConstants.Telemetry.SHOOTER_CONNECTED_ALERTS_FIELD,
-            "Left Shooter Third Motor ID ${ShooterConstants.Identification.FOLLOWER_LEFT_SHOOTER_THIRD_ID} Disconnected",
-            Alert.AlertType.kError)
     private val followerRightFirstAlert     : Alert =
         Alert(ShooterConstants.Telemetry.SHOOTER_CONNECTED_ALERTS_FIELD,
             "Right Shooter First Motor ID ${ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_FIRST_ID} Disconnected",
@@ -68,10 +62,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
     private val followerRightSecondAlert    : Alert =
         Alert(ShooterConstants.Telemetry.SHOOTER_CONNECTED_ALERTS_FIELD,
             "Right Shooter Second Motor ID ${ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_SECOND_ID} Disconnected",
-            Alert.AlertType.kError)
-    private val followerRightThirdAlert     : Alert =
-        Alert(ShooterConstants.Telemetry.SHOOTER_CONNECTED_ALERTS_FIELD,
-            "Right Shooter Third Motor ID ${ShooterConstants.Identification.FOLLOWER_RIGHT_SHOOTER_THIRD_ID} Disconnected",
             Alert.AlertType.kError)
 
     // --------------------------------------------------------------------------------
@@ -114,10 +104,8 @@ class Shooter() : SysIdSubsystem("Shooter") {
     override fun periodic() {
         leadLeftFirstAlert.set(leadMotorController.isConnected.invoke().not())
         followerLeftSecondAlert.set(followerLeftMotorSecond.isConnected.invoke().not())
-        followerLeftThirdAlert.set(followerLeftMotorThird.isConnected.invoke().not())
         followerRightFirstAlert.set(followerRightMotorFirst.isConnected.invoke().not())
         followerRightSecondAlert.set(followerRightMotorSecond.isConnected.invoke().not())
-        followerRightThirdAlert.set(followerRightMotorThird.isConnected.invoke().not())
 
         if (ShooterConstants.Tunables.motorkP.hasChanged(hashCode())
             || ShooterConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -176,8 +164,8 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * @param velocity The desired [AngularVelocity] of the MOTORS.
      * @return an [InstantCommand] calling [setVelocity]
      */
-    fun setVelocityCMD(velocity : AngularVelocity): Command {
-        return InstantCommand({ setVelocity(velocity) }, this)
+    fun setVelocityCMD(velocity : Supplier<AngularVelocity>): Command {
+        return InstantCommand({ setVelocity(velocity.get()) }, this)
     }
 
     /**
@@ -263,16 +251,12 @@ class Shooter() : SysIdSubsystem("Shooter") {
         leadMotorController.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
 
         followerLeftMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
-        followerLeftMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
         followerRightMotorFirst.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
         followerRightMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
-        followerRightMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
 
         followerLeftMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
-        followerLeftMotorThird.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
-        followerRightMotorFirst.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
-        followerRightMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
-        followerRightMotorThird.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
+        followerRightMotorFirst.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Opposed)
+        followerRightMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Opposed)
     }
 
     /**
@@ -294,9 +278,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
 
         leadMotorController.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
         followerLeftMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
-        followerLeftMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
         followerRightMotorFirst.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
         followerRightMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
-        followerRightMotorThird.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig.withSlot0(newSlot0Configs))
     }
 }

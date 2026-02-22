@@ -128,21 +128,21 @@ public class Drive extends SubsystemBase {
     PhoenixOdometryThread.getInstance().start();
 
     // Configure AutoBuilder for PathPlanner
-//    AutoBuilder.configure(
-//        this::getPose,
-//        this::setPose,
-//        this::getChassisSpeeds,
-//        this::runVelocity,
-//        new PPHolonomicDriveController(
-//            new PIDConstants(SwerveTunerConstants.get(),
-//                    SwerveTunerConstants.autoDrive_kI.get(),
-//                    SwerveTunerConstants.autoDrive_kD.get()),
-//                new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
-//                        SwerveTunerConstants.autoSteer_kI.get(),
-//                        SwerveTunerConstants.autoSteer_kD.get())),
-//        PP_CONFIG,
-//        () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
-//        this);
+    AutoBuilder.configure(
+        this::getPose,
+        this::setPose,
+        this::getChassisSpeeds,
+        this::runVelocity,
+        new PPHolonomicDriveController(
+            new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
+                    SwerveTunerConstants.autoDrive_kI.get(),
+                    SwerveTunerConstants.autoDrive_kD.get()),
+                new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
+                        SwerveTunerConstants.autoSteer_kI.get(),
+                        SwerveTunerConstants.autoSteer_kD.get())),
+        PP_CONFIG,
+        () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
+        this);
 
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
@@ -231,32 +231,32 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
   
-//  private void updateTunableNumbers() {
-//    if (SwerveTunerConstants.autoDrive_kP.hasChanged(hashCode())
-//            || SwerveTunerConstants.autoDrive_kI.hasChanged(hashCode())
-//            || SwerveTunerConstants.autoDrive_kD.hasChanged(hashCode())
-//
-//            || SwerveTunerConstants.autoSteer_kP.hasChanged(hashCode())
-//            || SwerveTunerConstants.autoSteer_kI.hasChanged(hashCode())
-//            || SwerveTunerConstants.autoSteer_kD.hasChanged(hashCode())) {
-//      AutoBuilder.configure(
-//              this::getPose,
-//              this::setPose,
-//              this::getChassisSpeeds,
-//              this::runVelocity,
-//              new PPHolonomicDriveController(
-//                      new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
-//                              SwerveTunerConstants.autoDrive_kI.get(),
-//                              SwerveTunerConstants.autoDrive_kD.get()),
-//                      new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
-//                              SwerveTunerConstants.autoSteer_kI.get(),
-//                              SwerveTunerConstants.autoSteer_kD.get())),
-//              PP_CONFIG,
-//              () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
-//              this
-//      );
-//    }
-//  }
+  private void updateTunableNumbers() {
+    if (SwerveTunerConstants.autoDrive_kP.hasChanged(hashCode())
+            || SwerveTunerConstants.autoDrive_kI.hasChanged(hashCode())
+            || SwerveTunerConstants.autoDrive_kD.hasChanged(hashCode())
+
+            || SwerveTunerConstants.autoSteer_kP.hasChanged(hashCode())
+            || SwerveTunerConstants.autoSteer_kI.hasChanged(hashCode())
+            || SwerveTunerConstants.autoSteer_kD.hasChanged(hashCode())) {
+      AutoBuilder.configure(
+              this::getPose,
+              this::setPose,
+              this::getChassisSpeeds,
+              this::runVelocity,
+              new PPHolonomicDriveController(
+                      new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
+                              SwerveTunerConstants.autoDrive_kI.get(),
+                              SwerveTunerConstants.autoDrive_kD.get()),
+                      new PIDConstants(SwerveTunerConstants.autoSteer_kP.get(),
+                              SwerveTunerConstants.autoSteer_kI.get(),
+                              SwerveTunerConstants.autoSteer_kD.get())),
+              PP_CONFIG,
+              () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
+              this
+      );
+    }
+  }
 
   /**
    * Runs the drive at the desired velocity.

@@ -96,6 +96,7 @@ class OpTalonFX(private val id: Int) {
             supplyCurrent.setUpdateFrequency(100.0.hertz)
             acceleration.setUpdateFrequency(50.0.hertz)
             controlMode.setUpdateFrequency(10.0.hertz)
+            dutyCycle.setUpdateFrequency(100.0.hertz)
         }
         motor.optimizeBusUtilization()
     }
