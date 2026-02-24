@@ -35,6 +35,8 @@ import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import net.tecdroid.util.stateMachine.StateMachine;
+import net.tecdroid.util.stateMachine.States;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -51,6 +53,7 @@ import java.util.List;
 public class RobotContainer {
 
   private final Vision vision;
+  private final StateMachine stateMachine = new StateMachine(States.NeutralState);
 
   // -------------------------------
   // Subsystems

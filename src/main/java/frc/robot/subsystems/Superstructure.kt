@@ -27,6 +27,8 @@ import frc.robot.subsystems.shooter.IntakeConstants
 import frc.robot.subsystems.shooter.Shooter
 import frc.template.utils.meters
 import frc.template.utils.radians
+import net.tecdroid.util.stateMachine.StateMachine
+import net.tecdroid.util.stateMachine.States
 import java.util.function.DoubleSupplier
 import kotlin.math.abs
 import kotlin.math.atan2
