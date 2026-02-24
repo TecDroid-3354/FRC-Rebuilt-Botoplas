@@ -216,7 +216,8 @@ class Intake() : SubsystemBase() {
     private fun matchRelativeToAbsolute() {
         val absolutePosition = absoluteEncoder.position
 
-        leadDeployableMotor.getMotorInstance().setPosition(absolutePosition)
+        leadDeployableMotor.getMotorInstance()
+            .setPosition(IntakeConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
     }
 
     // ---------------------------------
@@ -224,7 +225,17 @@ class Intake() : SubsystemBase() {
     // ---------------------------------
 
     /**
-     * The current deployable component position.
+     * The current deployable component position according to the absolute encoder.
+     * This position can be seen live in the "Intake" tab of AdvantageScope.
+     * @return the deployable component current angle
+     */
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_ENCODER_FIELD)
+    private fun getDeployableIntakeAbsoluteAngle(): Angle {
+        return absoluteEncoder.position
+    }
+
+    /**
+     * The current deployable component position according to the lead motor.
      * This position can be seen live in the "Intake" tab of AdvantageScope.
      * @return the deployable component current angle
      */
@@ -303,7 +314,8 @@ class Intake() : SubsystemBase() {
         leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
         leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
 
-        followerDeployableMotor.follow(leadDeployableMotor.getMotorInstance(), MotorAlignmentValue.Aligned)
+        followerDeployableMotor.follow(leadDeployableMotor.getMotorInstance(),
+            IntakeConstants.Configuration.followerAlignment)
 
         rollersMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
     }

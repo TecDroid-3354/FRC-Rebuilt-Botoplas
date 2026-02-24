@@ -18,6 +18,7 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 import com.pathplanner.lib.path.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,6 +33,8 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -65,6 +68,8 @@ public class RobotContainer {
                   new ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
                   new ModuleIOTalonFX(SwerveTunerConstants.BackRight)
           );
+
+  private final Shooter shooter = new Shooter();
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -163,6 +168,13 @@ public class RobotContainer {
                     () -> -controller.getLeftX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER ,
                     () -> controller.getRightX() * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Z_MULTIPLIER
             )
+    );
+
+    controller.rightBumper().whileTrue(
+            shooter.setVelocityCMD(
+                    () -> Units.RotationsPerSecond.of(ShooterConstants.Tunables.INSTANCE.getEnabledRPMs().get()))
+    ).onFalse(
+            shooter.stopShooterCMD()
     );
 
     // -------------------------------

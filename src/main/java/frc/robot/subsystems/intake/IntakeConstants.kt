@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter
 
 import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units.Amps
@@ -27,10 +28,10 @@ object IntakeConstants {
      * Unique ID of every component in the shooter
      */
     object Identification {
-        const val ROLLERS_MOTOR_ID          : Int = 1
-        const val LEAD_DEPLOY_MOTOR_ID      : Int = 2
-        const val FOLLOWER_DEPLOY_MOTOR_ID  : Int = 3
-        const val ABSOLUTE_ENCODER_ID       : Int = 4
+        const val ROLLERS_MOTOR_ID          : Int = 21
+        const val LEAD_DEPLOY_MOTOR_ID      : Int = 22 // Right Motor
+        const val FOLLOWER_DEPLOY_MOTOR_ID  : Int = 23 // Left Motor
+        const val ABSOLUTE_ENCODER_ID       : Int = 20
     }
 
     /**
@@ -87,10 +88,15 @@ object IntakeConstants {
         }
 
         // ---------------------------------
+        // PUBLIC — Follower Alignment
+        // ---------------------------------
+        val followerAlignment                : MotorAlignmentValue = MotorAlignmentValue.Opposed
+
+        // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
         private val neutralMode                     : NeutralModeValue = NeutralModeValue.Brake
-        private val deployableMotorsOrientation     : InvertedValue = InvertedValue.Clockwise_Positive
+        private val deployableMotorsOrientation     : InvertedValue = InvertedValue.CounterClockwise_Positive
         private val rollerMotorOrientation          : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------
@@ -149,7 +155,8 @@ object IntakeConstants {
         const val INTAKE_TAB                    : String = "Intake"
         const val INTAKE_CONNECTED_ALERTS_FIELD : String = "${INTAKE_TAB}/Intake Connection Alerts"
         const val INTAKE_VOLTAGE_FIELD          : String = "${INTAKE_TAB}/Rollers Component Voltage"
-        const val INTAKE_ANGLE_FIELD            : String = "${INTAKE_TAB}/Deployable Component Angle"
+        const val INTAKE_ANGLE_FIELD            : String = "${INTAKE_TAB}/Deployable Component Angle (Motor)"
+        const val INTAKE_ANGLE_ENCODER_FIELD    : String = "${INTAKE_TAB}/Deployable Component Angle (Encoder)"
         const val INTAKE_TARGET_ANGLE_FIELD     : String = "${INTAKE_TAB}/Deployable Component Target Angle"
         const val INTAKE_DEPLOYABLE_ERROR       : String = "${INTAKE_TAB}/Deployable Component Angle error"
     }

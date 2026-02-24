@@ -22,29 +22,29 @@ object ShooterConstants {
      * Unique ID of every component in the shooter
      */
     object Identification {
-        const val LEAD_MOTOR_LEFT_SHOOTER_FIRST_ID  : Int = 1
-        const val FOLLOWER_LEFT_SHOOTER_SECOND_ID   : Int = 2
-        const val FOLLOWER_LEFT_SHOOTER_THIRD_ID    : Int = 3
-        const val FOLLOWER_RIGHT_SHOOTER_FIRST_ID   : Int = 4
-        const val FOLLOWER_RIGHT_SHOOTER_SECOND_ID  : Int = 5
-        const val FOLLOWER_RIGHT_SHOOTER_THIRD_ID   : Int = 6
+        const val LEAD_MOTOR_LEFT_SHOOTER_FIRST_ID  : Int = 40
+        const val FOLLOWER_LEFT_SHOOTER_SECOND_ID   : Int = 41
+        const val FOLLOWER_RIGHT_SHOOTER_FIRST_ID   : Int = 42
+        const val FOLLOWER_RIGHT_SHOOTER_SECOND_ID  : Int = 43
     }
 
     /**
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction: Reduction = Reduction(0.0)
+        val Reduction: Reduction = Reduction(1.0)
     }
 
     /**
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.1)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.5)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.0)
+
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPS", 10.0)
     }
 
     /**
@@ -66,7 +66,7 @@ object ShooterConstants {
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
-        private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
+        private val neutralMode         : NeutralModeValue = NeutralModeValue.Coast
         private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------
