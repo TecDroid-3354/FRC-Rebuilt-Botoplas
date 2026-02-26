@@ -5,8 +5,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Voltage
-import frc.robot.subsystems.shooter.IntakeConstants
-import frc.robot.subsystems.shooter.Shooter
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.volts
@@ -17,8 +15,7 @@ object IndexerConstants {
          * Unique ID of every component in the shooter
          */
         object Identification {
-                const val BOTTOM_ROLLERS_ID   : Int = 5
-                const val LATERAL_ROLLERS_ID  : Int = 6
+                const val INDEXER_ROLLERS_ID   : Int = 30
         }
 
         /**
@@ -26,13 +23,11 @@ object IndexerConstants {
          * Only these targets should be used since velocity is constant.
          */
         object VoltageTargets {
-                var BottomRollerVoltage         : Voltage = Tunables.bottomRollerVoltage.get().volts
-                var LateralRollerVoltage        : Voltage = Tunables.lateralRollerVoltage.get().volts
+                var RollersVoltage         : Voltage = Tunables.indexerRollersVoltage.get().volts
         }
 
         object Tunables {
-                val bottomRollerVoltage         : LoggedTunableNumber = LoggedTunableNumber("${{Telemetry.INDEXER_TAB}}/Bottom Rollers voltage", 10.0)
-                val lateralRollerVoltage        : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Lateral Rollers voltage", 10.0)
+                val indexerRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${{Telemetry.INDEXER_TAB}}/Bottom Rollers voltage", 6.0)
         }
 
         /**
@@ -43,8 +38,8 @@ object IndexerConstants {
                 // ---------------------------------
                 // PRIVATE — Motor Outputs
                 // ---------------------------------
-                private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
-                private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+                private val neutralMode         : NeutralModeValue = NeutralModeValue.Coast
+                private val motorOrientation    : InvertedValue = InvertedValue.CounterClockwise_Positive
 
                 // ---------------------------------
                 // PRIVATE — Current Limits

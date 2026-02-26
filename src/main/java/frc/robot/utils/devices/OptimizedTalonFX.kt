@@ -18,9 +18,8 @@ import frc.template.utils.hertz
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.safety.MeasureLimits
 
-class OpTalonFX(private val id: Int) {
+class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
 
-    private var canBusName = "rio"
     private val motor = KrakenMotors.createDefaultTalon(id ,canBusName)
     private var isFollower: Boolean = false
 
@@ -34,10 +33,6 @@ class OpTalonFX(private val id: Int) {
     var supplyCurrent: StatusSignal<Current> = motor.supplyCurrent
     var power: () -> Double = { motor.get() }
     var isConnected: () -> Boolean = { motor.isConnected }
-
-    constructor(id: Int, canBusName: String) : this(id) {
-        this.canBusName = canBusName
-    }
 
     init {
         optimizeMotorCan()
@@ -97,6 +92,7 @@ class OpTalonFX(private val id: Int) {
             acceleration.setUpdateFrequency(50.0.hertz)
             controlMode.setUpdateFrequency(10.0.hertz)
             dutyCycle.setUpdateFrequency(100.0.hertz)
+            version.setUpdateFrequency(100.0.hertz)
         }
         motor.optimizeBusUtilization()
     }

@@ -1,6 +1,8 @@
 package frc.robot.subsystems.hood
 import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units.Degrees
+import edu.wpi.first.units.Units.DegreesPerSecond
+import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
@@ -10,13 +12,18 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.robot.constants.RobotConstants
+import frc.robot.utils.interpolation.InterpolatingDouble
+import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.Supplier
+import kotlin.collections.iterator
 
 class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
@@ -29,6 +36,8 @@ class Hood() : SysIdSubsystem("Hood") {
     // PRIVATE — Useful variables
     // -------------------------------
     private var targetAngle          : Angle = Degrees.zero()
+    private val hoodDistanceDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val hoodVelocityDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -99,30 +108,35 @@ class Hood() : SysIdSubsystem("Hood") {
      * @param angle The desired [frc.robot.subsystems.hood.Hood] angle.
      */
     private fun setAngle(angle: Angle) {
-        targetAngle = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
-        motorController.positionRequestSubsystem(angle,
+        val clampedAngle = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
+        targetAngle = clampedAngle
+        motorController.positionRequestSubsystem(clampedAngle,
             HoodConstants.PhysicalLimits.Limits,
             HoodConstants.PhysicalLimits.Reduction)
     }
 
     /**
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
-     * reach the HUB based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
+     * reach the target based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
      * This [Angle] is then passed to [setAngle]
      * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
      */
     private fun setVelocityDrivenInterpolatedAngle(shooterRPMs: AngularVelocity) {
-        // TODO() = Implement Interpolation
+        val hoodSetpointDeg = hoodVelocityDrivenInterpolation
+            .getInterpolated(InterpolatingDouble(shooterRPMs.`in`(DegreesPerSecond)))
+        setAngle(hoodSetpointDeg.value.degrees)
     }
 
     /**
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
-     * reach the HUB based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the HUB.
+     * reach the target based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the target.
      * This [Angle] is then passed to [setAngle]
-     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     * @param chassisDistanceToTarget The current distance from Swerve to the target (HUB or passed the trench to assist).
      */
-    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB: Distance) {
-        // TODO() = Implement Interpolation
+    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToTarget: Distance) {
+        val hoodSetpointDeg = hoodDistanceDrivenInterpolation
+            .getInterpolated(InterpolatingDouble(chassisDistanceToTarget.`in`(Meters)))
+        setAngle(hoodSetpointDeg.value.degrees)
     }
 
     /**
@@ -239,6 +253,29 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun brakeCMD(): Command {
         return InstantCommand({ motorController.brake() }, this)
+    }
+
+    // -------------------------------
+    // Motor configuration (Phoenix 6)
+    // -------------------------------
+
+    /**
+     * Puts every interpolation point in the interpolation object.
+     * - key    : Distance to target in [Meters]
+     * - value  : Shooter velocity in [DegreesPerSecond]
+     */
+    private fun interpolationConfiguration() {
+        for (point in HoodConstants.Control.hoodDistanceDrivenInterpolationPoints) {
+            hoodDistanceDrivenInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(Degrees)))
+        }
+
+        for (point in HoodConstants.Control.hoodVelocityDrivenInterpolationPoints) {
+            hoodVelocityDrivenInterpolation.put(
+                InterpolatingDouble(point.key.`in`(DegreesPerSecond)),
+                InterpolatingDouble(point.value.`in`(Degrees)))
+        }
     }
 
     /**

@@ -17,7 +17,8 @@ enum class States(var config: StateConfig) {
     ShootState(StateConfig()),
     NeutralState(StateConfig()),
     IntakeState(StateConfig()),
-    AssistState(StateConfig());
+    AssistState(StateConfig()),
+    EmergencyShootState(StateConfig());
 
     /**
      * Change the initial state command. These classes are global, so the config

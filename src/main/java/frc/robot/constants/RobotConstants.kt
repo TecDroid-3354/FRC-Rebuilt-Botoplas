@@ -22,6 +22,10 @@ import kotlin.math.pow
 
 object RobotConstants {
 
+    object Identification {
+        const val ALTERNATE_CANBUS = "canivore"
+    }
+
     object RobotPhysics {
         val RobotMass       : Mass              = Kilograms.of(15.0)
         val RobotLength     : Distance          = 27.0.inches

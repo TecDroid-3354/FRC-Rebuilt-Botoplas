@@ -2,7 +2,9 @@ package frc.robot.subsystems.intake
 
 import com.ctre.phoenix6.configs.Slot0Configs
 import com.ctre.phoenix6.signals.MotorAlignmentValue
+import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units
+import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
@@ -11,8 +13,10 @@ import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
+import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.shooter.IntakeConstants
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
@@ -27,15 +31,15 @@ class Intake() : SubsystemBase() {
     // PRIVATE — Deployable Motors Declaration
     // ---------------------------------------
     private val leadDeployableMotor     : OpTalonFX =
-        OpTalonFX(IntakeConstants.Identification.LEAD_DEPLOY_MOTOR_ID)
+        OpTalonFX(IntakeConstants.Identification.LEAD_DEPLOY_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
     private val followerDeployableMotor : OpTalonFX =
-        OpTalonFX(IntakeConstants.Identification.FOLLOWER_DEPLOY_MOTOR_ID)
+        OpTalonFX(IntakeConstants.Identification.FOLLOWER_DEPLOY_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
 
     // -----------------------------------
     // PRIVATE — Intake motors Declaration
     // -----------------------------------
     private val rollersMotorController  : OpTalonFX =
-        OpTalonFX(IntakeConstants.Identification.ROLLERS_MOTOR_ID)
+        OpTalonFX(IntakeConstants.Identification.ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
 
     // --------------------------------------
     // PRIVATE — Absolute Encoder declaration
@@ -46,7 +50,7 @@ class Intake() : SubsystemBase() {
             IntakeConstants.Configuration.AbsoluteEncoder.offset,
             IntakeConstants.Configuration.AbsoluteEncoder.inverted,
             IntakeConstants.Configuration.AbsoluteEncoder.brand,
-            Optional.empty())
+            Optional.of(RobotConstants.Identification.ALTERNATE_CANBUS))
 
     // -------------------------------
     // PRIVATE — Useful variables
@@ -229,9 +233,9 @@ class Intake() : SubsystemBase() {
      * This position can be seen live in the "Intake" tab of AdvantageScope.
      * @return the deployable component current angle
      */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_ENCODER_FIELD)
-    private fun getDeployableIntakeAbsoluteAngle(): Angle {
-        return absoluteEncoder.position
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_ENCODER_FIELD, unit = "degrees")
+    private fun getDeployableIntakeAbsoluteAngle(): Double {
+        return absoluteEncoder.position.`in`(Degrees)
     }
 
     /**
@@ -239,7 +243,7 @@ class Intake() : SubsystemBase() {
      * This position can be seen live in the "Intake" tab of AdvantageScope.
      * @return the deployable component current angle
      */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_FIELD)
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_FIELD, unit = "degrees")
     private fun getDeployableIntakeAngle(): Angle {
         return IntakeConstants.PhysicalLimits.Reduction.apply(leadDeployableMotor.position.value)
     }

@@ -7,15 +7,19 @@ import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Time
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
-import frc.template.utils.rotations
+import frc.template.utils.meters
 import frc.template.utils.seconds
 import java.util.Optional
+
+data class ShooterPoint(val hubDistance: Distance, val shooterRPS: AngularVelocity)
 
 object ShooterConstants {
     /**
@@ -55,7 +59,14 @@ object ShooterConstants {
         val MAX_RPS               : AngularVelocity = RotationsPerSecond.of(6_000.0 / 60)
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
-        // TODO() = Implement interpolation. Write interpolation points here.
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (degreesPerSecond)
+        val shooterInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            0.0.meters to 0.0.degreesPerSecond,
+            0.0.meters to 0.0.degreesPerSecond,
+            0.0.meters to 0.0.degreesPerSecond,
+            0.0.meters to 0.0.degreesPerSecond,
+            0.0.meters to 0.0.degreesPerSecond,
+        )
     }
 
     /**

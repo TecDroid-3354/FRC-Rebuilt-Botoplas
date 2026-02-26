@@ -33,6 +33,8 @@ import frc.robot.constants.SwerveTunerConstants;
 import frc.robot.subsystems.drivetrain.Drive;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2;
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.Vision;
@@ -69,6 +71,8 @@ public class RobotContainer {
                   new ModuleIOTalonFX(SwerveTunerConstants.BackRight)
           );
 
+  private final Intake intake = new Intake();
+  private final Indexer indexer = new Indexer();
   private final Shooter shooter = new Shooter();
 
   // Dashboard inputs
@@ -171,10 +175,12 @@ public class RobotContainer {
     );
 
     controller.rightBumper().whileTrue(
+            indexer.enableIndexerCMD().andThen(
             shooter.setVelocityCMD(
                     () -> Units.RotationsPerSecond.of(ShooterConstants.Tunables.INSTANCE.getEnabledRPMs().get()))
+            )
     ).onFalse(
-            shooter.stopShooterCMD()
+            indexer.stopIndexerCMD().andThen(shooter.stopShooterCMD())
     );
 
     // -------------------------------
@@ -195,12 +201,12 @@ public class RobotContainer {
       */
 
     // Reset gyro to 0° when Start button is pressed
-    controller.start().onTrue(
-            Commands.runOnce(
-                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
-                    drive
-                )
-            );
+//    controller.start().onTrue(
+//            Commands.runOnce(
+//                    () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
+//                    drive
+//                )
+//            );
     // -------------------------------
     // Other bindings
     // -------------------------------
@@ -217,23 +223,23 @@ public class RobotContainer {
 
     //Characterization
 
-      controller
-              .a().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-
-      controller
-              .b().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-
-      controller
-              .x().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-
-      controller
-              .y().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-      controller
-              .leftTrigger().onTrue(new InstantCommand(Logger::start));
-
-      controller
-              .leftTrigger().onTrue(new InstantCommand(Logger::end));
+//      controller
+//              .a().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+//
+//      controller
+//              .b().whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+//
+//      controller
+//              .x().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+//
+//      controller
+//              .y().whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+//
+//      controller
+//              .leftTrigger().onTrue(new InstantCommand(Logger::start));
+//
+//      controller
+//              .leftTrigger().onTrue(new InstantCommand(Logger::end));
   }
 
   /**

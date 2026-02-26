@@ -5,16 +5,22 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
+import edu.wpi.first.units.Units.RotationsPerSecond
+import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Time
 import frc.robot.subsystems.shooter.IntakeConstants
+import frc.robot.subsystems.shooter.Shooter
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
+import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
+import frc.template.utils.meters
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -24,14 +30,14 @@ object HoodConstants {
      * Unique ID of every component in the hood
      */
     object Identification {
-        const val HOOD_MOTOR_ID : Int = 1
+        const val HOOD_MOTOR_ID : Int = 51
     }
 
     /**
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction(1.0)
+        val Reduction           : Reduction = Reduction(9.0)
         val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
     }
 
@@ -43,6 +49,29 @@ object HoodConstants {
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
+    }
+
+    /**
+     * Contains all control interpolation points for the [Hood], both distance and velocity driven.
+     */
+    object Control {
+        // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
+        val hoodDistanceDrivenInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            0.0.meters to 0.0.degrees,
+            0.0.meters to 0.0.degrees,
+            0.0.meters to 0.0.degrees,
+            0.0.meters to 0.0.degrees,
+            0.0.meters to 0.0.degrees,
+        )
+
+        // Pair() containing: Shooter velocity (degreesPerSecond) -> Hood target angle (degrees)
+        val hoodVelocityDrivenInterpolationPoints: Map<AngularVelocity, Angle> = mapOf<AngularVelocity, Angle>(
+            0.0.degreesPerSecond to 0.0.degrees,
+            0.0.degreesPerSecond to 0.0.degrees,
+            0.0.degreesPerSecond to 0.0.degrees,
+            0.0.degreesPerSecond to 0.0.degrees,
+            0.0.degreesPerSecond to 0.0.degrees,
+        )
     }
 
     /**

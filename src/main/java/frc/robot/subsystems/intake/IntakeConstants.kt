@@ -39,7 +39,7 @@ object IntakeConstants {
      */
     object PhysicalLimits {
         val Reduction                   : Reduction = Reduction(1.0)
-        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
+        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 110.0.degrees)
         val DeployableAngleDelta        : Angle = 15.0.degrees  // The acceptable error before enabling rollers.
     }
 
@@ -47,8 +47,8 @@ object IntakeConstants {
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        val RetractedAngle               : Angle = 0.0.degrees
-        val DeployedAngle                : Angle = 90.0.degrees
+        val RetractedAngle               : Angle = 90.0.degrees
+        val DeployedAngle                : Angle = 0.0.degrees
     }
 
     /**

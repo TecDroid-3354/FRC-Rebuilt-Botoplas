@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.Slot0Configs
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.Units.DegreesPerSecond
+import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
@@ -14,15 +15,17 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.robot.constants.RobotConstants
+import frc.robot.utils.interpolation.InterpolatingDouble
+import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
-import org.littletonrobotics.junction.AutoLog
 import org.littletonrobotics.junction.AutoLogOutput
-import org.littletonrobotics.junction.Logger
 import java.util.function.Supplier
 
 class Shooter() : SysIdSubsystem("Shooter") {
@@ -43,6 +46,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
     // PRIVATE — Useful variables
     // -------------------------------
     private var targetVelocity          : AngularVelocity = DegreesPerSecond.zero()
+    private val shooterInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -96,6 +100,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      */
     init {
         motorConfiguration()
+        interpolationConfiguration()
     }
 
     /**
@@ -136,11 +141,13 @@ class Shooter() : SysIdSubsystem("Shooter") {
 
     /**
      * Uses the interpolation object to get the suitable [AngularVelocity] of the shooter motors for the FUELS to
-     * reach the HUB. This [AngularVelocity] is then passed to [setVelocity]
-     * @param distanceToHUB The current distance from chassis to HUB.
+     * reach the target. This [AngularVelocity] is then passed to [setVelocity].
+     * - NOTE: Interpolation is performed in [Meters] and [DegreesPerSecond], hence the units inside the method.
+     * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
      */
-    private fun setInterpolatedVelocity(distanceToHUB: Distance) {
-        // TODO() = Implement Interpolation
+    private fun setInterpolatedVelocity(distanceToTarget: Distance) {
+        val shooterSetpointDps = shooterInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
+        setVelocity(shooterSetpointDps.value.degreesPerSecond)
     }
 
     /**
@@ -170,11 +177,11 @@ class Shooter() : SysIdSubsystem("Shooter") {
 
     /**
      * Command version of [setInterpolatedVelocity]. Subsystem set as requirement.
-     * @param distanceToHUB The current distance from chassis to HUB.
+     * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
      * @return a [RunCommand] calling [setInterpolatedVelocity]
      */
-    fun setInterpolatedVelocityCMD(distanceToHUB: Supplier<Distance>): Command {
-        return RunCommand({ setInterpolatedVelocity(distanceToHUB.get()) }, this)
+    fun setInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
+        return RunCommand({ setInterpolatedVelocity(distanceToTarget.get()) }, this)
     }
 
     /**
@@ -242,6 +249,19 @@ class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
     // Motor configuration (Phoenix 6)
     // -------------------------------
+
+    /**
+     * Puts every interpolation point in the interpolation object.
+     * - key    : Distance to target in [Meters]
+     * - value  : Shooter velocity in [DegreesPerSecond]
+     */
+    private fun interpolationConfiguration() {
+        for (point in ShooterConstants.Control.shooterInterpolationPoints) {
+            shooterInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(DegreesPerSecond)))
+        }
+    }
 
     /**
      * Apply the config defined in [ShooterConstants.Configuration] to each motor.
