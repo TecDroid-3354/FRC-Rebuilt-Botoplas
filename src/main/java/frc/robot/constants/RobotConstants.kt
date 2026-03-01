@@ -71,4 +71,9 @@ object RobotConstants {
         val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 15.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
     }
+
+    object Telemetry {
+        const val STATES_TAB = "States"
+        const val STATES_CURRENT_STATE_FIELD = "${STATES_TAB}/Current State"
+    }
 }

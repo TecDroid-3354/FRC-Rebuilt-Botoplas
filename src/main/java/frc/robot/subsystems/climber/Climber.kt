@@ -56,17 +56,17 @@ class Climber() : SysIdSubsystem("Climber") {
      * [motorPosition] holds the current motor's position without gear ratios
      */
     override val motorPosition: Angle
-        get() = motorController.position.value
+        get() = motorController.getPosition()
     /**
      * [motorVelocity] holds the current motor's velocity without gear ratios
      */
     override val motorVelocity: AngularVelocity
-        get() = motorController.velocity.value
+        get() = motorController.getVelocity()
     /**
      * [power] holds the current motor's power
      */
     override val power: Double
-        get() = motorController.power.invoke()
+        get() = motorController.getPower()
 
     /**
      * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
@@ -195,7 +195,7 @@ class Climber() : SysIdSubsystem("Climber") {
      */
     @AutoLogOutput(key = ClimberConstants.Telemetry.CLIMBER_ANGLE_FIELD)
     private fun getClimberAngle(): Angle {
-        return ClimberConstants.PhysicalLimits.Reduction.apply(motorController.position.value)
+        return ClimberConstants.PhysicalLimits.Reduction.apply(motorController.getPosition())
     }
 
     /**
@@ -206,7 +206,7 @@ class Climber() : SysIdSubsystem("Climber") {
         return abs(
             targetPose.pose.`in`(Units.Rotations).minus(
                 ClimberConstants.PhysicalLimits.Reduction.apply(
-                    motorController.position.value.`in`(Units.Rotations)
+                    motorController.getPosition().`in`(Units.Rotations)
                 )
             )
         ).rotations

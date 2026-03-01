@@ -40,7 +40,7 @@ class Indexer() : SubsystemBase() {
      * Called every 20ms loop. Used to update alerts and keep track of changes in voltage target values.
      */
     override fun periodic() {
-        indexerRollersAlert.set(indexerRollersMotor.isConnected.invoke().not())
+        indexerRollersAlert.set(indexerRollersMotor.getIsConnected().not())
 
         if (IndexerConstants.Tunables.indexerRollersVoltage.hasChanged(hashCode())) {
             updateRollersTargetVoltage(

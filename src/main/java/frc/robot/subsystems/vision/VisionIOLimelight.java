@@ -17,10 +17,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.DoubleArrayPublisher;
-import edu.wpi.first.networktables.DoubleArraySubscriber;
-import edu.wpi.first.networktables.DoubleSubscriber;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.RobotController;
 
 import java.util.HashSet;
@@ -31,6 +28,7 @@ import java.util.function.Supplier;
 
 /** IO implementation for real Limelight hardware. */
 public class  VisionIOLimelight implements VisionIO {
+  private final NetworkTable table;
   private final Supplier<Rotation2d> rotationSupplier;
   private final DoubleArrayPublisher orientationPublisher;
 
@@ -47,7 +45,7 @@ public class  VisionIOLimelight implements VisionIO {
    * @param rotationSupplier Supplier for the current estimated rotation, used for MegaTag 2.
    */
   public VisionIOLimelight(String name, Supplier<Rotation2d> rotationSupplier) {
-    var table = NetworkTableInstance.getDefault().getTable(name);
+    table = NetworkTableInstance.getDefault().getTable(name);
     this.rotationSupplier = rotationSupplier;
     orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
     latencySubscriber = table.getDoubleTopic("tl").subscribe(0.0);
@@ -56,6 +54,11 @@ public class  VisionIOLimelight implements VisionIO {
     megatag1Subscriber = table.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[] {});
     megatag2Subscriber =
         table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[] {});
+  }
+
+  @Override
+  public void setThrottle(double throttle) {
+    table.getEntry("throttle_set").setDouble(throttle);
   }
 
   @Override
@@ -83,31 +86,31 @@ public class  VisionIOLimelight implements VisionIO {
     // worth it to retry and combine them.
     // -------------------------------------------------------------------------------------------------------------
 
-//    for (var rawSample : megatag1Subscriber.readQueue()) {
-//      if (rawSample.value.length == 0) continue;
-//      for (int i = 11; i < rawSample.value.length; i += 7) {
-//        tagIds.add((int) rawSample.value[i]);
-//      }
-//      poseObservations.add(
-//          new PoseObservation(
-//              // Timestamp, based on server timestamp of publish and latency
-//              rawSample.timestamp * 1.0e-6 - rawSample.value[6] * 1.0e-3,
-//
-//              // 3D pose estimate
-//              parsePose(rawSample.value),
-//
-//              // Ambiguity, using only the first tag because ambiguity isn't applicable for multitag
-//              rawSample.value.length >= 18 ? rawSample.value[17] : 0.0,
-//
-//              // Tag count
-//              (int) rawSample.value[7],
-//
-//              // Average tag distance
-//              rawSample.value[9],
-//
-//              // Observation type
-//              PoseObservationType.MEGATAG_1));
-//    }
+    for (var rawSample : megatag1Subscriber.readQueue()) {
+      if (rawSample.value.length == 0) continue;
+      for (int i = 11; i < rawSample.value.length; i += 7) {
+        tagIds.add((int) rawSample.value[i]);
+      }
+      poseObservations.add(
+          new PoseObservation(
+              // Timestamp, based on server timestamp of publish and latency
+              rawSample.timestamp * 1.0e-6 - rawSample.value[6] * 1.0e-3,
+
+              // 3D pose estimate
+              parsePose(rawSample.value),
+
+              // Ambiguity, using only the first tag because ambiguity isn't applicable for multitag
+              rawSample.value.length >= 18 ? rawSample.value[17] : 0.0,
+
+              // Tag count
+              (int) rawSample.value[7],
+
+              // Average tag distance
+              rawSample.value[9],
+
+              // Observation type
+              PoseObservationType.MEGATAG_1));
+    }
     for (var rawSample : megatag2Subscriber.readQueue()) {
       if (rawSample.value.length == 0) continue;
       for (int i = 11; i < rawSample.value.length; i += 7) {

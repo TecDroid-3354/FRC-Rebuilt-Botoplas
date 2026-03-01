@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
-import frc.robot.constants.RobotConstants
 import frc.robot.utils.interpolation.InterpolatingDouble
 import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
@@ -78,17 +77,17 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * [motorPosition] holds the current motor's position without gear ratios
      */
     override val motorPosition: Angle
-        get() = leadMotorController.position.value
+        get() = leadMotorController.getPosition()
     /**
      * [motorVelocity] holds the current motor's velocity without gear ratios
      */
     override val motorVelocity: AngularVelocity
-        get() = leadMotorController.velocity.value
+        get() = leadMotorController.getVelocity()
     /**
      * [power] holds the current motor's power
      */
     override val power: Double
-        get() = leadMotorController.power.invoke()
+        get() = leadMotorController.getPower()
 
     /**
      * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
@@ -107,10 +106,10 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF values.
      */
     override fun periodic() {
-        leadLeftFirstAlert.set(leadMotorController.isConnected.invoke().not())
-        followerLeftSecondAlert.set(followerLeftMotorSecond.isConnected.invoke().not())
-        followerRightFirstAlert.set(followerRightMotorFirst.isConnected.invoke().not())
-        followerRightSecondAlert.set(followerRightMotorSecond.isConnected.invoke().not())
+        leadLeftFirstAlert.set(leadMotorController.getIsConnected().not())
+        followerLeftSecondAlert.set(followerLeftMotorSecond.getIsConnected().not())
+        followerRightFirstAlert.set(followerRightMotorFirst.getIsConnected().not())
+        followerRightSecondAlert.set(followerRightMotorSecond.getIsConnected().not())
 
         if (ShooterConstants.Tunables.motorkP.hasChanged(hashCode())
             || ShooterConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -234,7 +233,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_RPM_FIELD)
     fun getShooterAngularVelocity(): AngularVelocity {
-        return leadMotorController.velocity.value
+        return leadMotorController.getVelocity()
     }
 
     /**

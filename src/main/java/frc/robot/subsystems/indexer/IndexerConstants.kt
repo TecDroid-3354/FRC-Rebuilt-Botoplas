@@ -27,7 +27,7 @@ object IndexerConstants {
         }
 
         object Tunables {
-                val indexerRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${{Telemetry.INDEXER_TAB}}/Bottom Rollers voltage", 6.0)
+                val indexerRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Rollers voltage", 6.0)
         }
 
         /**

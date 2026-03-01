@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
-import frc.robot.constants.RobotConstants
 import frc.robot.utils.interpolation.InterpolatingDouble
 import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
@@ -21,7 +20,9 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.Optional
 import java.util.function.Supplier
 import kotlin.collections.iterator
 
@@ -33,9 +34,21 @@ class Hood() : SysIdSubsystem("Hood") {
         OpTalonFX(HoodConstants.Identification.HOOD_MOTOR_ID)
 
     // -------------------------------
+    // PRIVATE — Absolute Encoder Declaration
+    // -------------------------------
+    private val absoluteEncoder : ThroughBoreAbsoluteEncoder =
+        ThroughBoreAbsoluteEncoder(
+            HoodConstants.Identification.ABSOLUTE_ENCODER_ID,
+            HoodConstants.Configuration.AbsoluteEncoder.offset,
+            HoodConstants.Configuration.AbsoluteEncoder.inverted,
+            HoodConstants.Configuration.AbsoluteEncoder.brand,
+            Optional.empty()
+        )
+
+    // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetAngle          : Angle = Degrees.zero()
+    private var targetAngle         : Angle = Degrees.zero()
     private val hoodDistanceDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
     private val hoodVelocityDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
 
@@ -47,27 +60,32 @@ class Hood() : SysIdSubsystem("Hood") {
             "Hood Motor ID ${HoodConstants.Identification.HOOD_MOTOR_ID} Disconnected",
             Alert.AlertType.kError)
 
+    private val absoluteEncoderConnectedAlert: Alert =
+        Alert(HoodConstants.Telemetry.HOOD_CONNECTED_ALERTS_FIELD,
+            "Hood Absolute Encoder ID ${HoodConstants.Identification.ABSOLUTE_ENCODER_ID} Disconnected",
+            Alert.AlertType.kError)
+
     // --------------------------------------------------------------------------------
     // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
     // --------------------------------------------------------------------------------
-    override val sysIdForwardRunningCondition: () -> Boolean = { getHoodAngle() < HoodConstants.PhysicalLimits.Limits.maximum }
-    override val sysIdBackwardRunningCondition: () -> Boolean = { getHoodAngle() > HoodConstants.PhysicalLimits.Limits.minimum }
+    override val sysIdForwardRunningCondition: () -> Boolean = { getHoodAngleDegrees() < HoodConstants.PhysicalLimits.Limits.maximum.`in`(Degrees) }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getHoodAngleDegrees() > HoodConstants.PhysicalLimits.Limits.minimum.`in`(Degrees) }
 
     /**
      * [motorPosition] holds the current motor's position without gear ratios
      */
     override val motorPosition: Angle
-        get() = motorController.position.value
+        get() = motorController.getPosition()
     /**
      * [motorVelocity] holds the current motor's velocity without gear ratios
      */
     override val motorVelocity: AngularVelocity
-        get() = motorController.velocity.value
+        get() = motorController.getVelocity()
     /**
      * [power] holds the current motor's power
      */
     override val power: Double
-        get() = motorController.power.invoke()
+        get() = motorController.getPower()
 
     /**
      * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
@@ -79,13 +97,16 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     init {
         motorController.applyConfigAndClearFaults(HoodConstants.Configuration.motorConfig)
+        matchRelativeToAbsolute()
+        interpolationConfiguration()
     }
 
     /**
      * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF values.
      */
     override fun periodic() {
-        hoodConnectedAlert.set(motorController.isConnected.invoke().not())
+        hoodConnectedAlert.set(motorController.getIsConnected().not())
+        absoluteEncoderConnectedAlert.set(absoluteEncoder.isConnected.not())
 
         if (HoodConstants.Tunables.motorkP.hasChanged(hashCode())
             || HoodConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -178,6 +199,17 @@ class Hood() : SysIdSubsystem("Hood") {
         return RunCommand({ setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
     }
 
+    /**
+     * Matches the motor encoder angle with the absolute encoder angle.
+     * It is mainly used at the beginning of the robot so that the subsystem knows its position.
+     */
+    private fun matchRelativeToAbsolute() {
+        val absolutePosition = absoluteEncoder.position
+
+        motorController.getMotorInstance()
+            .setPosition(HoodConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
+    }
+
     // -------------------------------
     // PUBLIC — SysId Routines
     // -------------------------------
@@ -219,12 +251,16 @@ class Hood() : SysIdSubsystem("Hood") {
      * reported position with the respective reduction.
      * This can be seen live in the "Hood" tab of AdvantageScope.
      */
-    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ANGLE_FIELD)
-    fun getHoodAngle(): Angle {
-        return HoodConstants.PhysicalLimits.Reduction.apply(
-            motorController.position.value
-        )
+    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ANGLE_FIELD, unit = "degrees")
+    fun getHoodAngleDegrees(): Double {
+        return HoodConstants.PhysicalLimits.Reduction.apply(motorController.getPosition().`in`(Degrees))
     }
+
+    /**
+     * Returns the absolute position of the subsystem
+     */
+    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ABSOLUTE_ENCODER_ANGLE_FIELD, unit = "degrees")
+    private fun getEncoderAbsoluteAngle(): Double = absoluteEncoder.position.`in`(Degrees)
 
     /**
      * Returns the [frc.robot.subsystems.hood.Hood] target angle.

@@ -56,6 +56,12 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  public void setThrottle(double throttle) {
+    for(VisionIO camera : io) {
+      camera.setThrottle(throttle);
+    }
+  }
+
   /**
    * Returns the X angle to the best target, which can be used for simple servoing with vision.
    *

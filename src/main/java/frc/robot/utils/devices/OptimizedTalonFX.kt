@@ -27,16 +27,16 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
     private val motionMagicVoltageRequest = MotionMagicVoltage(0.0)
     private val motionMagicVelocityRequest = MotionMagicVelocityVoltage(0.0)
 
-    var position: StatusSignal<Angle> = motor.position
-    var velocity: StatusSignal<AngularVelocity> =  motor.velocity
-    var outputVoltage: StatusSignal<Voltage> = motor.motorVoltage
-    var supplyCurrent: StatusSignal<Current> = motor.supplyCurrent
-    var power: () -> Double = { motor.get() }
-    var isConnected: () -> Boolean = { motor.isConnected }
-
     init {
         optimizeMotorCan()
     }
+
+    fun getPosition(): Angle { return motor.position.value }
+    fun getVelocity(): AngularVelocity { return motor.velocity.value }
+    fun getOutputVoltage(): Voltage { return motor.motorVoltage.value }
+    fun getSupplyCurrent(): Current { return motor.supplyCurrent.value }
+    fun getPower(): Double { return motor.get() }
+    fun getIsConnected(): Boolean { return motor.isConnected }
 
     fun voltageRequest(voltage: Voltage) {
         if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.")}
@@ -84,17 +84,18 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
     }
 
     private fun optimizeMotorCan() {
+        motor.optimizeBusUtilization()
         with(motor) {
             position.setUpdateFrequency(100.0.hertz)
             velocity.setUpdateFrequency(100.0.hertz)
-            motorVoltage.setUpdateFrequency(100.0.hertz)
+            motorVoltage.setUpdateFrequency(100.0.hertz)    // Required by followers (Phoenix 6 documentation)
             supplyCurrent.setUpdateFrequency(100.0.hertz)
             acceleration.setUpdateFrequency(50.0.hertz)
             controlMode.setUpdateFrequency(10.0.hertz)
-            dutyCycle.setUpdateFrequency(100.0.hertz)
+            dutyCycle.setUpdateFrequency(100.0.hertz)       // Required by followers (Phoenix 6 documentation)
+            torqueCurrent.setUpdateFrequency(100.0.hertz)   // Required by followers (Phoenix 6 documentation)
             version.setUpdateFrequency(100.0.hertz)
         }
-        motor.optimizeBusUtilization()
     }
 
     fun coast() {

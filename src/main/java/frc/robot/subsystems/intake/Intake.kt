@@ -1,8 +1,6 @@
 package frc.robot.subsystems.intake
 
 import com.ctre.phoenix6.configs.Slot0Configs
-import com.ctre.phoenix6.signals.MotorAlignmentValue
-import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.measure.Angle
@@ -94,9 +92,9 @@ class Intake() : SubsystemBase() {
      * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF and voltage targets values.
      */
     override fun periodic() {
-        leadDeployableConnectedAlert.set(leadDeployableMotor.isConnected.invoke().not())
-        followerDeployableConnectedAlert.set(followerDeployableMotor.isConnected.invoke().not())
-        rollersComponentConnectedAlert.set(rollersMotorController.isConnected.invoke().not())
+        leadDeployableConnectedAlert.set(leadDeployableMotor.getIsConnected().not())
+        followerDeployableConnectedAlert.set(followerDeployableMotor.getIsConnected().not())
+        rollersComponentConnectedAlert.set(rollersMotorController.getIsConnected().not())
         absoluteEncoderConnectedAlert.set(absoluteEncoder.isConnected.not())
 
         if (IntakeConstants.Tunables.motorkP.hasChanged(hashCode())
@@ -129,6 +127,7 @@ class Intake() : SubsystemBase() {
      * @param angle The desired intake position.
      */
     private fun setPosition(angle: Angle) {
+        targetAngle = IntakeConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
         leadDeployableMotor.positionRequestSubsystem(
             angle,
             IntakeConstants.PhysicalLimits.Limits,
@@ -160,7 +159,6 @@ class Intake() : SubsystemBase() {
      * precise control.
      */
     private fun setPositionCMD(pose: Angle): Command {
-        targetAngle = pose
         return InstantCommand({ setPosition(pose) }, this)
     }
 
@@ -199,14 +197,11 @@ class Intake() : SubsystemBase() {
      * @return A sequential command group that sets a pose and disables the rollers
      */
     fun disableIntakeCMD(): Command {
-        return SequentialCommandGroup(
-            setVoltageCMD(IntakeConstants.VoltageTargets.IdleRollersVoltage),
-            setPositionCMD(IntakeConstants.RetractileAngles.RetractedAngle)
-        )
+        return setVoltageCMD(IntakeConstants.VoltageTargets.IdleRollersVoltage)
     }
 
     fun setDeployableAngleOnly(angle: Angle): Command {
-        return setPositionCMD(angle)
+        return InstantCommand({ setPosition(angle) }, this )
     }
 
     // ---------------------------------
@@ -234,7 +229,7 @@ class Intake() : SubsystemBase() {
      * @return the deployable component current angle
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_ENCODER_FIELD, unit = "degrees")
-    private fun getDeployableIntakeAbsoluteAngle(): Double {
+    private fun getDeployableIntakeAbsoluteAngleDegrees(): Double {
         return absoluteEncoder.position.`in`(Degrees)
     }
 
@@ -244,8 +239,8 @@ class Intake() : SubsystemBase() {
      * @return the deployable component current angle
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_FIELD, unit = "degrees")
-    private fun getDeployableIntakeAngle(): Angle {
-        return IntakeConstants.PhysicalLimits.Reduction.apply(leadDeployableMotor.position.value)
+    private fun getDeployableIntakeAngleDegrees(): Double {
+        return IntakeConstants.PhysicalLimits.Reduction.apply(leadDeployableMotor.getPosition().`in`(Degrees))
     }
 
     /**
@@ -254,8 +249,8 @@ class Intake() : SubsystemBase() {
      * @return the deployable component target angle
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_TARGET_ANGLE_FIELD)
-    private fun getDeployableIntakeTargetAngle(): Angle {
-        return targetAngle
+    private fun getDeployableIntakeTargetAngleDegrees(): Double {
+        return targetAngle.`in`(Degrees)
     }
 
     /**
@@ -267,12 +262,12 @@ class Intake() : SubsystemBase() {
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_DEPLOYABLE_ERROR)
     fun getDeployableError(): Angle {
         return abs(
-            targetAngle.`in`(Units.Rotations).minus(
+            targetAngle.`in`(Degrees).minus(
                 IntakeConstants.PhysicalLimits.Reduction.apply(
-                    leadDeployableMotor.position.value.`in`(Units.Rotations)
+                    leadDeployableMotor.getPosition().`in`(Degrees)
                 )
             )
-        ).rotations
+        ).degrees
     }
 
     /**
@@ -282,7 +277,7 @@ class Intake() : SubsystemBase() {
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_VOLTAGE_FIELD)
     private fun getRollersVoltage(): Voltage {
-        return rollersMotorController.outputVoltage.value
+        return rollersMotorController.getOutputVoltage()
     }
 
     // -------------------------------
@@ -315,8 +310,8 @@ class Intake() : SubsystemBase() {
     // Motor configuration (Phoenix 6)
     // -------------------------------
     private fun configureMotors() {
-        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
-        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
+        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
+        followerDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
 
         followerDeployableMotor.follow(leadDeployableMotor.getMotorInstance(),
             IntakeConstants.Configuration.followerAlignment)
@@ -343,8 +338,8 @@ class Intake() : SubsystemBase() {
             )
         )
 
-        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig.withSlot0(newSlot0Configs))
-        followerDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig.withSlot0(newSlot0Configs))
+        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig.withSlot0(newSlot0Configs))
+        followerDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig.withSlot0(newSlot0Configs))
     }
 
     /**

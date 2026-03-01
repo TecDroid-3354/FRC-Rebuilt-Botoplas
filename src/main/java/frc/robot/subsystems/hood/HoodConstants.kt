@@ -19,6 +19,7 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
+import frc.template.utils.devices.ThroughBoreBrand
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
 import frc.template.utils.safety.MeasureLimits
@@ -31,6 +32,7 @@ object HoodConstants {
      */
     object Identification {
         const val HOOD_MOTOR_ID : Int = 51
+        const val ABSOLUTE_ENCODER_ID : Int = 50
     }
 
     /**
@@ -80,6 +82,15 @@ object HoodConstants {
      */
     object Configuration {
         // ---------------------------------
+        // PRIVATE — Absolute Encoder Config
+        // ---------------------------------
+        object AbsoluteEncoder {
+            val offset                  : Angle = 0.0.degrees
+            val inverted                : Boolean = false
+            val brand                   : ThroughBoreBrand = ThroughBoreBrand.WCP
+        }
+
+        // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
         private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
@@ -91,6 +102,7 @@ object HoodConstants {
         private val supplyCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
+
 
         // ---------------------------------
         // PUBLIC — Slot 0
@@ -135,6 +147,7 @@ object HoodConstants {
     object Telemetry {
         const val HOOD_TAB          : String = "Hood"
         const val HOOD_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Angle"
+        const val HOOD_ABSOLUTE_ENCODER_ANGLE_FIELD  : String = "${HOOD_TAB}/Absolute Encoder Angle"
         const val HOOD_TARGET_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
         const val HOOD_CONNECTED_ALERTS_FIELD  : String = "${HOOD_TAB}/Hood Connection alert"
     }
