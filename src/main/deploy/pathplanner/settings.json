@@ -3,8 +3,10 @@
   "robotLength": 0.812,
   "holonomicMode": true,
   "pathFolders": [
+    "Autonomous Test-RoundTrip",
     "Autonomous Test-Solo",
-    "Autonomous Test-RoundTrip"
+    "Left Two Cycles Auto Paths",
+    "Right Two Cycles Auto Paths"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.5,
