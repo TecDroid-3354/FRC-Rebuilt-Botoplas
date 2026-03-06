@@ -97,9 +97,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         drive.defaultCommand = driveFollowingDriverInput()
     }
 
-    override fun periodic() {
-    }
-
     fun setVisionThrottle(throttle: Double) {
         vision.setThrottle(throttle)
     }
