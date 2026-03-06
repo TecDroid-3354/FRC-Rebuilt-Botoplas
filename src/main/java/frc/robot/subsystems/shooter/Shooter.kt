@@ -5,6 +5,7 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.Units.DegreesPerSecond
 import edu.wpi.first.units.Units.Meters
+import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
@@ -24,8 +25,10 @@ import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.rotationsPerSecond
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.Supplier
+import kotlin.math.abs
 
 class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
@@ -241,8 +244,14 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * This can be seen live in the "Shooter" tab of AdvantageScope.
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_TARGET_RPM_FIELD)
-    private fun getShooterTargetAngularVelocity(): AngularVelocity {
+    fun getShooterTargetAngularVelocity(): AngularVelocity {
         return targetVelocity
+    }
+
+    fun getShooterAngularVelocityError(): AngularVelocity {
+        return abs(
+            getShooterTargetAngularVelocity().minus(getShooterAngularVelocity()).`in`(RotationsPerSecond)
+        ).rotationsPerSecond
     }
 
     // -------------------------------

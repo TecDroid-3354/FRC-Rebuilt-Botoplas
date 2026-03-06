@@ -1,5 +1,6 @@
 package frc.robot.utils.subsystemUtils.identification
 
+import com.ctre.phoenix6.SignalLogger
 import edu.wpi.first.units.Units.*
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
@@ -40,7 +41,11 @@ class GenericSysIdRoutine(val name: String,
     private val voltage: MutVoltage = Volts.mutable(0.0)
 
     private val routine: SysIdRoutine = SysIdRoutine(
-        SysIdRoutine.Config(),
+        SysIdRoutine.Config(
+            null,
+            Volts.of(4.0),
+            null
+        ) { state -> SignalLogger.writeString("state", state.toString()) },
         SysIdRoutine.Mechanism(
             subsystemSetVoltage,
             { log: SysIdRoutineLog ->

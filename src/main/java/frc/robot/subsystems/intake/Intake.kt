@@ -1,30 +1,32 @@
 package frc.robot.subsystems.intake
 
 import com.ctre.phoenix6.configs.Slot0Configs
-import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.measure.Angle
+import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
-import edu.wpi.first.wpilibj2.command.SubsystemBase
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.shooter.IntakeConstants
+import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
+import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
-import frc.template.utils.rotations
 import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.Optional
 import kotlin.math.abs
 
-class Intake() : SubsystemBase() {
+class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------------
     // PRIVATE — Deployable Motors Declaration
     // ---------------------------------------
@@ -77,6 +79,34 @@ class Intake() : SubsystemBase() {
         Alert(IntakeConstants.Telemetry.INTAKE_CONNECTED_ALERTS_FIELD,
             "Intake Absolute Encoder ID ${IntakeConstants.Identification.ABSOLUTE_ENCODER_ID} Disconnected",
             Alert.AlertType.kError)
+
+    // --------------------------------------------------------------------------------
+    // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
+    // --------------------------------------------------------------------------------
+    override val sysIdForwardRunningCondition: () -> Boolean = { getDeployableIntakeAngleDegrees() < IntakeConstants.PhysicalLimits.Limits.maximum.`in`(Degrees) }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getDeployableIntakeAngleDegrees() > IntakeConstants.PhysicalLimits.Limits.minimum.`in`(Degrees) }
+
+    /**
+     * [motorPosition] holds the current motor's position without gear ratios
+     */
+    override val motorPosition: Angle
+        get() = leadDeployableMotor.getPosition()
+    /**
+     * [motorVelocity] holds the current motor's velocity without gear ratios
+     */
+    override val motorVelocity: AngularVelocity
+        get() = leadDeployableMotor.getVelocity()
+    /**
+     * [power] holds the current motor's power
+     */
+    override val power: Double
+        get() = leadDeployableMotor.getPower()
+
+
+    /**
+     * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
+     */
+    private val sysIdRoutines: SysIdRoutines = createIdentificationRoutines().createTests()
 
 
     /**
@@ -135,6 +165,10 @@ class Intake() : SubsystemBase() {
         )
     }
 
+    override fun setVoltage(voltage: Voltage) {
+        leadDeployableMotor.voltageRequest(voltage)
+    }
+
     // -------------------------------------------
     // PRIVATE — Runnable Motors Control — Rollers
     // -------------------------------------------
@@ -143,7 +177,7 @@ class Intake() : SubsystemBase() {
      * Sets a desired [Voltage] to the intake's rollers motor controller
      * @param voltage the desired voltage to be applied
      */
-    private fun setVoltage(voltage: Voltage) {
+    fun setRollersVoltage(voltage: Voltage) {
         rollersMotorController.voltageRequest(voltage)
     }
 
@@ -167,11 +201,11 @@ class Intake() : SubsystemBase() {
     // ---------------------------------
 
     /**
-     * Calls [setVoltage] in order to set an output to the roller's controller
+     * Calls [setRollersVoltage] in order to set an output to the roller's controller
      * @return a command calling the voltage method
      */
-    private fun setVoltageCMD(voltage: Voltage): Command {
-        return InstantCommand({ setVoltage(voltage) }, this)
+    private fun setRollersVoltageCMD(voltage: Voltage): Command {
+        return InstantCommand({ setRollersVoltage(voltage) }, this)
     }
 
     // ---------------------------------
@@ -187,7 +221,7 @@ class Intake() : SubsystemBase() {
             setPositionCMD(IntakeConstants.RetractileAngles.DeployedAngle),
             WaitUntilCommand { getDeployableError()
                 .lte(IntakeConstants.PhysicalLimits.DeployableAngleDelta) },
-            setVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage)
+            setRollersVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage)
         )
     }
 
@@ -197,7 +231,10 @@ class Intake() : SubsystemBase() {
      * @return A sequential command group that sets a pose and disables the rollers
      */
     fun disableIntakeCMD(): Command {
-        return setVoltageCMD(IntakeConstants.VoltageTargets.IdleRollersVoltage)
+        return ParallelCommandGroup(
+            InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.IdleRollersVoltage) }),
+            InstantCommand({ setPosition(IntakeConstants.RetractileAngles.DeployedAngle) })
+        )
     }
 
     fun setDeployableAngleOnly(angle: Angle): Command {
@@ -217,6 +254,39 @@ class Intake() : SubsystemBase() {
 
         leadDeployableMotor.getMotorInstance()
             .setPosition(IntakeConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
+    }
+
+
+    // -------------------------------
+    // PUBLIC — SysId Routines
+    // -------------------------------
+
+    /**
+     * A Quasistatic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Quasistatic means the magnitude of the supplied voltage will gradually increase.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a quasistatic routine following the specified direction
+     */
+    fun sysIdQuasistaticRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.quasistaticForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.quasistaticBackward
+        }
+    }
+
+    /**
+     * A Dynamic SysId routine is scheduled and turned off immediately once [sysIdForwardRunningCondition]
+     * or [sysIdBackwardRunningCondition] become false, meaning the subsystem's limits were met.
+     * Dynamic means the magnitude of the supplied voltage is fixed.
+     * @param direction Whether to run the subsystem forward of backwards.
+     * @return A [Command] with a dynamic routine following the specified direction
+     */
+    fun sysIdDynamicRoutine(direction: SysIdRoutine.Direction): Command {
+        return when (direction) {
+            SysIdRoutine.Direction.kForward -> sysIdRoutines.dynamicForward
+            SysIdRoutine.Direction.kReverse -> sysIdRoutines.dynamicBackward
+        }
     }
 
     // ---------------------------------

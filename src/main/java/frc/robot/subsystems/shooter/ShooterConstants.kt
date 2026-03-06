@@ -2,9 +2,13 @@ package frc.robot.subsystems.shooter
 
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.geometry.Translation2d
+import edu.wpi.first.math.numbers.N2
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.Units.RotationsPerSecond
+import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
@@ -12,12 +16,19 @@ import edu.wpi.first.units.measure.Time
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degrees
 import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
 import frc.template.utils.seconds
 import java.util.Optional
+import edu.wpi.first.math.Nat
+import edu.wpi.first.math.numbers.N1
+import edu.wpi.first.units.Units
+import org.ejml.simple.SimpleMatrix
+import kotlin.math.sin
+import kotlin.math.cos
 
 data class ShooterPoint(val hubDistance: Distance, val shooterRPS: AngularVelocity)
 
@@ -48,7 +59,7 @@ object ShooterConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.0)
 
-        val enabledRPS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPS", 20.0)
+        val enabledRPS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPS", 50.0)
     }
 
     /**
@@ -134,4 +145,18 @@ object ShooterConstants {
         const val SHOOTER_CONNECTED_ALERTS_FIELD: String = "${SHOOTER_TAB}/Shooter Connection Alerts"
     }
 
+    object ShooterMatrixPosition {
+
+        private val robotRelativeShooterAngle                   : Angle = 0.0.degrees
+        private val robotRelativeShooterTranslationalOffset     : Matrix<N2, N1> =
+            Matrix(Nat.N2(), Nat.N1(), doubleArrayOf(0.0, 0.0))
+
+        private val shooterRotationalMatrix                     : Matrix<N2, N2> =
+            Matrix(Nat.N2(), Nat.N2(),
+                doubleArrayOf(
+                    cos(robotRelativeShooterAngle.`in`(Units.Radians)), sin(robotRelativeShooterAngle.`in`(Units.Radians))
+                    -sin(robotRelativeShooterAngle.`in`(Units.Radians)), cos(robotRelativeShooterAngle.`in`(Units.Radians))
+                )
+            )
+    }
 }
