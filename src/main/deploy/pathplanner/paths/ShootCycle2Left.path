@@ -1,0 +1,70 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.5,
+        "y": 4.472
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 8.434469879518073,
+        "y": 5.44467469879518
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.215590361445784,
+        "y": 7.400734939759036
+      },
+      "prevControl": {
+        "x": 7.320234978651178,
+        "y": 7.175054856674063
+      },
+      "nextControl": {
+        "x": 5.199313253012048,
+        "y": 7.608361445783133
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.866,
+        "y": 6.877
+      },
+      "prevControl": {
+        "x": 3.4945903614457823,
+        "y": 7.433518072289157
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -54.667
+  },
+  "reversed": false,
+  "folder": "Left Two Cycles Auto Paths",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": true
+}
