@@ -48,11 +48,13 @@ public class RobotContainer {
   }
 
   public void robotEnabledConfig() {
-    superstructure.setVisionThrottle(0);
+    //superstructure.setVisionThrottle(0);
+    superstructure.brakeSubsystems();
+    superstructure.noStateIntakeDeployableOnlyEnable();
   }
 
   public void robotDisabledConfig() {
-    superstructure.setVisionThrottle(200);
+    //superstructure.setVisionThrottle(200);
   }
 
   /**
@@ -63,6 +65,32 @@ public class RobotContainer {
    * @throws ParseException
    */
   private void configureAutonomous() {
+      try {
+          autoChooser.addOption("LT -> One Meter Right", superstructure.followTrajectory(PathPlannerPath.fromPathFile(
+                  RobotConstants.AutonomousPathStrings.LEFT_TRENCH_ONE_METER_RIGHT
+          )));
+
+        autoChooser.addOption("LT -> Five Meter Right While Rotating", superstructure.followTrajectory(PathPlannerPath.fromPathFile(
+                RobotConstants.AutonomousPathStrings.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180
+        )));
+
+        autoChooser.addOption("LT -> Through LT to Neutral Zone, Right Trench and Middle Alliance Zone to Right of Alliance Zone",
+                superstructure.followTrajectory(PathPlannerPath.fromPathFile(
+                        RobotConstants.AutonomousPathStrings.LEFT_TRENCH_AROUND_THE_WORLD
+                )));
+
+        autoChooser.addOption("LT -> ZigZag", superstructure.followTrajectory(PathPlannerPath.fromPathFile(
+                RobotConstants.AutonomousPathStrings.ZIG_ZAG
+        )));
+
+        autoChooser.addOption("RT -> Under", superstructure.followTrajectory(PathPlannerPath.fromPathFile(
+                RobotConstants.AutonomousPathStrings.UNDER_RIGHT_TRENCH
+        )));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      } catch (ParseException e) {
+          throw new RuntimeException(e);
+      }
       autoChooser.addOption("Right Two Cycles", new PathPlannerAuto("RightAutoTwoCycles"));
       autoChooser.addOption("Left Two Cycles", new PathPlannerAuto("LeftAutoTwoCycles"));
 
@@ -76,12 +104,4 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
-
-  public void registerNamedCommands() {
-    NamedCommands.registerCommand("enableIntake", superstructure.intakeStateCMD());
-    NamedCommands.registerCommand("disableIntake", superstructure.disableIntake());
-    NamedCommands.registerCommand("disableIntake", superstructure.shootStateSequenceDefaultCMD());
-
-  }
-
 }

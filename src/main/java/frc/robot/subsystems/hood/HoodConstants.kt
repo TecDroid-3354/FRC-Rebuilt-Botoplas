@@ -5,14 +5,11 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
-import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Time
-import frc.robot.subsystems.shooter.IntakeConstants
-import frc.robot.subsystems.shooter.Shooter
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
@@ -39,8 +36,8 @@ object HoodConstants {
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction(9.0)
-        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 90.0.degrees)
+        val Reduction           : Reduction = Reduction(10.5)
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 100.0.degrees)
     }
 
     /**
@@ -51,15 +48,19 @@ object HoodConstants {
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
+
+        val motorAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 0.0)
     }
 
     /**
      * Contains all control interpolation points for the [Hood], both distance and velocity driven.
      */
     object Control {
+        val HoodDownPosition: Angle = 0.0.degrees
+
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
         val hoodDistanceDrivenInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            0.0.meters to 0.0.degrees,
+            2.72.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
@@ -99,7 +100,7 @@ object HoodConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val supplyCurrentLimits : Current = Amps.of(15.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 

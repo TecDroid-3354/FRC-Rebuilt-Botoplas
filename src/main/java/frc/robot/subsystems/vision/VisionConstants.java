@@ -22,15 +22,13 @@ public class VisionConstants {
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Since we are using limelights, all configuration must be in the web UI. Might change if we want to move LLs live.
-  // TODO(): Configure limelight names
-  public static String camera0Name = "limelight-front";
-  public static String camera1Name = "limelight-back";
-  public static String camera2Name = "limelight-left";
-  public static String camera3Name = "limelight-right";
+  public static String frontLimelight = "limelight-front";
+  public static String leftLimelight = "limelight-left";
+  public static String rightLimelight = "limelight-right";
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.3;
-  public static double maxZError = 0.6;
+  public static double maxZError = 0.75;
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
@@ -41,8 +39,9 @@ public class VisionConstants {
   // (Adjust to trust some cameras more than others)
   public static double[] cameraStdDevFactors =
       new double[] {
-        1.0, // Camera 0
-        1.0 // Camera 1
+              1.0, // Camera 0
+              1.0, // Camera 1
+              1.0, // Camera 2
       };
 
   // Multipliers to apply for MegaTag 2 observations

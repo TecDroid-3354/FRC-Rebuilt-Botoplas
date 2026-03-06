@@ -1,5 +1,10 @@
 package frc.robot.constants
 
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.Nat
+import edu.wpi.first.math.Vector
+import edu.wpi.first.math.numbers.N2
+import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Distance
 import frc.template.utils.meters
 
@@ -33,7 +38,7 @@ object FieldConstants {
      */
     object Trench {
         val BLUE_TRENCH_CENTER_X            : Distance = 4.625.meters
-        val RED_TRENCH_CENTER_X             : Distance = 4.625.meters
+        val RED_TRENCH_CENTER_X             : Distance = 7.290.meters
 
         val UPPER_TRENCH_Y                  : Distance = 7.030  .meters
         val LOWER_TRENCH_Y                  : Distance = 7.030  .meters

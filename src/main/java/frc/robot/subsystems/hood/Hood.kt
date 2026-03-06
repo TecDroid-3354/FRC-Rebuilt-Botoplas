@@ -181,6 +181,10 @@ class Hood() : SysIdSubsystem("Hood") {
         return InstantCommand({ setAngle(angle)}, this)
     }
 
+    fun setAngleTunableCMD(angle: Supplier<Angle>): Command {
+        return RunCommand({ setAngle(angle.get()) })
+    }
+
     /**
      * Command version of [setVelocityDrivenInterpolatedAngle]. Subsystem set as requirement.
      * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
