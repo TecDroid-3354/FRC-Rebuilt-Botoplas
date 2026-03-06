@@ -204,21 +204,24 @@ class StateMachine(private var currentState: States) : SubsystemBase() {
      * @param condition Condition that change the state
      * @param targetState Target State
      * @param executionPhase Phase in which you will evaluate the condition
+     * @param weight The importance of the condition. Conditions with lower weights will assess first
      */
 
-    fun addCondition(condition: () -> Boolean, targetState: States, executionPhase: Phase): ConditionBuilder {
+    fun addCondition(condition: () -> Boolean, targetState: States, executionPhase: Phase, weight: Int): ConditionBuilder {
         // Create a builder to do the method chaining or DSL
-        val builder = ConditionBuilder(this, condition, targetState, executionPhase)
+        val builder = ConditionBuilder(this, condition, targetState, executionPhase, weight)
         builder.storeCondition()
 
         return builder
     }
 
     private fun assess(conditions : MutableList<Condition>) {
+        conditions.sortByDescending { it.weight }
+
         // Check all the conditions
         for (condition in conditions) {
             // Check if we are not trying to change to the same state
-            if (condition.targetState != currentState && condition.condition()) {
+            if (condition.targetState != currentState && condition.condition() ) {
                 changeState(condition.targetState)
             }
         }
