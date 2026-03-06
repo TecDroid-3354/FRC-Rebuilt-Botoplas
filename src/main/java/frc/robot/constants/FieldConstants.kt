@@ -1,5 +1,10 @@
 package frc.robot.constants
 
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.Nat
+import edu.wpi.first.math.Vector
+import edu.wpi.first.math.numbers.N2
+import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Distance
 import frc.template.utils.meters
 
@@ -25,6 +30,12 @@ object FieldConstants {
         val BLUE_HUB_CENTER_Y           : Distance = 4.030  .meters
         val RED_HUB_CENTER_X            : Distance = 11.920 .meters
         val RED_HUB_CENTER_Y            : Distance = 4.030  .meters
+
+        val BLUE_HUB_POSITION_VECTOR    : Vector<N2> = Vector(Matrix(Nat.N2(), Nat.N1(),
+            doubleArrayOf(BLUE_HUB_CENTER_X.`in`(Meters), BLUE_HUB_CENTER_Y.`in`(Meters))))
+
+        val RED_HUB_POSITION_VECTOR    : Vector<N2> = Vector(Matrix(Nat.N2(), Nat.N1(),
+            doubleArrayOf(RED_HUB_CENTER_X.`in`(Meters), RED_HUB_CENTER_Y.`in`(Meters))))
     }
 
     /**
@@ -33,7 +44,7 @@ object FieldConstants {
      */
     object Trench {
         val BLUE_TRENCH_CENTER_X            : Distance = 4.625.meters
-        val RED_TRENCH_CENTER_X             : Distance = 4.625.meters
+        val RED_TRENCH_CENTER_X             : Distance = 7.290.meters
 
         val UPPER_TRENCH_Y                  : Distance = 7.030  .meters
         val LOWER_TRENCH_Y                  : Distance = 7.030  .meters

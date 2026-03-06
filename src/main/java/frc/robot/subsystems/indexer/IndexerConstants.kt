@@ -1,13 +1,20 @@
 package frc.robot.subsystems.indexer
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
+import edu.wpi.first.units.Units.RadiansPerSecond
+import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
-import edu.wpi.first.units.measure.Voltage
+import edu.wpi.first.units.measure.Time
+import frc.robot.subsystems.shooter.ShooterConstants.PhysicalLimits
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
+import frc.template.utils.controlProfiles.AngularMotionTargets
+import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
-import frc.template.utils.volts
+import frc.template.utils.rotationsPerSecond
+import frc.template.utils.seconds
 import java.util.Optional
 
 object IndexerConstants {
@@ -15,19 +22,27 @@ object IndexerConstants {
          * Unique ID of every component in the shooter
          */
         object Identification {
-                const val INDEXER_ROLLERS_ID   : Int = 30
+                const val HOPPER_ROLLERS_ID     : Int = 30
+                const val TOWER_ROLLERS_ID      : Int = 31
         }
 
         /**
          * Pre-defined voltage targets for each set of rollers.
          * Only these targets should be used since velocity is constant.
          */
-        object VoltageTargets {
-                var RollersVoltage         : Voltage = Tunables.indexerRollersVoltage.get().volts
+        object RPSTargets {
+                var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().rotationsPerSecond
+                var TowerRollersVelocity          : AngularVelocity = Tunables.towerRollersVelocity.get().rotationsPerSecond
         }
 
         object Tunables {
-                val indexerRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Rollers voltage", 6.0)
+                val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kP", 0.5)
+                val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kI", 0.0)
+                val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kD", 0.0)
+                val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
+
+                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers velocity", 65.0)
+                val towerRollersVelocity           : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers velocity", 100.0)
         }
 
         /**
@@ -38,8 +53,9 @@ object IndexerConstants {
                 // ---------------------------------
                 // PRIVATE — Motor Outputs
                 // ---------------------------------
-                private val neutralMode         : NeutralModeValue = NeutralModeValue.Coast
-                private val motorOrientation    : InvertedValue = InvertedValue.CounterClockwise_Positive
+                private val neutralMode                 : NeutralModeValue = NeutralModeValue.Coast
+                private val hopperMotorOrientation     : InvertedValue = InvertedValue.Clockwise_Positive
+                private val towerMotorOrientation       : InvertedValue = InvertedValue.CounterClockwise_Positive
 
                 // ---------------------------------
                 // PRIVATE — Current Limits
@@ -48,18 +64,41 @@ object IndexerConstants {
                 private val statorCurrentLimits : Current = Amps.of(40.0)
                 private val statorCurrentEnable : Boolean = false
 
-                val motorConfig = KrakenMotors.createTalonFXConfiguration(
+                // ---------------------------------
+                // PUBLIC — Slot 0
+                // ---------------------------------
+                val controlGains                : ControlGains = ControlGains(
+                        p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
+                        s = 0.25, v = 0.12, a = 0.01, g = 0.0)
+
+                // ---------------------------------
+                // PRIVATE — Motion Magic
+                // ---------------------------------
+                private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
+                private val acceleration        : Time = 0.1.seconds
+                private val jerkTime            : Time = 0.2.seconds
+
+                val hopperRollersConfig = KrakenMotors.createTalonFXConfiguration(
                         Optional.of(
-                                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+                                KrakenMotors.configureMotorOutputs(neutralMode, hopperMotorOrientation)),
                         Optional.of(
                                 KrakenMotors.configureCurrentLimits(
                                         supplyCurrentLimits,
                                         statorCurrentEnable,
                                         statorCurrentLimits
                                 )),
-                        Optional.empty(), // slot0 (PID not used)
-                        Optional.empty()  // motionMagic (not used)
+                        Optional.of(
+                                KrakenMotors.configureSlot0(controlGains)),
+                        Optional.of(
+                                KrakenMotors.configureAngularMotionMagic(
+                                        AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
+                                        PhysicalLimits.Reduction
+                                ))
                 )
+
+                val towerRollersConfig =
+                        hopperRollersConfig.withMotorOutput(MotorOutputConfigs()
+                                .withInverted(towerMotorOrientation))
         }
 
         /**
@@ -68,7 +107,8 @@ object IndexerConstants {
          */
         object Telemetry {
                 const val INDEXER_TAB: String = "Indexer"
-                const val INDEXER_ENABLED_FIELD: String = "${INDEXER_TAB}/Indexer Enabled"
+                const val Hopper_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
+                const val TOWER_ENABLED_FIELD: String = "${INDEXER_TAB}/Tower Enabled"
                 const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
         }
 }

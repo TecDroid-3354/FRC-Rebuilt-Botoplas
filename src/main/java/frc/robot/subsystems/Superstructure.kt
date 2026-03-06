@@ -3,16 +3,25 @@ package frc.robot.subsystems
 import com.pathplanner.lib.path.GoalEndState
 import com.pathplanner.lib.path.PathPlannerPath
 import com.pathplanner.lib.path.Waypoint
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.Nat
+import edu.wpi.first.math.Vector
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.numbers.N2
+import edu.wpi.first.math.numbers.N3
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.Units.Meters
+import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
+import edu.wpi.first.wpilibj2.command.Subsystem
+import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
 import frc.robot.commands.DriveCommands
@@ -25,6 +34,7 @@ import frc.robot.subsystems.drivetrain.Drive
 import frc.robot.subsystems.drivetrain.GyroIOPigeon2
 import frc.robot.subsystems.drivetrain.ModuleIOTalonFX
 import frc.robot.subsystems.hood.Hood
+import frc.robot.subsystems.hood.HoodConstants
 import frc.robot.subsystems.indexer.Indexer
 import frc.robot.subsystems.intake.Intake
 import frc.robot.subsystems.shooter.IntakeConstants
@@ -33,16 +43,30 @@ import frc.robot.subsystems.shooter.ShooterConstants
 import frc.robot.subsystems.vision.Vision
 import frc.robot.subsystems.vision.VisionConstants
 import frc.robot.subsystems.vision.VisionIOLimelight
+import frc.template.utils.degrees
 import frc.template.utils.meters
 import frc.template.utils.radians
 import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
+import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.Supplier
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.sin
 
-class Superstructure(private val controller: CommandXboxController) {
+class Superstructure(private val controller: CommandXboxController) : Subsystem {
+
+
+
+    /**
+     * Drivetrain initialization. Creates a new [Drive] derived from the Advantage Kit's template, it already
+     * computes all the necessary operations and code by just giving it the four modules configured via
+     * Phoenix Tuner which gives us the [SwerveTunerConstants] file with all the constants, offsets and
+     * necessary inversions. It also requires a [GyroIOPigeon2], a constants file is generated along with the
+     * chassis ones.
+     */
     private val drive   : Drive     = Drive(
         GyroIOPigeon2(),
         ModuleIOTalonFX(SwerveTunerConstants.FrontLeft),
@@ -51,21 +75,29 @@ class Superstructure(private val controller: CommandXboxController) {
         ModuleIOTalonFX(SwerveTunerConstants.BackRight)
     )
 
+    /**
+     * Vision declaration. Creates a new [Vision] instance derived from the Advantage kit's template.
+     * Odometry calculations are done within the class. Various [VisionIOLimelight] and other cameras can be configured
+     * via this subsystem. It also requires an [drive.addVisionMeasurement] method.
+     */
     private val vision = Vision(
         drive::addVisionMeasurement,
-        VisionIOLimelight(VisionConstants.camera0Name, Supplier { drive.rotation }),
-        VisionIOLimelight(VisionConstants.camera1Name, Supplier { drive.rotation }),
-        VisionIOLimelight(VisionConstants.camera2Name, Supplier { drive.rotation }),
-        VisionIOLimelight(VisionConstants.camera3Name, Supplier { drive.rotation })
+        VisionIOLimelight(VisionConstants.frontLimelight,   { drive.rotation }),
+        VisionIOLimelight(VisionConstants.leftLimelight,    { drive.rotation }),
+        VisionIOLimelight(VisionConstants.rightLimelight,   { drive.rotation })
     )
 
-    private val intake  : Intake    = Intake()
+    val intake  : Intake    = Intake()
     private val indexer : Indexer   = Indexer()
     private val shooter : Shooter   = Shooter()
-    private val hood    : Hood      = Hood()
+    val hood    : Hood      = Hood()
+
 
     init {
         drive.defaultCommand = driveFollowingDriverInput()
+    }
+
+    override fun periodic() {
     }
 
     fun setVisionThrottle(throttle: Double) {
@@ -81,15 +113,31 @@ class Superstructure(private val controller: CommandXboxController) {
      */
     fun shootStateSequenceDefaultCMD(): Command {
         return SequentialCommandGroup(
-            shootingStateShooterInterpolationCMD(),
-            shootingStateHoodInterpolationCMD(),
-            WaitUntilCommand {
+            shootingStateShooterInterpolationCMD(), // Enables shooter interpolation
+            WaitUntilCommand { // Waits until shooter RPMs are within tolerance.
+                abs(shooter.getShooterTargetAngularVelocity().minus(shooter.getShooterAngularVelocity()).`in`(RotationsPerSecond)) <
+                        RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE.`in`(RotationsPerSecond)
+            }.withTimeout(1.0.seconds),
+            shootingStateHoodInterpolationCMD(), // Enables hood interpolation
+            WaitUntilCommand { // Waits until Swerve rotation is within tolerance to shoot
                 abs(drive.pose.rotation.minus(Rotation2d(getSwerveToHubAngle())).degrees) <
                         RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING.`in`(Degrees) }
-                .withTimeout(1.5.seconds),
-            shootingStateIndexerEnableCMD(),
-            shootingStateIntakeDanceCMD()
+                .withTimeout(1.0.seconds),
+            shootingStateIndexerEnableCMD(), // Enables the indexer, both hopper and tower rollers
+            shootingStateIntakeDanceCMD() // Makes the deployable component go up and down to push any stocked FUEL
         )
+    }
+
+    fun shootStateSequenceWithoutOdometryCMD(): Command {
+        return ParallelCommandGroup(
+            noStateShootOnly(), // Enables shooter manual control
+            noStateHoodOnly(), // Enables hood manual control
+            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(2.0.seconds)
+                .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
+                .andThen(WaitCommand(2.0.seconds) // Safety for deployable assuming full hopper
+                .andThen(InstantCommand({ intake.setRollersVoltage(IntakeConstants.VoltageTargets.EnabledRollersVoltage.div(2.0)) }))
+                    .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
     }
 
     /**
@@ -112,7 +160,7 @@ class Superstructure(private val controller: CommandXboxController) {
      * @return A [RunCommand] with the Swerve's default command.
      */
     fun driveFollowingDriverInput(): Command {
-        return DriveCommands.joystickDrive(
+        return DriveCommands.joystickDrive (
             drive,
             { -controller.leftY * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
@@ -186,13 +234,15 @@ class Superstructure(private val controller: CommandXboxController) {
      *      being the intake's retracted angle.
      */
     fun shootingStateIntakeDanceCMD(): Command {
-        return RunCommand({
+        return SequentialCommandGroup(
             intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.DeployedAngle
-                .plus(RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_DELTA))
+                .plus(RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_DELTA)),
             WaitUntilCommand { intake.getDeployableError() < RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_TOLERANCE }
-            intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.DeployedAngle)
+                .withTimeout(1.0.seconds),
+            intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.DeployedAngle),
             WaitUntilCommand { intake.getDeployableError() < RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_TOLERANCE }
-        }, intake)
+                .withTimeout(1.0.seconds))
+            .repeatedly()
     }
 
     fun noStateIntakeDeployableOnlyEnable(): Command {
@@ -209,6 +259,10 @@ class Superstructure(private val controller: CommandXboxController) {
 
     fun noStateShootOnly(): Command {
         return shooter.setVelocityCMD { ShooterConstants.Tunables.enabledRPS.get().rotationsPerSecond }
+    }
+
+    fun noStateHoodOnly(): Command {
+        return hood.setAngleTunableCMD { HoodConstants.Tunables.motorAngle.get().degrees }
     }
 
     /**
@@ -270,6 +324,10 @@ class Superstructure(private val controller: CommandXboxController) {
         )
     }
 
+    fun storeHood(): Command {
+        return hood.setAngleCMD(HoodConstants.Control.HoodDownPosition)
+    }
+
     fun disableIntake(): Command {
         return intake.disableIntakeCMD()
     }
@@ -282,7 +340,31 @@ class Superstructure(private val controller: CommandXboxController) {
         return shooter.stopShooterCMD()
     }
 
-    fun isInsideZone(zone: FieldZones): Boolean = zone == getRobotCurrentZone()
+    fun disableSubsystems(): Command {
+        return ParallelCommandGroup(
+            disableIndexer(),
+            disableIntake(),
+            disableShooter()
+        )
+    }
+
+    fun coastSubsystems(): Command {
+        return ParallelCommandGroup(
+            intake.coastCMD(),
+            hood.coastCMD()
+        )
+    }
+
+    fun brakeSubsystems(): Command {
+        return ParallelCommandGroup(
+            intake.brakeCMD(),
+            hood.brakeCMD()
+        )
+    }
+
+    fun isInsideZone(zone: FieldZones): Boolean {
+        return getRobotCurrentZone() == zone
+    }
 
     /**
      * After getting the HUB's center point based on the current alliance, a vector is constructed by subtracting
@@ -297,6 +379,7 @@ class Superstructure(private val controller: CommandXboxController) {
         return Pair(centerHUB_X.minus(drive.pose.measureX), centerHUB_Y.minus(drive.pose.measureY))
     }
 
+    @AutoLogOutput(key = "Odometry/Current Zone")
     private fun getRobotCurrentZone(): FieldZones {
         val robotX = drive.pose.measureX
 
@@ -331,5 +414,4 @@ class Superstructure(private val controller: CommandXboxController) {
         return if (isFlipped.invoke()) xCoordinateChassis < middlePointTrench
                     else xCoordinateChassis > middlePointTrench
     }
-
 }

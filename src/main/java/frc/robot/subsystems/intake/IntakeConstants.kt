@@ -6,6 +6,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
+import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
@@ -39,15 +40,15 @@ object IntakeConstants {
      */
     object PhysicalLimits {
         val Reduction                   : Reduction = Reduction((50.0/9.0) * (50.0/18.0) * (50.0/14.0))
-        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 110.0.degrees)
-        val DeployableAngleDelta        : Angle = 5.0.degrees  // The acceptable error before enabling rollers.
+        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 100.0.degrees)
+        val DeployableAngleDelta        : Angle = 3.0.degrees  // The acceptable error before enabling rollers.
     }
 
     /**
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        val RetractedAngle               : Angle = 90.0.degrees
+        val RetractedAngle               : Angle = 100.0.degrees
         val DeployedAngle                : Angle = 0.0.degrees
     }
 
@@ -111,14 +112,14 @@ object IntakeConstants {
         // ---------------------------------
         val controlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
-            s = 0.0, v = 0.0, a = 0.0, g = 0.0)
+            s = 0.22427, v = 0.078651, a = 0.0069529, g = 0.063911)
 
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(2.0)
+        private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(0.4)
         private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.2.seconds
+        private val jerkTime            : Time = 0.0.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
