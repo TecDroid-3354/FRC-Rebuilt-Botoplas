@@ -13,6 +13,8 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -61,16 +63,9 @@ public class RobotContainer {
    * @throws ParseException
    */
   private void configureAutonomous() {
-      try {
-          autoChooser.addOption("Right Two Cycles", new PathPlannerAuto("RightAutoTwoCycles"));
+      autoChooser.addOption("Right Two Cycles", new PathPlannerAuto("RightAutoTwoCycles"));
+      autoChooser.addOption("Left Two Cycles", new PathPlannerAuto("LeftAutoTwoCycles"));
 
-          autoChooser.addOption("Left Two Cycles", new PathPlannerAuto("LeftAutoTwoCycles"));
-
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      } catch (ParseException e) {
-          throw new RuntimeException(e);
-      }
   }
 
   /**
