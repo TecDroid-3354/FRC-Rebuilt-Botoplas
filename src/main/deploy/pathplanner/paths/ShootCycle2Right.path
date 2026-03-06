@@ -3,25 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.456477272727273,
-        "y": 0.6779220779220783
+        "x": 8.5,
+        "y": 3.6
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.841769480519481,
-        "y": 0.2950974025974028
+        "x": 8.073046624876888,
+        "y": 1.9924484821203383
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.724311270125224,
-        "y": 2.1447406082289797
+        "x": 6.947746987951808,
+        "y": 0.6583373493975899
       },
       "prevControl": {
-        "x": 8.724311270125224,
-        "y": 1.5263315173198886
+        "x": 8.040460387991281,
+        "y": 1.2180005591813878
+      },
+      "nextControl": {
+        "x": 6.398777195475655,
+        "y": 0.37716737736242434
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.817,
+        "y": 0.953
+      },
+      "prevControl": {
+        "x": 3.254180722891566,
+        "y": 0.45071084337349476
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,13 +58,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 91.52752544221293
+    "rotation": 50.356
   },
   "reversed": false,
-  "folder": "Sweeper Right",
+  "folder": "Right Two Cycles Auto Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

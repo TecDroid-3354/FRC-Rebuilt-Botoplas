@@ -3,6 +3,12 @@ package frc.robot.constants
 import edu.wpi.first.units.measure.Distance
 import frc.template.utils.meters
 
+enum class FieldZones {
+    BLUE_ALLIANCE_ZONE,
+    NEUTRAL_ZONE,
+    RED_ALLIANCE_ZONE
+}
+
 object FieldConstants {
     /**
      * Contains the length and width of the field.

@@ -1,6 +1,8 @@
 package frc.robot.subsystems.hood
 import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units.Degrees
+import edu.wpi.first.units.Units.DegreesPerSecond
+import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
@@ -10,13 +12,19 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.robot.utils.interpolation.InterpolatingDouble
+import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
+import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.Optional
 import java.util.function.Supplier
+import kotlin.collections.iterator
 
 class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
@@ -26,9 +34,23 @@ class Hood() : SysIdSubsystem("Hood") {
         OpTalonFX(HoodConstants.Identification.HOOD_MOTOR_ID)
 
     // -------------------------------
+    // PRIVATE — Absolute Encoder Declaration
+    // -------------------------------
+    private val absoluteEncoder : ThroughBoreAbsoluteEncoder =
+        ThroughBoreAbsoluteEncoder(
+            HoodConstants.Identification.ABSOLUTE_ENCODER_ID,
+            HoodConstants.Configuration.AbsoluteEncoder.offset,
+            HoodConstants.Configuration.AbsoluteEncoder.inverted,
+            HoodConstants.Configuration.AbsoluteEncoder.brand,
+            Optional.empty()
+        )
+
+    // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetAngle          : Angle = Degrees.zero()
+    private var targetAngle         : Angle = Degrees.zero()
+    private val hoodDistanceDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val hoodVelocityDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -38,27 +60,32 @@ class Hood() : SysIdSubsystem("Hood") {
             "Hood Motor ID ${HoodConstants.Identification.HOOD_MOTOR_ID} Disconnected",
             Alert.AlertType.kError)
 
+    private val absoluteEncoderConnectedAlert: Alert =
+        Alert(HoodConstants.Telemetry.HOOD_CONNECTED_ALERTS_FIELD,
+            "Hood Absolute Encoder ID ${HoodConstants.Identification.ABSOLUTE_ENCODER_ID} Disconnected",
+            Alert.AlertType.kError)
+
     // --------------------------------------------------------------------------------
     // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
     // --------------------------------------------------------------------------------
-    override val sysIdForwardRunningCondition: () -> Boolean = { getHoodAngle() < HoodConstants.PhysicalLimits.Limits.maximum }
-    override val sysIdBackwardRunningCondition: () -> Boolean = { getHoodAngle() > HoodConstants.PhysicalLimits.Limits.minimum }
+    override val sysIdForwardRunningCondition: () -> Boolean = { getHoodAngleDegrees() < HoodConstants.PhysicalLimits.Limits.maximum.`in`(Degrees) }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getHoodAngleDegrees() > HoodConstants.PhysicalLimits.Limits.minimum.`in`(Degrees) }
 
     /**
      * [motorPosition] holds the current motor's position without gear ratios
      */
     override val motorPosition: Angle
-        get() = motorController.position.value
+        get() = motorController.getPosition()
     /**
      * [motorVelocity] holds the current motor's velocity without gear ratios
      */
     override val motorVelocity: AngularVelocity
-        get() = motorController.velocity.value
+        get() = motorController.getVelocity()
     /**
      * [power] holds the current motor's power
      */
     override val power: Double
-        get() = motorController.power.invoke()
+        get() = motorController.getPower()
 
     /**
      * [sysIdRoutines] holds the 4 possible SysId routines, later called in [sysIdQuasistaticRoutine] & [sysIdDynamicRoutine]
@@ -70,13 +97,16 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     init {
         motorController.applyConfigAndClearFaults(HoodConstants.Configuration.motorConfig)
+        matchRelativeToAbsolute()
+        interpolationConfiguration()
     }
 
     /**
      * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF values.
      */
     override fun periodic() {
-        hoodConnectedAlert.set(motorController.isConnected.invoke().not())
+        hoodConnectedAlert.set(motorController.getIsConnected().not())
+        absoluteEncoderConnectedAlert.set(absoluteEncoder.isConnected.not())
 
         if (HoodConstants.Tunables.motorkP.hasChanged(hashCode())
             || HoodConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -99,30 +129,35 @@ class Hood() : SysIdSubsystem("Hood") {
      * @param angle The desired [frc.robot.subsystems.hood.Hood] angle.
      */
     private fun setAngle(angle: Angle) {
-        targetAngle = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
-        motorController.positionRequestSubsystem(angle,
+        val clampedAngle = HoodConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
+        targetAngle = clampedAngle
+        motorController.positionRequestSubsystem(clampedAngle,
             HoodConstants.PhysicalLimits.Limits,
             HoodConstants.PhysicalLimits.Reduction)
     }
 
     /**
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
-     * reach the HUB based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
+     * reach the target based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
      * This [Angle] is then passed to [setAngle]
      * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
      */
     private fun setVelocityDrivenInterpolatedAngle(shooterRPMs: AngularVelocity) {
-        // TODO() = Implement Interpolation
+        val hoodSetpointDeg = hoodVelocityDrivenInterpolation
+            .getInterpolated(InterpolatingDouble(shooterRPMs.`in`(DegreesPerSecond)))
+        setAngle(hoodSetpointDeg.value.degrees)
     }
 
     /**
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
-     * reach the HUB based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the HUB.
+     * reach the target based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the target.
      * This [Angle] is then passed to [setAngle]
-     * @param chassisDistanceToHUB The current distance from Swerve to HUB.
+     * @param chassisDistanceToTarget The current distance from Swerve to the target (HUB or passed the trench to assist).
      */
-    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB: Distance) {
-        // TODO() = Implement Interpolation
+    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToTarget: Distance) {
+        val hoodSetpointDeg = hoodDistanceDrivenInterpolation
+            .getInterpolated(InterpolatingDouble(chassisDistanceToTarget.`in`(Meters)))
+        setAngle(hoodSetpointDeg.value.degrees)
     }
 
     /**
@@ -162,6 +197,17 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun setDistanceDrivenInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
         return RunCommand({ setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
+    }
+
+    /**
+     * Matches the motor encoder angle with the absolute encoder angle.
+     * It is mainly used at the beginning of the robot so that the subsystem knows its position.
+     */
+    private fun matchRelativeToAbsolute() {
+        val absolutePosition = absoluteEncoder.position
+
+        motorController.getMotorInstance()
+            .setPosition(HoodConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
     }
 
     // -------------------------------
@@ -205,12 +251,16 @@ class Hood() : SysIdSubsystem("Hood") {
      * reported position with the respective reduction.
      * This can be seen live in the "Hood" tab of AdvantageScope.
      */
-    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ANGLE_FIELD)
-    fun getHoodAngle(): Angle {
-        return HoodConstants.PhysicalLimits.Reduction.apply(
-            motorController.position.value
-        )
+    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ANGLE_FIELD, unit = "degrees")
+    fun getHoodAngleDegrees(): Double {
+        return HoodConstants.PhysicalLimits.Reduction.apply(motorController.getPosition().`in`(Degrees))
     }
+
+    /**
+     * Returns the absolute position of the subsystem
+     */
+    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ABSOLUTE_ENCODER_ANGLE_FIELD, unit = "degrees")
+    private fun getEncoderAbsoluteAngle(): Double = absoluteEncoder.position.`in`(Degrees)
 
     /**
      * Returns the [frc.robot.subsystems.hood.Hood] target angle.
@@ -239,6 +289,29 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun brakeCMD(): Command {
         return InstantCommand({ motorController.brake() }, this)
+    }
+
+    // -------------------------------
+    // Motor configuration (Phoenix 6)
+    // -------------------------------
+
+    /**
+     * Puts every interpolation point in the interpolation object.
+     * - key    : Distance to target in [Meters]
+     * - value  : Shooter velocity in [DegreesPerSecond]
+     */
+    private fun interpolationConfiguration() {
+        for (point in HoodConstants.Control.hoodDistanceDrivenInterpolationPoints) {
+            hoodDistanceDrivenInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(Degrees)))
+        }
+
+        for (point in HoodConstants.Control.hoodVelocityDrivenInterpolationPoints) {
+            hoodVelocityDrivenInterpolation.put(
+                InterpolatingDouble(point.key.`in`(DegreesPerSecond)),
+                InterpolatingDouble(point.value.`in`(Degrees)))
+        }
     }
 
     /**

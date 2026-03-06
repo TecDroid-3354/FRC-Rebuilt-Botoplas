@@ -1,0 +1,99 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "trenchToNeutralZoneCycle1Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "enableIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeCycle1Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "disableIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "ShootCycle1Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "shoot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "trenchToNeutralZoneCycle2Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "enableIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeCycle2Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "disableIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "ShootCycle2Left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "shoot"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

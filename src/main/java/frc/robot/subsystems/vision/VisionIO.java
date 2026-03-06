@@ -45,5 +45,7 @@ public interface VisionIO {
     PHOTONVISION
   }
 
+  public void setThrottle(double throttle);
+
   public default void updateInputs(VisionIOInputs inputs) {}
 }

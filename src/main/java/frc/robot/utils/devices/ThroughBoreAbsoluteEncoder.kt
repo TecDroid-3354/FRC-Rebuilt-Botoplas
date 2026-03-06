@@ -40,7 +40,7 @@ class ThroughBoreAbsoluteEncoder(port: Int, private val offset: Angle, private v
     private val encoder: ThroughBore = when (brand) {
         ThroughBoreBrand.WCP -> WCPThroughBore(
             port,
-            (if (canBusName.isPresent) canBusName else "rio").toString()
+            if (canBusName.isPresent) canBusName.get() else "rio"
         )
         ThroughBoreBrand.REV -> REVThroughBore(port)
     }

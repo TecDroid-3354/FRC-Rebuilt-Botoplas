@@ -97,6 +97,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'org.jgrapht:jgrapht-core:1.5.2'
 
+
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
     kapt "org.littletonrobotics.akit:akit-autolog:$akitJson.version"

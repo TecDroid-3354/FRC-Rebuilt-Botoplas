@@ -22,6 +22,10 @@ import kotlin.math.pow
 
 object RobotConstants {
 
+    object Identification {
+        const val ALTERNATE_CANBUS = "canivore"
+    }
+
     object RobotPhysics {
         val RobotMass       : Mass              = Kilograms.of(15.0)
         val RobotLength     : Distance          = 27.0.inches
@@ -66,5 +70,10 @@ object RobotConstants {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 5.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 15.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
+    }
+
+    object Telemetry {
+        const val STATES_TAB = "States"
+        const val STATES_CURRENT_STATE_FIELD = "${STATES_TAB}/Current State"
     }
 }

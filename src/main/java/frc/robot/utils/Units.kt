@@ -39,6 +39,7 @@ val Double.degreesCelsius               : Temperature           ; get() = Units.
 
 val Double.metersPerSecond              : LinearVelocity        ; get() = Units.MetersPerSecond.of(this)
 val Double.degreesPerSecond             : AngularVelocity       ; get() = Units.DegreesPerSecond.of(this)
+val Double.rotationsPerSecond           : AngularVelocity       ; get() = Units.RotationsPerSecond.of(this)
 
 val Double.metersPerSecondPerSecond     : LinearAcceleration    ; get() = Units.MetersPerSecondPerSecond.of(this)
 val Double.degreesPerSecondPerSecond    : AngularAcceleration   ; get() = Units.DegreesPerSecondPerSecond.of(this)

@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.729,
-        "y": 1.248
+        "x": 4.466034236804564,
+        "y": 7.393
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.483204819277108,
-        "y": 0.5709156626506026
+        "x": 5.466034236804565,
+        "y": 7.393
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.8170722891566267,
-        "y": 0.9533855421686745
+        "x": 7.811,
+        "y": 6.8
       },
       "prevControl": {
-        "x": 3.1230481927710847,
-        "y": 0.2321566265060243
+        "x": 7.073496433666193,
+        "y": 7.563380884450785
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 50.3558250428552
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "Sweeper Left",
+  "folder": "Left Two Cycles Auto Paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
