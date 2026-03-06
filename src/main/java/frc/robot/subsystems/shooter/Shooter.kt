@@ -148,8 +148,8 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
      */
     private fun setInterpolatedVelocity(distanceToTarget: Distance) {
-        val shooterSetpointDps = shooterInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
-        setVelocity(shooterSetpointDps.value.degreesPerSecond)
+        val shooterSetpointRps = shooterInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
+        setVelocity(shooterSetpointRps.value.rotationsPerSecond)
     }
 
     /**
@@ -267,7 +267,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
         for (point in ShooterConstants.Control.shooterInterpolationPoints) {
             shooterInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
-                InterpolatingDouble(point.value.`in`(DegreesPerSecond)))
+                InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
         }
     }
 

@@ -117,9 +117,9 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(0.4)
+        private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(0.6)
         private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.0.seconds
+        private val jerkTime            : Time = 0.1.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object

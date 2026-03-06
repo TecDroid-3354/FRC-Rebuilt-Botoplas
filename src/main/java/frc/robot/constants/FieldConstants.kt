@@ -30,12 +30,6 @@ object FieldConstants {
         val BLUE_HUB_CENTER_Y           : Distance = 4.030  .meters
         val RED_HUB_CENTER_X            : Distance = 11.920 .meters
         val RED_HUB_CENTER_Y            : Distance = 4.030  .meters
-
-        val BLUE_HUB_POSITION_VECTOR    : Vector<N2> = Vector(Matrix(Nat.N2(), Nat.N1(),
-            doubleArrayOf(BLUE_HUB_CENTER_X.`in`(Meters), BLUE_HUB_CENTER_Y.`in`(Meters))))
-
-        val RED_HUB_POSITION_VECTOR    : Vector<N2> = Vector(Matrix(Nat.N2(), Nat.N1(),
-            doubleArrayOf(RED_HUB_CENTER_X.`in`(Meters), RED_HUB_CENTER_Y.`in`(Meters))))
     }
 
     /**

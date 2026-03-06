@@ -89,7 +89,7 @@ object RobotConstants {
 
     object Control {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 5.0.degrees
-        val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 25.0.degrees
+        val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 30.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
         val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 1.0.rotationsPerSecond
     }

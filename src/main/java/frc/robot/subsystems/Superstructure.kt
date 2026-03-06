@@ -3,16 +3,9 @@ package frc.robot.subsystems
 import com.pathplanner.lib.path.GoalEndState
 import com.pathplanner.lib.path.PathPlannerPath
 import com.pathplanner.lib.path.Waypoint
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.Nat
-import edu.wpi.first.math.Vector
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
-import edu.wpi.first.math.numbers.N2
-import edu.wpi.first.math.numbers.N3
-import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.Units.Meters
-import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.wpilibj2.command.Command
@@ -49,12 +42,9 @@ import frc.template.utils.radians
 import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
 import org.littletonrobotics.junction.AutoLogOutput
-import java.util.function.Supplier
-import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.hypot
-import kotlin.math.sin
+import kotlin.math.pow
 
 class Superstructure(private val controller: CommandXboxController) : Subsystem {
 
@@ -94,6 +84,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
 
     init {
+        resetDrivePose().ignoringDisable(true)
         drive.defaultCommand = driveFollowingDriverInput()
     }
 
@@ -109,19 +100,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [SequentialCommandGroup] with the above specifications.
      */
     fun shootStateSequenceDefaultCMD(): Command {
-        return SequentialCommandGroup(
+        return ParallelCommandGroup(
             shootingStateShooterInterpolationCMD(), // Enables shooter interpolation
-            WaitUntilCommand { // Waits until shooter RPMs are within tolerance.
-                abs(shooter.getShooterTargetAngularVelocity().minus(shooter.getShooterAngularVelocity()).`in`(RotationsPerSecond)) <
-                        RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE.`in`(RotationsPerSecond)
-            }.withTimeout(1.0.seconds),
             shootingStateHoodInterpolationCMD(), // Enables hood interpolation
-            WaitUntilCommand { // Waits until Swerve rotation is within tolerance to shoot
-                abs(drive.pose.rotation.minus(Rotation2d(getSwerveToHubAngle())).degrees) <
-                        RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING.`in`(Degrees) }
-                .withTimeout(1.0.seconds),
-            shootingStateIndexerEnableCMD(), // Enables the indexer, both hopper and tower rollers
-            shootingStateIntakeDanceCMD() // Makes the deployable component go up and down to push any stocked FUEL
+            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(4.5.seconds)
+                .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
+                .andThen(WaitCommand(1.0.seconds)
+                    .andThen(shootingStateIntakeDanceCMD())) // Makes the deployable component go up and down to push any stocked FUEL
         )
     }
 
@@ -130,10 +116,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             noStateShootOnly(), // Enables shooter manual control
             noStateHoodOnly(), // Enables hood manual control
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
-                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(2.0.seconds)
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(4.5.seconds)
                 .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
-                .andThen(WaitCommand(2.0.seconds) // Safety for deployable assuming full hopper
-                .andThen(InstantCommand({ intake.setRollersVoltage(IntakeConstants.VoltageTargets.EnabledRollersVoltage.div(2.0)) }))
+                .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
                     .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
     }
 
@@ -157,12 +142,18 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [RunCommand] with the Swerve's default command.
      */
     fun driveFollowingDriverInput(): Command {
-        return DriveCommands.joystickDrive (
+        return DriveCommands.joystickDriveAtAngle (
             drive,
             { -controller.leftY * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            { controller.rightX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Z_MULTIPLIER }
+            ::getAngleFromJoystick
         )
+    }
+
+    @AutoLogOutput(key = "Odometry/Joystick Target Angle")
+    fun getAngleFromJoystick(): Angle {
+        val atan2Rad = atan2(-controller.rightY, controller.rightX)
+        return if (atan2Rad == 0.0) atan2Rad.plus(Math.PI).radians else atan2Rad.plus(Math.PI / 2).radians
     }
 
     fun resetDrivePose(): Command {
@@ -179,11 +170,20 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * - Think of it as a right triangle, then (x,y) are the sides and the hypotenuse is the vector's magnitude.
      * @return The Swerve -> HUB [Distance]
      */
+    //@AutoLogOutput(key = "Odometry/Swerve Distance to HUB", unit = "meters")
     private fun getSwerveToHubDistance(): Distance {
         val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
         val xComponentMeters = HUB_TO_SWERVE_VECTOR.first.`in`(Meters)
         val yComponentMeters = HUB_TO_SWERVE_VECTOR.second.`in`(Meters)
-        return hypot(xComponentMeters, yComponentMeters).meters
+        return hypot(xComponentMeters.pow(2), yComponentMeters.pow(2)).meters
+    }
+
+    @AutoLogOutput(key = "Odometry/Swerve Distance to HUB", unit = "meters")
+    private fun getSwerveToHubDistanceLog(): Double {
+        val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
+        val xComponentMeters = HUB_TO_SWERVE_VECTOR.first.`in`(Meters)
+        val yComponentMeters = HUB_TO_SWERVE_VECTOR.second.`in`(Meters)
+        return hypot(xComponentMeters.pow(2), yComponentMeters.pow(2))
     }
 
     /**
@@ -195,8 +195,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     private fun getSwerveToHubAngle(): Angle {
         val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
 
-        val xAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.first.plus(drive.chassisSpeeds.vxMetersPerSecond.div(3).meters)
-        val yAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.second.plus(drive.chassisSpeeds.vyMetersPerSecond.div(3).meters)
+        val xAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.first.plus(drive.chassisSpeeds.vxMetersPerSecond.div(2).meters)
+        val yAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.second.plus(drive.chassisSpeeds.vyMetersPerSecond.div(2).meters)
 
         return atan2(yAdjustedWithVelocity.`in`(Meters), xAdjustedWithVelocity.`in`(Meters)).radians
     }
@@ -255,7 +255,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     fun noStateShootOnly(): Command {
-        return shooter.setVelocityCMD { ShooterConstants.Tunables.enabledRPS.get().rotationsPerSecond }
+        return shooter.setVelocityCMD { ShooterConstants.Tunables.enabledRPMs.get().div(60.0).rotationsPerSecond }
     }
 
     fun noStateHoodOnly(): Command {

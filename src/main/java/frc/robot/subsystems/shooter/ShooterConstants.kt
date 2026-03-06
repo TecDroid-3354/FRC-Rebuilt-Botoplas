@@ -3,7 +3,6 @@ package frc.robot.subsystems.shooter
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.numbers.N2
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
@@ -17,7 +16,6 @@ import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
-import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
@@ -26,7 +24,7 @@ import java.util.Optional
 import edu.wpi.first.math.Nat
 import edu.wpi.first.math.numbers.N1
 import edu.wpi.first.units.Units
-import org.ejml.simple.SimpleMatrix
+import frc.template.utils.rotationsPerSecond
 import kotlin.math.sin
 import kotlin.math.cos
 
@@ -59,7 +57,7 @@ object ShooterConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.0)
 
-        val enabledRPS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPS", 50.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPMs", 3000.0)
     }
 
     /**
@@ -70,13 +68,13 @@ object ShooterConstants {
         val MAX_RPS               : AngularVelocity = RotationsPerSecond.of(6_000.0 / 60)
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
-        // Pair() containing: Distance to target (meters) -> Shooter target velocity (degreesPerSecond)
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            0.0.meters to 0.0.degreesPerSecond,
-            0.0.meters to 0.0.degreesPerSecond,
-            0.0.meters to 0.0.degreesPerSecond,
-            0.0.meters to 0.0.degreesPerSecond,
-            0.0.meters to 0.0.degreesPerSecond,
+            2.72.meters to 2_436.0.div(60.0).rotationsPerSecond,
+            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
+            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
+            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
+            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
         )
     }
 

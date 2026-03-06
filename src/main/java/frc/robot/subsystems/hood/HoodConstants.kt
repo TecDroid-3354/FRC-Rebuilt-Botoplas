@@ -60,7 +60,7 @@ object HoodConstants {
 
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
         val hoodDistanceDrivenInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            0.0.meters to 0.0.degrees,
+            2.72.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
             0.0.meters to 0.0.degrees,
@@ -100,7 +100,7 @@ object HoodConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val supplyCurrentLimits : Current = Amps.of(15.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 

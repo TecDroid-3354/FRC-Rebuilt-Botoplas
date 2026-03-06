@@ -25,7 +25,7 @@ class StatesHandler(
 
     init {
         configureStatesConditions()
-        configureStatesCommands()
+        //configureStatesCommands()
         configureBindings()
     }
 
@@ -38,45 +38,55 @@ class StatesHandler(
         stateMachine.addCondition(
             { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) },
             NeutralState,
-            Phase.Teleop)
+            Phase.Teleop,
+            1
+        )
 
-//        stateMachine.addCondition(
-//            { controller.rightBumper().asBoolean },
-//            IntakeState,
-//            Phase.Teleop)
+        stateMachine.addCondition(
+            { controller.rightBumper().asBoolean },
+            IntakeState,
+            Phase.Teleop,
+            5
+        )
 
         stateMachine.addCondition(
             { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) && controller.rightTrigger().asBoolean },
             AssistState,
-            Phase.Teleop)
+            Phase.Teleop,
+            3
+        )
 
         stateMachine.addCondition(
             { superstructure.isInsideZone(
                 if (isFlipped.invoke()) FieldZones.RED_ALLIANCE_ZONE else FieldZones.BLUE_ALLIANCE_ZONE
             ) },
             PrepShootingState,
-            Phase.Teleop
+            Phase.Teleop,
+            2
         )
 
-//        stateMachine.addCondition(
-//            { superstructure.isInsideZone(
-//                if (isFlipped.invoke()) FieldZones.RED_ALLIANCE_ZONE else FieldZones.BLUE_ALLIANCE_ZONE
-//            ) && controller.rightTrigger().asBoolean },
-//            ShootState,
-//            Phase.Teleop
-//        )
+        stateMachine.addCondition(
+            { superstructure.isInsideZone(
+                if (isFlipped.invoke()) FieldZones.RED_ALLIANCE_ZONE else FieldZones.BLUE_ALLIANCE_ZONE
+            ) && controller.rightTrigger().asBoolean },
+            ShootState,
+            Phase.Teleop,
+            4
+        )
 
-        //stateMachine.addCondition(
-          //  { controller.x().asBoolean },
-            //GoingUnderTrench,
-            //Phase.Teleop
-        //)
+        stateMachine.addCondition(
+            { controller.x().asBoolean },
+            GoingUnderTrench,
+            Phase.Teleop,
+            6
+        )
 
-//        stateMachine.addCondition(
-//            { controller.povLeft().asBoolean } ,
-//            EmergencyShootState,
-//            Phase.Teleop
-//        )
+        stateMachine.addCondition(
+            { controller.povLeft().asBoolean } ,
+            EmergencyShootState,
+            Phase.Teleop,
+            999
+        )
     }
 
     private fun configureStatesCommands() {
@@ -109,6 +119,8 @@ class StatesHandler(
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
+        controller.povLeft().onTrue(superstructure.noStateIntakeDeployableOnlyDisable())
+
 //        controller.a().whileTrue(superstructure.shootingStateIndexerEnableCMD())
 //            .onFalse(superstructure.disableIndexer())
 //        controller.b().whileTrue(superstructure.noStateShootOnly())
@@ -116,6 +128,14 @@ class StatesHandler(
 
         controller.rightTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystems())
+
+        controller.y().onTrue(superstructure.noStateShootOnly())
+            .onFalse(superstructure.disableShooter())
+
+        controller.b().onTrue(superstructure.noStateIndexerOnly())
+            .onFalse(superstructure.disableIndexer())
+
+        controller.a().onTrue(superstructure.noStateHoodOnly())
 
         controller.rightBumper().onTrue(superstructure.intakeStateCMD())
             .onFalse(superstructure.disableIntake())
