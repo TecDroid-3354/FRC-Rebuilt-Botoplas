@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.817,
-        "y": 0.953
+        "x": 2.489,
+        "y": 1.095
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.202292207792208,
-        "y": 0.5701753246753245
+        "x": 3.0902650602409643,
+        "y": 0.01360240963855519
       },
       "isLocked": false,
       "linkedName": null
@@ -28,7 +28,16 @@
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.20755905511811085,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +51,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 91.52752544221293
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": "Right Two Cycles Auto Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 50.356
+    "rotation": 53.37
   },
   "useDefaultConstraints": true
 }
