@@ -21,7 +21,6 @@ import frc.robot.utils.interpolation.InterpolatingTreeMap
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 
 import frc.template.utils.devices.OpTalonFX
@@ -48,7 +47,9 @@ class Shooter() : SysIdSubsystem("Shooter") {
     // PRIVATE — Useful variables
     // -------------------------------
     private var targetVelocity          : AngularVelocity = DegreesPerSecond.zero()
-    private val shooterInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val scoringInterpolation    : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val assistInterpolation     : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -137,8 +138,8 @@ class Shooter() : SysIdSubsystem("Shooter") {
     private fun setVelocity(velocity : AngularVelocity) {
         val clampedVelocity = velocity.coerceIn(ShooterConstants.Control.MIN_RPS..ShooterConstants.Control.MAX_RPS)
 
-        targetVelocity = clampedVelocity
-        leadMotorController.velocityRequest(clampedVelocity)
+        targetVelocity = velocity
+        leadMotorController.velocityRequest(velocity)
     }
 
     /**
@@ -147,8 +148,13 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * - NOTE: Interpolation is performed in [Meters] and [DegreesPerSecond], hence the units inside the method.
      * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
      */
-    private fun setInterpolatedVelocity(distanceToTarget: Distance) {
-        val shooterSetpointRps = shooterInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
+    private fun setScoringInterpolatedVelocity(distanceToTarget: Distance) {
+        val shooterSetpointRps = scoringInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
+        setVelocity(shooterSetpointRps.value.rotationsPerSecond)
+    }
+
+    private fun setAssistInterpolatedVelocity(distanceToTarget: Distance) {
+        val shooterSetpointRps = assistInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
         setVelocity(shooterSetpointRps.value.rotationsPerSecond)
     }
 
@@ -178,12 +184,16 @@ class Shooter() : SysIdSubsystem("Shooter") {
     }
 
     /**
-     * Command version of [setInterpolatedVelocity]. Subsystem set as requirement.
+     * Command version of [setScoringInterpolatedVelocity]. Subsystem set as requirement.
      * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
-     * @return a [RunCommand] calling [setInterpolatedVelocity]
+     * @return a [RunCommand] calling [setScoringInterpolatedVelocity]
      */
-    fun setInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
-        return RunCommand({ setInterpolatedVelocity(distanceToTarget.get()) }, this)
+    fun setScoringInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
+        return RunCommand({ setScoringInterpolatedVelocity(distanceToTarget.get()) }, this)
+    }
+    
+    fun setAssistInterpolatedVelocity(distanceToTargetBump: Supplier<Distance>): Command {
+        return RunCommand({ setAssistInterpolatedVelocity(distanceToTargetBump.get()) }, this)
     }
 
     /**
@@ -264,8 +274,14 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in ShooterConstants.Control.shooterInterpolationPoints) {
-            shooterInterpolation.put(
+        for (point in ShooterConstants.Control.shooterScoreInterpolationPoints) {
+            scoringInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
+        }
+
+        for (point in ShooterConstants.Control.shooterAssistInterpolationPoints) {
+            assistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
         }

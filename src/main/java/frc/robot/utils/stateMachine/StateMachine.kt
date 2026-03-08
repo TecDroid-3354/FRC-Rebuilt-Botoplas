@@ -77,7 +77,7 @@ class StateMachine(private var currentState: States) : SubsystemBase() {
     // Change the state default command
     private fun changeStateDefaultCommand(defaultCommand: Command) {
         defaultCommand.cancel()
-        removeDefaultCommand()
+        //removeDefaultCommand()
         defaultCommand.addRequirements(this)
         setDefaultCommand(defaultCommand)
     }
@@ -216,7 +216,7 @@ class StateMachine(private var currentState: States) : SubsystemBase() {
     }
 
     private fun assess(conditions : MutableList<Condition>) {
-        conditions.sortByDescending { it.weight }
+        conditions.sortedBy { it.weight }
 
         // Check all the conditions
         for (condition in conditions) {

@@ -3,11 +3,14 @@ package frc.robot.subsystems
 import com.pathplanner.lib.path.GoalEndState
 import com.pathplanner.lib.path.PathPlannerPath
 import com.pathplanner.lib.path.Waypoint
+import edu.wpi.first.math.MathUtil
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.units.Units.Meters
+import edu.wpi.first.units.Units.Radians
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
+import edu.wpi.first.units.measure.MutAngle
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
@@ -44,12 +47,8 @@ import frc.template.utils.seconds
 import org.littletonrobotics.junction.AutoLogOutput
 import kotlin.math.atan2
 import kotlin.math.hypot
-import kotlin.math.pow
 
 class Superstructure(private val controller: CommandXboxController) : Subsystem {
-
-
-
     /**
      * Drivetrain initialization. Creates a new [Drive] derived from the Advantage Kit's template, it already
      * computes all the necessary operations and code by just giving it the four modules configured via
@@ -64,6 +63,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         ModuleIOTalonFX(SwerveTunerConstants.BackLeft),
         ModuleIOTalonFX(SwerveTunerConstants.BackRight)
     )
+    private val lastAngle: MutAngle = Radians.mutable(drive.rotation.radians)
 
     /**
      * Vision declaration. Creates a new [Vision] instance derived from the Advantage kit's template.
@@ -76,6 +76,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         VisionIOLimelight(VisionConstants.leftLimelight,    { drive.rotation }),
         VisionIOLimelight(VisionConstants.rightLimelight,   { drive.rotation })
     )
+
+    // Subsystem declaration
 
     val intake  : Intake    = Intake()
     private val indexer : Indexer   = Indexer()
@@ -122,6 +124,17 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                     .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
     }
 
+    fun assistStateSequenceDefaultCMD(): Command {
+        return ParallelCommandGroup(
+            assistStateShooterInterpolationCMD(), // Enables shooter interpolation
+            assistStateHoodInterpolationCMD(), // Enables hood interpolation
+            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(4.5.seconds)
+                .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
+                .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
+                    .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
+    }
+
     /**
      * Intended to be Initial Command of Shooting State. Locks the Swerve angle so that it targets the HUB.
      * During this command, the controller's right joystick is not used. Translation is still under the driver's
@@ -137,6 +150,15 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         )
     }
 
+    fun driveTargetingBumpAssist(): Command {
+        return DriveCommands.joystickDriveAtAngle(
+            drive,
+            { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
+            { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
+            ::getSwerveToBumpAssistAngle
+        )
+    }
+
     /**
      * Intended to be End Command of Shooting State. Gives back the full Swerve control to the driver.
      * @return A [RunCommand] with the Swerve's default command.
@@ -144,16 +166,22 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     fun driveFollowingDriverInput(): Command {
         return DriveCommands.joystickDriveAtAngle (
             drive,
-            { -controller.leftY * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
-            { -controller.leftX * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
+            { MathUtil.applyDeadband(-controller.leftY, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
+            { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
             ::getAngleFromJoystick
         )
     }
 
     @AutoLogOutput(key = "Odometry/Joystick Target Angle")
-    fun getAngleFromJoystick(): Angle {
-        val atan2Rad = atan2(-controller.rightY, controller.rightX)
-        return if (atan2Rad == 0.0) atan2Rad.plus(Math.PI).radians else atan2Rad.plus(Math.PI / 2).radians
+    private fun getAngleFromJoystick(): Angle {
+        val atan2Rad = atan2(MathUtil.applyDeadband(-controller.rightY, 0.3), MathUtil.applyDeadband(controller.rightX, 0.3))
+        lastAngle.mut_replace(if (atan2Rad == 0.0) lastAngle else atan2Rad.plus(Math.PI / 2).radians)
+        return lastAngle
+    }
+
+    @AutoLogOutput(key = "Odometry/Last Registered Angle")
+    private fun getLastAngle(): Angle {
+        return lastAngle
     }
 
     fun resetDrivePose(): Command {
@@ -170,20 +198,20 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * - Think of it as a right triangle, then (x,y) are the sides and the hypotenuse is the vector's magnitude.
      * @return The Swerve -> HUB [Distance]
      */
-    //@AutoLogOutput(key = "Odometry/Swerve Distance to HUB", unit = "meters")
+    @AutoLogOutput(key = "Odometry/Swerve Distance to HUB", unit = "meters")
     private fun getSwerveToHubDistance(): Distance {
         val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
         val xComponentMeters = HUB_TO_SWERVE_VECTOR.first.`in`(Meters)
         val yComponentMeters = HUB_TO_SWERVE_VECTOR.second.`in`(Meters)
-        return hypot(xComponentMeters.pow(2), yComponentMeters.pow(2)).meters
+        return hypot(xComponentMeters, yComponentMeters).meters
     }
 
-    @AutoLogOutput(key = "Odometry/Swerve Distance to HUB", unit = "meters")
-    private fun getSwerveToHubDistanceLog(): Double {
-        val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
-        val xComponentMeters = HUB_TO_SWERVE_VECTOR.first.`in`(Meters)
-        val yComponentMeters = HUB_TO_SWERVE_VECTOR.second.`in`(Meters)
-        return hypot(xComponentMeters.pow(2), yComponentMeters.pow(2))
+    @AutoLogOutput(key = "Odometry/Swerve Distance to Bump Assist", unit = "meters")
+    private fun getSwerveToBumpAssistDistance(): Distance {
+        val bumpAssistToSwerveVecto = getBumpAssistToSwerveVectorComponents()
+        val xComponentMeters = bumpAssistToSwerveVecto.first.`in`(Meters)
+        val yComponentMeters = bumpAssistToSwerveVecto.second.`in`(Meters)
+        return hypot(xComponentMeters, yComponentMeters).meters
     }
 
     /**
@@ -195,18 +223,33 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     private fun getSwerveToHubAngle(): Angle {
         val HUB_TO_SWERVE_VECTOR = getHubToSwerveVectorComponents()
 
-        val xAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.first.plus(drive.chassisSpeeds.vxMetersPerSecond.div(2).meters)
-        val yAdjustedWithVelocity = HUB_TO_SWERVE_VECTOR.second.plus(drive.chassisSpeeds.vyMetersPerSecond.div(2).meters)
+        val xComponent = HUB_TO_SWERVE_VECTOR.first
+        val yComponent = HUB_TO_SWERVE_VECTOR.second
 
-        return atan2(yAdjustedWithVelocity.`in`(Meters), xAdjustedWithVelocity.`in`(Meters)).radians
+        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).radians
+        lastAngle.mut_replace(atan2Rad)
+
+        return lastAngle
+    }
+
+    private fun getSwerveToBumpAssistAngle(): Angle {
+        val bumpAssistToSwerveVector = getBumpAssistToSwerveVectorComponents()
+
+        val xComponent = bumpAssistToSwerveVector.first
+        val yComponent = bumpAssistToSwerveVector.second
+
+        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).radians
+        lastAngle.mut_replace(atan2Rad)
+
+        return lastAngle
     }
 
     /**
      * Intended to run during Shooting State. Enables the [Shooter] interpolation with respect to the HUB.
      * @return A [RunCommand] interpolating the [Shooter] velocity based on [getSwerveToHubDistance].
      */
-    fun shootingStateShooterInterpolationCMD(): Command {
-        return shooter.setInterpolatedVelocityCMD { getSwerveToHubDistance() }
+    private fun shootingStateShooterInterpolationCMD(): Command {
+        return shooter.setScoringInterpolatedVelocityCMD { getSwerveToHubDistance() }
     }
 
     /**
@@ -214,11 +257,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * driven, allowing it to correct for [Shooter] RPMs losses.
      * @return A [RunCommand] interpolating the [Hood] angle based on the [Shooter] velocity.
      */
-    fun shootingStateHoodInterpolationCMD(): Command {
-        return hood.setVelocityDrivenInterpolatedAngleCMD { shooter.getShooterAngularVelocity() }
+    private fun shootingStateHoodInterpolationCMD(): Command {
+        return hood.setScoreDistanceInterpolatedAngleCMD { getSwerveToHubDistance() }
     }
 
-    fun shootingStateIndexerEnableCMD(): Command {
+    private fun shootingStateIndexerEnableCMD(): Command {
         return indexer.enableIndexerCMD()
     }
 
@@ -230,7 +273,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [RunCommand] that makes the intake "dance" by moving it 15 degrees up and down, with its maximum
      *      being the intake's retracted angle.
      */
-    fun shootingStateIntakeDanceCMD(): Command {
+    private fun shootingStateIntakeDanceCMD(): Command {
         return SequentialCommandGroup(
             intake.setDeployableAngleOnly(IntakeConstants.RetractileAngles.DeployedAngle
                 .plus(RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_DELTA)),
@@ -240,6 +283,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { intake.getDeployableError() < RobotConstants.Control.INTAKE_DEPLOYABLE_DANCE_TOLERANCE }
                 .withTimeout(1.0.seconds))
             .repeatedly()
+    }
+
+    private fun assistStateShooterInterpolationCMD(): Command {
+        return shooter.setAssistInterpolatedVelocity { getSwerveToBumpAssistDistance() }
+    }
+
+    private fun assistStateHoodInterpolationCMD(): Command {
+        return hood.setAssistDistanceInterpolatedAngleCMD { getSwerveToBumpAssistDistance() }
     }
 
     fun noStateIntakeDeployableOnlyEnable(): Command {
@@ -260,15 +311,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     fun noStateHoodOnly(): Command {
         return hood.setAngleTunableCMD { HoodConstants.Tunables.motorAngle.get().degrees }
-    }
-
-    /**
-     * Intended to run before Shooting State. To prepare the [Hood], distance driven interpolation is performed.
-     * This interpolation method must change during Shooting State to correct for any RPM losses.
-     * @return A [RunCommand] interpolating the [Hood] angle based on the distance from Swerve to HUB.
-     */
-    fun preShootingStateHoodInterpolationCMD(): Command {
-        return hood.setDistanceDrivenInterpolatedAngleCMD { getSwerveToHubDistance() }
     }
 
     fun intakeStateCMD(): Command {
@@ -317,7 +359,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                 if (isFlipped.invoke()) FieldConstants.Trench.RED_TRENCH_CENTER_X else FieldConstants.Trench.BLUE_TRENCH_CENTER_X)
 
         return PathPlannerPath.waypointsFromPoses(
-            Pose2d(xCoordinate, yCoordinate, Rotation2d.kZero),
+            Pose2d(if (isFlipped.invoke()) FieldConstants.Trench.RED_TRENCH_CENTER_X else FieldConstants.Trench.BLUE_TRENCH_CENTER_X,
+            yCoordinate, Rotation2d.kZero),
+            Pose2d(xCoordinate, yCoordinate, Rotation2d.kZero)
         )
     }
 
@@ -339,6 +383,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     fun disableSubsystems(): Command {
         return ParallelCommandGroup(
+            storeHood(),
             disableIndexer(),
             disableIntake(),
             disableShooter()
@@ -374,6 +419,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         val centerHUB_Y = if (isFlipped.invoke()) FieldConstants.HUB.RED_HUB_CENTER_Y else FieldConstants.HUB.BLUE_HUB_CENTER_Y
 
         return Pair(centerHUB_X.minus(drive.pose.measureX), centerHUB_Y.minus(drive.pose.measureY))
+    }
+
+    private fun getBumpAssistToSwerveVectorComponents(): Pair<Distance, Distance> {
+        val centerBump_X = if (isFlipped.invoke()) FieldConstants.Bump.RED_BUMP_CENTER_X else FieldConstants.Bump.BLUE_BUMP_CENTER_X
+        val centerBump_Y = if (drive.pose.measureY.gt(FieldConstants.Dimensions.FIELD_WIDTH_Y.div(2.0)))
+            FieldConstants.Bump.UPPER_BUMP_Y else FieldConstants.Bump.LOWER_BUMP_Y
+
+        return Pair(centerBump_X.minus(drive.pose.measureX), centerBump_Y.minus(drive.pose.measureY))
     }
 
     @AutoLogOutput(key = "Odometry/Current Zone")

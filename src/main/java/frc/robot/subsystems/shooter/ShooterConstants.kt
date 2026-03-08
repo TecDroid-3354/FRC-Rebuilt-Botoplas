@@ -5,7 +5,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.math.Matrix
 import edu.wpi.first.math.numbers.N2
 import edu.wpi.first.units.Units.Amps
-import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
@@ -52,10 +51,10 @@ object ShooterConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.5)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.6)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.0)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.5)
 
         val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPMs", 3000.0)
     }
@@ -69,12 +68,21 @@ object ShooterConstants {
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-        val shooterInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            2.72.meters to 2_436.0.div(60.0).rotationsPerSecond,
-            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
-            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
-            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
-            0.0.meters to 0.0.div(60.0).rotationsPerSecond,
+        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.646.meters to 2_270.0.div(60.0).rotationsPerSecond,
+            2.05.meters to 2_540.0.div(60.0).rotationsPerSecond,
+            2.54.meters to 2_620.0.div(60.0).rotationsPerSecond,
+            3.354.meters to 2_790.0.div(60.0).rotationsPerSecond,
+            4.128.meters to 3_070.0.div(60.0).rotationsPerSecond,
+            5.02.meters to 3_420.0.div(60.0).rotationsPerSecond,
+        )
+
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
+        val shooterAssistInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.28.meters to 2_000.0.div(60.0).rotationsPerSecond,
+            2.0.meters to 2_450.0.div(60.0).rotationsPerSecond,
+            2.5.meters to 2_620.0.div(60.0).rotationsPerSecond,
+            3.354.meters to 2_700.0.div(60.0).rotationsPerSecond,
         )
     }
 
@@ -92,7 +100,7 @@ object ShooterConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val supplyCurrentLimits : Current = Amps.of(30.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 
@@ -106,9 +114,9 @@ object ShooterConstants {
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
+        private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(100.0)
         private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.2.seconds
+        private val jerkTime            : Time = 0.1.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object

@@ -1,9 +1,6 @@
 package frc.robot.constants
 
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.Nat
-import edu.wpi.first.math.Vector
-import edu.wpi.first.math.numbers.N2
+import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.measure.Distance
 import frc.template.utils.meters
@@ -30,6 +27,9 @@ object FieldConstants {
         val BLUE_HUB_CENTER_Y           : Distance = 4.030  .meters
         val RED_HUB_CENTER_X            : Distance = 11.920 .meters
         val RED_HUB_CENTER_Y            : Distance = 4.030  .meters
+
+        val BLUE_HUB_VECTOR: Translation2d = Translation2d(BLUE_HUB_CENTER_X.`in`(Meters) ,BLUE_HUB_CENTER_Y.`in`(Meters))
+        val RED_HUB_VECTOR: Translation2d = Translation2d(RED_HUB_CENTER_X.`in`(Meters) ,RED_HUB_CENTER_Y.`in`(Meters))
     }
 
     /**
@@ -38,10 +38,10 @@ object FieldConstants {
      */
     object Trench {
         val BLUE_TRENCH_CENTER_X            : Distance = 4.625.meters
-        val RED_TRENCH_CENTER_X             : Distance = 7.290.meters
+        val RED_TRENCH_CENTER_X             : Distance = 11.920.meters
 
-        val UPPER_TRENCH_Y                  : Distance = 7.030  .meters
-        val LOWER_TRENCH_Y                  : Distance = 7.030  .meters
+        val UPPER_TRENCH_Y                  : Distance = 7.030.meters
+        val LOWER_TRENCH_Y                  : Distance = 0.633.meters
 
         val NEUTRAL_ZONE_END_DELTA_X        : Distance = 0.5.meters
         val ALLIANCE_ZONE_END_DELTA_X       : Distance = 0.5.meters
@@ -57,6 +57,14 @@ object FieldConstants {
 
         val RED_ALLIANCE_ZONE_END_LOWER_X   : Distance = 2.5.meters
         val RED_NEUTRAL_ZONE_END_LOWER_X    : Distance = 2.5.meters
+    }
+
+    object Bump {
+        val BLUE_BUMP_CENTER_X              : Distance = 4.625.meters
+        val RED_BUMP_CENTER_X               : Distance = 11.920.meters
+
+        val UPPER_BUMP_Y                    : Distance = 6.047.meters
+        val LOWER_BUMP_Y                    : Distance = 2.013.meters
     }
 
 }
