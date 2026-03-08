@@ -32,19 +32,28 @@
     },
     {
       "anchor": {
-        "x": 2.817,
-        "y": 0.953
+        "x": 2.489,
+        "y": 1.0954457831325295
       },
       "prevControl": {
-        "x": 3.254180722891566,
-        "y": 0.45071084337349476
+        "x": 2.7952168674698794,
+        "y": 0.34143373493975915
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.1710236220472308,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 1.7555905511810992,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -58,7 +67,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 50.356
+    "rotation": 53.37
   },
   "reversed": false,
   "folder": "Right Two Cycles Auto Paths",
