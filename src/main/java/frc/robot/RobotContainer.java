@@ -45,6 +45,7 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices");
     configureAutonomous();
+    registerNamedCommands();
   }
 
   public void robotEnabledConfig() {
@@ -93,6 +94,12 @@ public class RobotContainer {
       }
       autoChooser.addOption("Right Two Cycles", new PathPlannerAuto("RightAutoTwoCycles"));
       autoChooser.addOption("Left Two Cycles", new PathPlannerAuto("LeftAutoTwoCycles"));
+  }
+
+  private void registerNamedCommands() {
+      NamedCommands.registerCommand("enableIntake", superstructure.intakeStateCMD());
+      NamedCommands.registerCommand("disableIntake", superstructure.disableIntake());
+      NamedCommands.registerCommand("shoot", superstructure.shootStateSequenceDefaultCMD());
 
   }
 

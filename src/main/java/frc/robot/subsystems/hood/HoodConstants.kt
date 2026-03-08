@@ -14,11 +14,11 @@ import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
-import frc.template.utils.degreesPerSecond
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.ThroughBoreBrand
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
+import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -44,9 +44,9 @@ object HoodConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.1)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.35)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
-        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.0)
+        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.1)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
 
         val motorAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 0.0)
@@ -59,21 +59,22 @@ object HoodConstants {
         val HoodDownPosition: Angle = 0.0.degrees
 
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
-        val hoodDistanceDrivenInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            2.72.meters to 0.0.degrees,
-            0.0.meters to 0.0.degrees,
-            0.0.meters to 0.0.degrees,
-            0.0.meters to 0.0.degrees,
-            0.0.meters to 0.0.degrees,
+        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.646.meters to 0.0.degrees,
+            2.05.meters to 0.0.degrees,
+            2.54.meters to 0.0.degrees,
+            3.354.meters to 0.0.degrees,
+            4.128.meters to 10.0.degrees,
+            5.02.meters to 25.0.degrees,
         )
 
-        // Pair() containing: Shooter velocity (degreesPerSecond) -> Hood target angle (degrees)
-        val hoodVelocityDrivenInterpolationPoints: Map<AngularVelocity, Angle> = mapOf<AngularVelocity, Angle>(
-            0.0.degreesPerSecond to 0.0.degrees,
-            0.0.degreesPerSecond to 0.0.degrees,
-            0.0.degreesPerSecond to 0.0.degrees,
-            0.0.degreesPerSecond to 0.0.degrees,
-            0.0.degreesPerSecond to 0.0.degrees,
+        // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
+        val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.28.meters to 100.0.degrees,
+            2.0.meters to 100.0.degrees,
+            2.5.meters to 100.0.degrees,
+            3.0.meters to 100.0.degrees,
+            3.5.meters to 100.0.degrees,
         )
     }
 

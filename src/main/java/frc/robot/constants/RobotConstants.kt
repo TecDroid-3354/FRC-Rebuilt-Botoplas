@@ -3,6 +3,10 @@ package frc.robot.constants
 import com.pathplanner.lib.path.PathConstraints
 import edu.wpi.first.math.Matrix
 import edu.wpi.first.math.Nat
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.geometry.Transform2d
+import edu.wpi.first.math.geometry.Transform3d
+import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.numbers.N3
 import edu.wpi.first.units.Units.KilogramSquareMeters
 import edu.wpi.first.units.Units.Kilograms
@@ -27,18 +31,6 @@ import kotlin.math.pow
 import kotlin.math.sin
 
 object RobotConstants {
-
-    init {
-        RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_MATRIX.setRow(0, Matrix(Nat.N1(), Nat.N3(),
-            doubleArrayOf(cos(0.0), -sin(0.0),  0.0)))
-
-        RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_MATRIX.setRow(1, Matrix(Nat.N1(), Nat.N3(),
-            doubleArrayOf(sin(0.0), cos(0.0),  0.0))) // TODO(): Get Y offset from Robot's center to Shooter
-
-        RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_MATRIX.setRow(2, Matrix(Nat.N1(), Nat.N3(),
-            doubleArrayOf(  0.0,    0.0,    1.0)))
-    }
-
     object Identification {
         const val ALTERNATE_CANBUS = "canivore"
     }
@@ -54,14 +46,23 @@ object RobotConstants {
     }
 
     object RobotMeasures {
-        val TRANSFORM_ROBOT_TO_SHOOTER_MATRIX: Matrix<N3, N3> = Matrix(Nat.N3(), Nat.N3())
+        // The following constant holds the shooter translational and orientation offset to the robot.
+        // The x component represents the shooter offset in the x-axis relative to the robot's center.
+        // The y component represents the shooter offset in the y-axis relative to the robot's center.
+        // The Rotation2d θ is the orientation offset of the shooter relative to the robot's front
+        // The following values construct a 3x3 matrix of the following form:
+        // T(θ) = | cosθ, -sinθ, x |
+        //        | sinθ, cosθ , y |
+        //        | 0   , 0    , 1 |
+        // Matrix is filled up with 1's and 0's to ensure homogenous coordinates are used within the system.
+        val TRANSFORM_ROBOT_TO_SHOOTER_FRAME: Transform2d = Transform2d(0.0, 0.0, Rotation2d.kZero)
     }
 
     object AutonomousConfigs {
-        private val maxVelocity             : LinearVelocity        = 4.0.metersPerSecond
-        private val maxAcceleration         : LinearAcceleration    = 4.0.metersPerSecondPerSecond
-        private val maxAngularVelocity      : AngularVelocity       = 520.0.degreesPerSecond
-        private val maxAngularAcceleration  : AngularAcceleration   = 520.0.degreesPerSecondPerSecond
+        private val maxVelocity             : LinearVelocity        = 2.0.metersPerSecond
+        private val maxAcceleration         : LinearAcceleration    = 2.0.metersPerSecondPerSecond
+        private val maxAngularVelocity      : AngularVelocity       = 320.0.degreesPerSecond
+        private val maxAngularAcceleration  : AngularAcceleration   = 320.0.degreesPerSecondPerSecond
 
         val onTheFlyPathConstraints         : PathConstraints       = PathConstraints(
             maxVelocity, maxAcceleration,
