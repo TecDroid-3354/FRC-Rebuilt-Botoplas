@@ -34,7 +34,6 @@ import java.io.IOException
  */
 class RobotContainer {
     private val controller = CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT)
-
     private val superstructure = Superstructure(controller)
     private val statesHandler = StatesHandler(superstructure, controller)
 
