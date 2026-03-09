@@ -26,19 +26,19 @@ class ShootOnTheMoveCalcs (
      *
      * @return The new velocity
      */
-    fun getShooterVelocity(): ChassisSpeeds {
-        return ChassisSpeeds(
-            driveChassisSpeeds.get().vxMetersPerSecond
-                    + driveChassisSpeeds.get().omegaRadiansPerSecond
-                        * (RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getY() * drivePose.get().rotation.getCos()
-                        - RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getX() * drivePose.get().rotation.getSin()),
-            driveChassisSpeeds.get().vyMetersPerSecond
-                    + driveChassisSpeeds.get().omegaRadiansPerSecond
-                        * (RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getX() * drivePose.get().rotation.getCos()
-                        - RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getY() * drivePose.get().rotation.getSin()),
-            driveChassisSpeeds.get().omegaRadiansPerSecond
-        )
-    }
+//    fun getShooterVelocity(): ChassisSpeeds {
+//        return ChassisSpeeds(
+//            driveChassisSpeeds.get().vxMetersPerSecond
+//                    + driveChassisSpeeds.get().omegaRadiansPerSecond
+//                        * (RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getY() * drivePose.get().rotation.getCos()
+//                        - RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getX() * drivePose.get().rotation.getSin()),
+//            driveChassisSpeeds.get().vyMetersPerSecond
+//                    + driveChassisSpeeds.get().omegaRadiansPerSecond
+//                        * (RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getX() * drivePose.get().rotation.getCos()
+//                        - RobotMeasures.TRANSFORM_ROBOT_TO_SHOOTER_FRAME.getY() * drivePose.get().rotation.getSin()),
+//            driveChassisSpeeds.get().omegaRadiansPerSecond
+//        )
+//    }
 
 //    fun getAdjustedTargetAngle(): Angle {
 //        return Radians.of(HUB_TARGET.minus(

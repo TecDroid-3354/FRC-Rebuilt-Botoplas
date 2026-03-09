@@ -3,6 +3,9 @@ package frc.robot.subsystems
 import com.ctre.phoenix6.SignalLogger
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.CommandScheduler
+import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
@@ -24,7 +27,7 @@ class StatesHandler(
     private val stateMachine: StateMachine = StateMachine(NeutralState)
 
     init {
-        configureStatesConditions()
+        //configureStatesConditions()
         //configureStatesCommands()
         configureBindings()
     }
@@ -126,16 +129,21 @@ class StatesHandler(
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
-        controller.povLeft().onTrue(superstructure.driveTargetingBumpAssist())
-            .onFalse(superstructure.driveFollowingDriverInput())
-        controller.povRight().onTrue(superstructure.driveTargetingHUB())
-            .onFalse(superstructure.driveFollowingDriverInput())
+        controller.rightTrigger().onTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+            ),
+            { superstructure.getRobotCurrentZone() }
 
+        ))
+            .onFalse(superstructure.disableSubsystems().alongWith(superstructure.driveFollowingDriverInput()))
 
-        controller.rightTrigger().onTrue(superstructure.shootStateSequenceDefaultCMD())
-            .onFalse(superstructure.disableSubsystems())
+//        controller.leftTrigger().onTrue(superstructure.assistStateSequenceDefaultCMD())
+//            .onFalse(superstructure.disableSubsystems())
 
-        controller.leftTrigger().onTrue(superstructure.assistStateSequenceDefaultCMD())
+        controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystems())
 
         controller.y().onTrue(superstructure.noStateShootOnly())

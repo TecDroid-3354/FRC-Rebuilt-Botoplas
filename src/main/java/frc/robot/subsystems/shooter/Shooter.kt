@@ -170,6 +170,8 @@ class Shooter() : SysIdSubsystem("Shooter") {
         leadMotorController.voltageRequest(voltage)
     }
 
+    fun isShooterActive(): Boolean = abs(leadMotorController.getMotorInstance().get()) > 0.1
+
     // -------------------------------
     // PUBLIC — CMD Motors Control
     // -------------------------------

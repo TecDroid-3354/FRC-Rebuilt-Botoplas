@@ -36,9 +36,9 @@ object RobotConstants {
     }
 
     object RobotPhysics {
-        val RobotMass       : Mass              = Kilograms.of(15.0)
-        val RobotLength     : Distance          = 27.0.inches
-        val RobotWidth      : Distance          = 27.0.inches
+        val RobotMass       : Mass              = Kilograms.of(50.0)
+        val RobotLength     : Distance          = 26.5.inches
+        val RobotWidth      : Distance          = 26.5.inches
         val RobotMOI        : MomentOfInertia   = KilogramSquareMeters.of( // As per PathPlanner rough estimate
             (1/12) * (RobotMass.`in`(Kilograms)) * (RobotLength.`in`(Meters).pow(2) + RobotWidth.`in`(Meters).pow(2))
         )
@@ -70,18 +70,35 @@ object RobotConstants {
     }
 
     object AutonomousPathStrings {
+        // Test paths //
         const val LEFT_TRENCH_ONE_METER_RIGHT               : String    = "1MeterPath"
         const val LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180    : String    = "5MeterWith180RotationPath"
         const val LEFT_TRENCH_AROUND_THE_WORLD              : String    = "AroundTheWorldPath"
         const val ZIG_ZAG                                   : String    = "ZigZagPath"
         const val UNDER_RIGHT_TRENCH                        : String    = "UnderRightTrench"
+
+        // Right Two Cycles //
+        const val R2C_TRENCH_NEUTRAL_ZONE_1                 : String    = "TrenchToNeutralZoneCycle1Right"
+        const val R2C_INTAKE_1                              : String    = "IntakeCycle1Right"
+        const val R2C_SHOOT_1                               : String    = "prueba"
+        const val R2C_TRENCH_NEUTRAL_ZONE_2                 : String    = "TrenchToNeutralZoneCycle2Right"
+        const val R2C_INTAKE_2                              : String    = "IntakeCycle2Right"
+        const val R2C_SHOOT_2                               : String    = "ShootCycle2Right"
+
+        // Left Two Cycles //
+        const val L2C_TRENCH_NEUTRAL_ZONE_1                 : String    = "TrenchToNeutralZoneCycle1Left"
+        const val L2C_INTAKE_1                              : String    = "IntakeCycle1Left"
+        const val L2C_SHOOT_1                               : String    = "ShootCycle1Left"
+        const val L2C_TRENCH_NEUTRAL_ZONE_2                 : String    = "TrenchToNeutralZoneCycle2Left"
+        const val L2C_INTAKE_2                              : String    = "IntakeCycle2Left"
+        const val L2C_SHOOT_2                               : String    = "ShootCycle2Left"
     }
 
     object DriverControllerConstants {
         const val DRIVER_CONTROLLER_PORT: Int = 0
 
-        const val DRIVER_CONTROLLER_X_MULTIPLIER: Double = 0.8
-        const val DRIVER_CONTROLLER_Y_MULTIPLIER: Double = 0.8
+        const val DRIVER_CONTROLLER_X_MULTIPLIER: Double = 0.85
+        const val DRIVER_CONTROLLER_Y_MULTIPLIER: Double = 0.85
         const val DRIVER_CONTROLLER_Z_MULTIPLIER: Double = -(0.6)
 
         const val SWERVE_LOCKED_ANGLE_X_MULTIPLIER: Double = 0.5
@@ -89,7 +106,7 @@ object RobotConstants {
     }
 
     object Control {
-        val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 5.0.degrees
+        val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 2.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 30.0.degrees
         val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
         val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 1.0.rotationsPerSecond
