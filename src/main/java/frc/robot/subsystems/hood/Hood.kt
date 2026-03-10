@@ -49,8 +49,8 @@ class Hood() : SysIdSubsystem("Hood") {
     // PRIVATE — Useful variables
     // -------------------------------
     private var targetAngle         : Angle = Degrees.zero()
-    private val hoodDistanceDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
-    private val hoodVelocityDrivenInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val hoodScoringInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val hoodAssistInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -140,11 +140,11 @@ class Hood() : SysIdSubsystem("Hood") {
      * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
      * reach the target based on the [frc.robot.subsystems.shooter.Shooter] current velocity.
      * This [Angle] is then passed to [setAngle]
-     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
+     * @param assistDistance The current velocity of the [frc.robot.subsystems.shooter.Shooter].
      */
-    private fun setVelocityDrivenInterpolatedAngle(shooterRPMs: AngularVelocity) {
-        val hoodSetpointDeg = hoodVelocityDrivenInterpolation
-            .getInterpolated(InterpolatingDouble(shooterRPMs.`in`(DegreesPerSecond)))
+    private fun setAssistDistanceInterpolatedAngle(assistDistance: Distance) {
+        val hoodSetpointDeg = hoodAssistInterpolation
+            .getInterpolated(InterpolatingDouble(assistDistance.`in`(Meters)))
         setAngle(hoodSetpointDeg.value.degrees)
     }
 
@@ -154,8 +154,8 @@ class Hood() : SysIdSubsystem("Hood") {
      * This [Angle] is then passed to [setAngle]
      * @param chassisDistanceToTarget The current distance from Swerve to the target (HUB or passed the trench to assist).
      */
-    private fun setDistanceDrivenInterpolatedAngle(chassisDistanceToTarget: Distance) {
-        val hoodSetpointDeg = hoodDistanceDrivenInterpolation
+    private fun setScoreDistanceInterpolatedAngle(chassisDistanceToTarget: Distance) {
+        val hoodSetpointDeg = hoodScoringInterpolation
             .getInterpolated(InterpolatingDouble(chassisDistanceToTarget.`in`(Meters)))
         setAngle(hoodSetpointDeg.value.degrees)
     }
@@ -186,21 +186,21 @@ class Hood() : SysIdSubsystem("Hood") {
     }
 
     /**
-     * Command version of [setVelocityDrivenInterpolatedAngle]. Subsystem set as requirement.
-     * @param shooterRPMs The current velocity of the [frc.robot.subsystems.shooter.Shooter].
-     * @return a [RunCommand] calling [setVelocityDrivenInterpolatedAngle]
+     * Command version of [setAssistDistanceInterpolatedAngle]. Subsystem set as requirement.
+     * @param assistDistance The current velocity of the [frc.robot.subsystems.shooter.Shooter].
+     * @return a [RunCommand] calling [setAssistDistanceInterpolatedAngle]
      */
-    fun setVelocityDrivenInterpolatedAngleCMD(shooterRPMs: Supplier<AngularVelocity>): Command {
-        return RunCommand({ setVelocityDrivenInterpolatedAngle(shooterRPMs.get()) }, this)
+    fun setAssistDistanceInterpolatedAngleCMD(assistDistance: Supplier<Distance>): Command {
+        return RunCommand({ setAssistDistanceInterpolatedAngle(assistDistance.get()) }, this)
     }
 
     /**
-     * Command version of [setDistanceDrivenInterpolatedAngle]. Subsystem set as requirement.
+     * Command version of [setScoreDistanceInterpolatedAngle]. Subsystem set as requirement.
      * @param chassisDistanceToHUB The current distance from Swerve to HUB.
-     * @return a [RunCommand] calling [setDistanceDrivenInterpolatedAngle]
+     * @return a [RunCommand] calling [setScoreDistanceInterpolatedAngle]
      */
-    fun setDistanceDrivenInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
-        return RunCommand({ setDistanceDrivenInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
+    fun setScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
+        return RunCommand({ setScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
     }
 
     /**
@@ -305,15 +305,15 @@ class Hood() : SysIdSubsystem("Hood") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in HoodConstants.Control.hoodDistanceDrivenInterpolationPoints) {
-            hoodDistanceDrivenInterpolation.put(
+        for (point in HoodConstants.Control.hoodScoreDistanceInterpolationPoints) {
+            hoodScoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }
 
-        for (point in HoodConstants.Control.hoodVelocityDrivenInterpolationPoints) {
-            hoodVelocityDrivenInterpolation.put(
-                InterpolatingDouble(point.key.`in`(DegreesPerSecond)),
+        for (point in HoodConstants.Control.hoodAssistDistanceInterpolationPoints) {
+            hoodAssistInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }
     }

@@ -14,6 +14,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.Constants;
@@ -82,8 +83,13 @@ public class Robot extends LoggedRobot {
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
 
-    // Warms up FollowPathCommand, as the first run a path might have significantly more delay than subsequent runs.
-    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+  }
+
+  @Override
+  public void robotInit() {
+      // Warms up FollowPathCommand, as the first run a path might have significantly more delay than subsequent runs.
+      CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+      CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
   }
 
   /** This function is called periodically during all modes. */
@@ -117,7 +123,7 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    robotContainer.robotEnabledConfig();
+      robotContainer.robotEnabledConfig();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
@@ -134,6 +140,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopInit() {
     robotContainer.robotEnabledConfig();
+    robotContainer.teleopInitConfig();
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove

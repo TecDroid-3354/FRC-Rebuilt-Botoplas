@@ -3,6 +3,9 @@ package frc.robot.subsystems
 import com.ctre.phoenix6.SignalLogger
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.CommandScheduler
+import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
@@ -24,7 +27,7 @@ class StatesHandler(
     private val stateMachine: StateMachine = StateMachine(NeutralState)
 
     init {
-        configureStatesConditions()
+        //configureStatesConditions()
         //configureStatesCommands()
         configureBindings()
     }
@@ -35,25 +38,12 @@ class StatesHandler(
     }
 
     private fun configureStatesConditions() {
+        controller.start().onTrue(superstructure.resetDrivePose()) // Reset rotation
         stateMachine.addCondition(
             { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) },
             NeutralState,
             Phase.Teleop,
             1
-        )
-
-        stateMachine.addCondition(
-            { controller.rightBumper().asBoolean },
-            IntakeState,
-            Phase.Teleop,
-            5
-        )
-
-        stateMachine.addCondition(
-            { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) && controller.rightTrigger().asBoolean },
-            AssistState,
-            Phase.Teleop,
-            3
         )
 
         stateMachine.addCondition(
@@ -66,12 +56,26 @@ class StatesHandler(
         )
 
         stateMachine.addCondition(
+            { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) && controller.rightTrigger().asBoolean },
+            AssistState,
+            Phase.Teleop,
+            3
+        )
+
+        stateMachine.addCondition(
             { superstructure.isInsideZone(
                 if (isFlipped.invoke()) FieldZones.RED_ALLIANCE_ZONE else FieldZones.BLUE_ALLIANCE_ZONE
             ) && controller.rightTrigger().asBoolean },
             ShootState,
             Phase.Teleop,
             4
+        )
+
+        stateMachine.addCondition(
+            { controller.rightBumper().asBoolean },
+            IntakeState,
+            Phase.Teleop,
+            5
         )
 
         stateMachine.addCondition(
@@ -90,16 +94,25 @@ class StatesHandler(
     }
 
     private fun configureStatesCommands() {
-        IntakeState.setDefaultCommand(superstructure.intakeStateCMD())
-        IntakeState.setEndCommand(superstructure.disableIntake())
+//        AssistState.setInitialCommand(superstructure.driveTargetingBumpAssist())
+//        AssistState.setDefaultCommand(superstructure.assistStateSequenceDefaultCMD())
+//        AssistState.setEndCommand(superstructure.driveFollowingDriverInput().andThen(
+//            superstructure.disableSubsystems()
+//        ))
+//
+//        ShootState.setInitialCommand(superstructure.driveTargetingHUB())
+//        ShootState.setDefaultCommand(superstructure.shootStateSequenceDefaultCMD())
+//        ShootState.setEndCommand(superstructure.driveFollowingDriverInput().andThen(
+//            superstructure.disableSubsystems()
+//        ))
+//
+//        IntakeState.setDefaultCommand(superstructure.intakeStateCMD())
+//        //IntakeState.setEndCommand(superstructure.disableIntake())
+//
+//        EmergencyShootState.setDefaultCommand(superstructure.shootStateSequenceWithoutOdometryCMD())
+        //EmergencyShootState.setEndCommand(superstructure.disableSubsystems())
 
-        //PrepShootingState.setDefaultCommand(superstructure.preShootingStateHoodInterpolationCMD())
-
-        //ShootState.setInitialCommand(superstructure.driveTargetingHUB())
-        //ShootState.setDefaultCommand(superstructure.shootStateSequenceWithoutOdometryCMD())
-        //ShootState.setEndCommand(superstructure.driveFollowingDriverInput())
-
-        GoingUnderTrench.setInitialCommand(superstructure.storeHood())
+        //GoingUnderTrench.setInitialCommand(superstructure.storeHood())
 //        GoingUnderTrench.setDefaultCommand(superstructure.followTrajectory(
 //            superstructure.getOnTheFlyPathFromWaypoints(
 //                superstructure.getTrenchOnTheFlyWaypointList(),
@@ -111,22 +124,26 @@ class StatesHandler(
     private fun configureBindings() {
         controller.start().onTrue(superstructure.resetDrivePose()) // Reset rotation
 
-//        controller.rightBumper().onTrue(InstantCommand({ SignalLogger.start() }))
-//        controller.leftBumper().onTrue(InstantCommand({ SignalLogger.stop() }))
-
         controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true))   // Coast Intake + Hood
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
-        controller.povLeft().onTrue(superstructure.noStateIntakeDeployableOnlyDisable())
+        controller.rightTrigger().onTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+            ),
+            { superstructure.getRobotCurrentZone() }
 
-//        controller.a().whileTrue(superstructure.shootingStateIndexerEnableCMD())
-//            .onFalse(superstructure.disableIndexer())
-//        controller.b().whileTrue(superstructure.noStateShootOnly())
-//            .onFalse(superstructure.disableShooter())
+        ))
+            .onFalse(superstructure.disableSubsystems().alongWith(superstructure.driveFollowingDriverInput()))
 
-        controller.rightTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
+//        controller.leftTrigger().onTrue(superstructure.assistStateSequenceDefaultCMD())
+//            .onFalse(superstructure.disableSubsystems())
+
+        controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystems())
 
         controller.y().onTrue(superstructure.noStateShootOnly())
@@ -140,25 +157,10 @@ class StatesHandler(
         controller.rightBumper().onTrue(superstructure.intakeStateCMD())
             .onFalse(superstructure.disableIntake())
 
-        controller.x().onTrue(superstructure.driveTargetingHUB())
-            .onFalse(superstructure.driveFollowingDriverInput())
-
-//        controller.y().onTrue(superstructure.noStateShootOnly())
-//            .onFalse(superstructure.disableShooter())
-//
-//        controller.b().onTrue(superstructure.noStateIndexerOnly())
-//            .onFalse(superstructure.disableIndexer())
-//
-//        controller.povLeft().whileTrue(superstructure.shootingStateIntakeDanceCMD())
-//            .onFalse(superstructure.noStateIntakeDeployableOnlyEnable())
-//
-//        controller.x().onTrue(superstructure.noStateIntakeDeployableOnlyEnable())
-//
-//        controller.a().whileTrue(superstructure.noStateIntakeDeployableOnlyDisable())
-
-//        controller.a().whileTrue(superstructure.hood.sysIdDynamicRoutine(SysIdRoutine.Direction.kForward))
-//        controller.b().whileTrue(superstructure.hood.sysIdDynamicRoutine(SysIdRoutine.Direction.kReverse))
-//        controller.y().whileTrue(superstructure.hood.sysIdQuasistaticRoutine(SysIdRoutine.Direction.kForward))
-//        controller.x().whileTrue(superstructure.hood.sysIdQuasistaticRoutine(SysIdRoutine.Direction.kReverse))
+//        controller.x().whileTrue(superstructure.followTrajectory(
+//            superstructure.getOnTheFlyPathFromWaypoints(
+//                superstructure.getTrenchOnTheFlyWaypointList(), Degrees.zero()
+//            )
+//        ))
     }
 }

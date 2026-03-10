@@ -80,7 +80,7 @@ public class SwerveTunerConstants {
     private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
     // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
     private static final Pigeon2Configuration pigeonConfigs = new Pigeon2Configuration()
-            .withMountPose(new MountPoseConfigs().withMountPoseYaw(90.0));
+            .withMountPose(new MountPoseConfigs().withMountPoseYaw(0.0));
 
     // CAN bus that the devices are located on;
     // All swerve devices must share the same CAN bus
@@ -88,7 +88,7 @@ public class SwerveTunerConstants {
 
     // Theoretical free speed (m/s) at 12 V applied output;
     // This needs to be tuned to your individual robot
-    public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(5.12);
+    public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(5.450);
 
     // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
     // This may need to be tuned to your individual robot
