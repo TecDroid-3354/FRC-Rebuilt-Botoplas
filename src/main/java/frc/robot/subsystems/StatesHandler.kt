@@ -1,19 +1,12 @@
 package frc.robot.subsystems
 
-import com.ctre.phoenix6.SignalLogger
-import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.CommandScheduler
 import edu.wpi.first.wpilibj2.command.Commands
-import edu.wpi.first.wpilibj2.command.InstantCommand
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.constants.Constants.isFlipped
 import frc.robot.constants.FieldZones
 import frc.robot.constants.RobotConstants
-import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import net.tecdroid.util.stateMachine.Phase
 import net.tecdroid.util.stateMachine.StateMachine
 import net.tecdroid.util.stateMachine.States.*
@@ -138,13 +131,10 @@ class StatesHandler(
             { superstructure.getRobotCurrentZone() }
 
         ))
-            .onFalse(superstructure.disableSubsystems().alongWith(superstructure.driveFollowingDriverInput()))
-
-//        controller.leftTrigger().onTrue(superstructure.assistStateSequenceDefaultCMD())
-//            .onFalse(superstructure.disableSubsystems())
+            .onFalse(superstructure.disableSubsystemsCMD().alongWith(superstructure.driveFollowingDriverInput()))
 
         controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
-            .onFalse(superstructure.disableSubsystems())
+            .onFalse(superstructure.disableSubsystemsCMD())
 
         controller.y().onTrue(superstructure.noStateShootOnly())
             .onFalse(superstructure.disableShooter())
@@ -156,6 +146,9 @@ class StatesHandler(
 
         controller.rightBumper().onTrue(superstructure.intakeStateCMD())
             .onFalse(superstructure.disableIntake())
+
+        controller.leftBumper().onTrue(superstructure.noStateIndexerReversedOnly())
+            .onFalse(superstructure.disableIndexer())
 
 //        controller.x().whileTrue(superstructure.followTrajectory(
 //            superstructure.getOnTheFlyPathFromWaypoints(

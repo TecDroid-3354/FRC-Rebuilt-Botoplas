@@ -1,13 +1,8 @@
 package frc.robot.constants
 
 import com.pathplanner.lib.path.PathConstraints
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.Nat
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Transform2d
-import edu.wpi.first.math.geometry.Transform3d
-import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.numbers.N3
 import edu.wpi.first.units.Units.KilogramSquareMeters
 import edu.wpi.first.units.Units.Kilograms
 import edu.wpi.first.units.Units.Meters
@@ -26,9 +21,7 @@ import frc.template.utils.inches
 import frc.template.utils.metersPerSecond
 import frc.template.utils.metersPerSecondPerSecond
 import frc.template.utils.rotationsPerSecond
-import kotlin.math.cos
 import kotlin.math.pow
-import kotlin.math.sin
 
 object RobotConstants {
     object Identification {
@@ -69,29 +62,17 @@ object RobotConstants {
             maxAngularVelocity, maxAngularAcceleration)
     }
 
-    object AutonomousPathStrings {
-        // Test paths //
-        const val LEFT_TRENCH_ONE_METER_RIGHT               : String    = "1MeterPath"
-        const val LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180    : String    = "5MeterWith180RotationPath"
-        const val LEFT_TRENCH_AROUND_THE_WORLD              : String    = "AroundTheWorldPath"
-        const val ZIG_ZAG                                   : String    = "ZigZagPath"
-        const val UNDER_RIGHT_TRENCH                        : String    = "UnderRightTrench"
+    object Autonomous {
+        object NameStrings {
+            const val RIGHT_AUTO        : String    = "RightAutoTwoCycles"
+            const val LEFT_AUTO         : String    = "LeftAutoTwoCycles"
+        }
 
-        // Right Two Cycles //
-        const val R2C_TRENCH_NEUTRAL_ZONE_1                 : String    = "TrenchToNeutralZoneCycle1Right"
-        const val R2C_INTAKE_1                              : String    = "IntakeCycle1Right"
-        const val R2C_SHOOT_1                               : String    = "prueba"
-        const val R2C_TRENCH_NEUTRAL_ZONE_2                 : String    = "TrenchToNeutralZoneCycle2Right"
-        const val R2C_INTAKE_2                              : String    = "IntakeCycle2Right"
-        const val R2C_SHOOT_2                               : String    = "ShootCycle2Right"
-
-        // Left Two Cycles //
-        const val L2C_TRENCH_NEUTRAL_ZONE_1                 : String    = "TrenchToNeutralZoneCycle1Left"
-        const val L2C_INTAKE_1                              : String    = "IntakeCycle1Left"
-        const val L2C_SHOOT_1                               : String    = "ShootCycle1Left"
-        const val L2C_TRENCH_NEUTRAL_ZONE_2                 : String    = "TrenchToNeutralZoneCycle2Left"
-        const val L2C_INTAKE_2                              : String    = "IntakeCycle2Left"
-        const val L2C_SHOOT_2                               : String    = "ShootCycle2Left"
+        object EventTriggerStrings {
+            const val INTAKE_DEPLOY                 : String    = "Intake Deploy"
+            const val DISABLE_INTAKE_ROLLERS        : String    = "Disable Intake Rollers"
+            const val SHOOT_CMD                     : String    = "Score"
+        }
     }
 
     object DriverControllerConstants {

@@ -51,12 +51,12 @@ object ShooterConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.6)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.8)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.5)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 1.5)
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPMs", 3000.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/RPMs", 3100.0)
     }
 
     /**
@@ -69,12 +69,12 @@ object ShooterConstants {
 
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.646.meters to 2_270.0.div(60.0).rotationsPerSecond,
-            2.05.meters to 2_540.0.div(60.0).rotationsPerSecond,
-            2.54.meters to 2_620.0.div(60.0).rotationsPerSecond,
-            3.354.meters to 2_790.0.div(60.0).rotationsPerSecond,
-            4.128.meters to 3_070.0.div(60.0).rotationsPerSecond,
-            5.02.meters to 3_420.0.div(60.0).rotationsPerSecond,
+            2.02.meters to 2_400.0.div(60.0).rotationsPerSecond,
+            2.52.meters to 2_650.0.div(60.0).rotationsPerSecond,
+            3.02.meters to 2_800.0.div(60.0).rotationsPerSecond,
+            3.52.meters to 2_900.0.div(60.0).rotationsPerSecond,
+            4.02.meters to 3_050.0.div(60.0).rotationsPerSecond,
+            5.25.meters to 3_100.0.div(60.0).rotationsPerSecond,
         )
 
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
@@ -151,18 +151,4 @@ object ShooterConstants {
         const val SHOOTER_CONNECTED_ALERTS_FIELD: String = "${SHOOTER_TAB}/Shooter Connection Alerts"
     }
 
-    object ShooterMatrixPosition {
-
-        private val robotRelativeShooterAngle                   : Angle = 0.0.degrees
-        private val robotRelativeShooterTranslationalOffset     : Matrix<N2, N1> =
-            Matrix(Nat.N2(), Nat.N1(), doubleArrayOf(0.0, 0.0))
-
-        private val shooterRotationalMatrix                     : Matrix<N2, N2> =
-            Matrix(Nat.N2(), Nat.N2(),
-                doubleArrayOf(
-                    cos(robotRelativeShooterAngle.`in`(Units.Radians)), sin(robotRelativeShooterAngle.`in`(Units.Radians))
-                    -sin(robotRelativeShooterAngle.`in`(Units.Radians)), cos(robotRelativeShooterAngle.`in`(Units.Radians))
-                )
-            )
-    }
 }

@@ -31,12 +31,6 @@ object Constants {
 
     val tuningMode = true
 
-    object Field {
-        val BLUE_HUB_CENTER_X: Distance = 4.625.meters
-        val BLUE_HUB_CENTER_Y: Distance = 4.030.meters
-        val RED_HUB_CENTER_X : Distance = 11.920.meters
-        val RED_HUB_CENTER_Y : Distance = 4.030.meters
-    }
 
     enum class Mode {
         /** Running on a real robot.  */

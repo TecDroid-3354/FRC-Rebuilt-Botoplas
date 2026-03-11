@@ -5,89 +5,21 @@
     "data": {
       "commands": [
         {
-          "type": "sequential",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "trenchToNeutralZoneCycle1Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "enableIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "IntakeCycle1Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "disableIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "ShootCycle1Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "shoot"
-                }
-              }
-            ]
+            "pathName": "LeftAutoMasterPath"
           }
         },
         {
-          "type": "sequential",
+          "type": "wait",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "trenchToNeutralZoneCycle2Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "enableIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "IntakeCycle2Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "disableIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "ShootCycle2Left"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "shoot"
-                }
-              }
-            ]
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAutoMasterPath_C2"
           }
         }
       ]

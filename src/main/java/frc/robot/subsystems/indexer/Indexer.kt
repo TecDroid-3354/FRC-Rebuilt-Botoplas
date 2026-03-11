@@ -116,6 +116,24 @@ class Indexer() : SubsystemBase() {
         towerEnabled   = false
     }
 
+    /**
+     * Enables the hopper belts with the voltage stored in [IndexerConstants.RPSTargets].
+     * IndexerRollersVoltage within the constants is used.
+     */
+    private fun enableHopperBeltsReversed() {
+        hopperRollersMotor.velocityRequest(-IndexerConstants.RPSTargets.HopperRollersVelocity)
+        hopperEnabled = true
+    }
+
+    /**
+     * Enables the tower rollers with the voltage stored in [IndexerConstants.RPSTargets].
+     * TowerRollersVoltage within the constants is used.
+     */
+    private fun enableTowerRollersReversed() {
+        towerRollersMotor.velocityRequest(-IndexerConstants.RPSTargets.TowerRollersVelocity)
+        towerEnabled   = true
+    }
+
     // ----------------------------------------
     // PUBLIC — CMD component wise control
     // ----------------------------------------
@@ -160,6 +178,13 @@ class Indexer() : SubsystemBase() {
         return ParallelCommandGroup(
             enableHopperBeltsCMD(),
             enableTowerRollersCMD()
+        )
+    }
+
+    fun enableIndexerReversedCMD(): Command {
+        return ParallelCommandGroup(
+            InstantCommand({ enableHopperBeltsReversed() }),
+            InstantCommand({ enableTowerRollersReversed() })
         )
     }
 

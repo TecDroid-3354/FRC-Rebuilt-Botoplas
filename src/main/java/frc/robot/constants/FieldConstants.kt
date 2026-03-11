@@ -63,8 +63,8 @@ object FieldConstants {
         val BLUE_BUMP_CENTER_X              : Distance = 4.625.meters
         val RED_BUMP_CENTER_X               : Distance = 11.920.meters
 
-        val UPPER_BUMP_Y                    : Distance = 6.047.meters
-        val LOWER_BUMP_Y                    : Distance = 2.013.meters
+        val UPPER_BUMP_Y                    : Distance = 5.500.meters
+        val LOWER_BUMP_Y                    : Distance = 2.500.meters
     }
 
 }

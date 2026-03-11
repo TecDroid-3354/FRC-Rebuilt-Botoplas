@@ -1,6 +1,5 @@
 package frc.robot.subsystems
 
-import com.pathplanner.lib.commands.PathPlannerAuto
 import com.pathplanner.lib.path.GoalEndState
 import com.pathplanner.lib.path.PathPlannerPath
 import com.pathplanner.lib.path.Waypoint
@@ -13,9 +12,9 @@ import edu.wpi.first.units.Units.Radians
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.MutAngle
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.CommandScheduler
-import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.RunCommand
@@ -48,11 +47,8 @@ import frc.template.utils.meters
 import frc.template.utils.radians
 import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
-import frc.template.utils.toRotation2d
-import org.jgrapht.alg.linkprediction.CommonNeighborsLinkPrediction
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.BooleanSupplier
-import java.util.function.Supplier
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -107,7 +103,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         drive.defaultCommand = command
     }
 
-    fun getAutoChooser() = drive.autoChooser
+    fun removeDriveDefaultCommand() {
+        drive.removeDefaultCommand()
+    }
+
+    fun getAutoChooser(): SendableChooser<Command> = drive.autoChooser
 
     fun setVisionThrottle(throttle: Double) {
         vision.setThrottle(throttle)
@@ -129,6 +129,25 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
             }.withTimeout(4.5.seconds)
+                .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
+                .andThen(WaitCommand(1.0.seconds)
+                    .andThen(shootingStateIntakeDanceCMD())) // Makes the deployable component go up and down to push any stocked FUEL
+        )
+    }
+
+    /**
+     * Same as [shootStateSequenceDefaultCMD], just without drive oriented towards HUB to avoid interfering with
+     * PathPlanner drive commands, not checking drive orientation and different wait times.
+     * A little [WaitCommand] is used to ensure drive has the right rotation.
+     */
+    fun shootStateSequenceAutoCMD(): Command {
+        return ParallelCommandGroup(
+            WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
+            shootingStateShooterInterpolationCMD(), // Enables shooter interpolation
+            shootingStateHoodInterpolationCMD(), // Enables hood interpolation
+            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
+            }.withTimeout(4.0.seconds)
                 .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
                 .andThen(WaitCommand(1.0.seconds)
                     .andThen(shootingStateIntakeDanceCMD())) // Makes the deployable component go up and down to push any stocked FUEL
@@ -338,6 +357,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return indexer.enableIndexerCMD()
     }
 
+    fun noStateIndexerReversedOnly(): Command = indexer.enableIndexerReversedCMD()
+
     fun noStateShootOnly(): Command {
         return shooter.setVelocityCMD { ShooterConstants.Tunables.enabledRPMs.get().div(60.0).rotationsPerSecond }
     }
@@ -416,7 +437,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return shooter.stopShooterCMD()
     }
 
-    fun disableSubsystems(): Command {
+    fun disableSubsystemsCMD(): Command {
         return ParallelCommandGroup(
             storeHood(),
             disableIndexer(),

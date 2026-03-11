@@ -12,16 +12,16 @@
 // GNU General Public License for more details.
 package frc.robot
 
-import com.pathplanner.lib.auto.AutoBuilder
-import com.pathplanner.lib.auto.NamedCommands
 import com.pathplanner.lib.commands.PathPlannerAuto
-import com.pathplanner.lib.path.PathPlannerPath
+import com.pathplanner.lib.events.EventTrigger
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
+import frc.robot.constants.RobotConstants.Autonomous
 import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.StatesHandler
 import frc.robot.subsystems.Superstructure
+import frc.template.utils.seconds
 import org.json.simple.parser.ParseException
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser
 import java.io.IOException
@@ -39,18 +39,22 @@ class RobotContainer {
 
     // Dashboard inputs
     // Set up auto routines
-    private val autoChooser: LoggedDashboardChooser<Command?> = LoggedDashboardChooser<Command?>("Auto Choices",
-        superstructure.getAutoChooser())
+    private val autoChooser: LoggedDashboardChooser<Command?> =
+        LoggedDashboardChooser<Command?>("Auto Choices", superstructure.getAutoChooser())
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
-        registerNamedCommands()
-        configureAutonomous()
+        configureAutonomousEventTriggers()
+        configureAutonomousRoutines()
     }
 
     fun teleopInitConfig() {
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
         superstructure.resetDrivePose()
+    }
+
+    fun autoInitConfig() {
+        superstructure.removeDriveDefaultCommand()
     }
 
     fun robotEnabledConfig() {
@@ -61,121 +65,34 @@ class RobotContainer {
         //superstructure.setVisionThrottle(200);
     }
 
-    /**
+    fun configureAutonomousEventTriggers() {
+        EventTrigger(Autonomous.EventTriggerStrings.INTAKE_DEPLOY).onTrue(superstructure.intakeStateCMD())
+        EventTrigger(Autonomous.EventTriggerStrings.DISABLE_INTAKE_ROLLERS).onTrue(superstructure.disableIntake())
+        EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD).onTrue(
+            superstructure.shootStateSequenceAutoCMD()
+                .withTimeout(4.0.seconds)
+                .andThen(superstructure.disableSubsystemsCMD())
+        )
+    }
+
+    /**0
      * Use this method to add all autonomous options.
      * Possible exceptions when PathPlanner is not able to find your Path.
      * Make sure to call every path through its constant in [RobotConstants.AutonomousPathStrings]
      * @throws IOException
      * @throws ParseException
      */
-    private fun configureAutonomous() {
+    private fun configureAutonomousRoutines() {
         autoChooser.addDefaultOption("None", Commands.none())
 
         try {
-            autoChooser.addOption(
-                "LT -> One Meter Right", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.LEFT_TRENCH_ONE_METER_RIGHT
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "LT -> Five Meter Right While Rotating", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.LEFT_TRENCH_FIVE_METERS_RIGHT_WITH_180
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "LT -> Through LT to Neutral Zone, Right Trench and Middle Alliance Zone to Right of Alliance Zone",
-                superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.LEFT_TRENCH_AROUND_THE_WORLD
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "LT -> ZigZag", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.ZIG_ZAG
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "RT -> Under", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.UNDER_RIGHT_TRENCH
-                    )
-                )
-            )
-
-            autoChooser.addOption("Right Two Cycles", PathPlannerAuto("RightAutoTwoCycles"))
-            autoChooser.addOption("Test", PathPlannerAuto("New Auto"))
-
-//          autoChooser.addOption("Left Two Cycles", );
-//            autoChooser.addOption(
-//                "RA2", AutoCommand(
-//                    "RightAutoTwoCycles",
-//                    PathPlannerAuto.getPathGroupFromAutoFile("RightAutoTwoCycles"),
-//                    superstructure
-//                )
-//                    .rightAutoTwoCycles()
-//            )
-
-            autoChooser.addOption(
-                "RA2 Trench Neutral 1", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.R2C_TRENCH_NEUTRAL_ZONE_1
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "RA2 Intake 1", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.R2C_INTAKE_1
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "RA2 Shooter", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.R2C_SHOOT_1
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "RA2 Trench Neutral 2", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.R2C_TRENCH_NEUTRAL_ZONE_2
-                    )
-                )
-            )
-
-            autoChooser.addOption(
-                "RA2 Intake 2", superstructure.followTrajectory(
-                    PathPlannerPath.fromPathFile(
-                        RobotConstants.AutonomousPathStrings.R2C_INTAKE_2
-                    )
-                )
-            )
+            autoChooser.addOption("(Working) Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
+            autoChooser.addOption("(Testing) Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {
             throw RuntimeException(e)
         }
-    }
-
-    private fun registerNamedCommands() {
-        NamedCommands.registerCommand("enableIntake", superstructure.intakeStateCMD())
-        NamedCommands.registerCommand("disableIntake", superstructure.disableIntake())
-        NamedCommands.registerCommand("shoot", superstructure.shootStateSequenceDefaultCMD())
     }
 
     val autonomousCommand: Command?
