@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.498975748930098,
-        "y": -0.11184022824536444
+        "x": 9.460356633380885,
+        "y": 0.06930099857346705
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.833808844507845,
-        "y": 3.9638373751783167
+        "x": 6.717360912981454,
+        "y": 3.64037089871612
       },
       "prevControl": {
-        "x": 8.0873806341786,
-        "y": 4.2852660391964585
+        "x": 7.97093270265221,
+        "y": 3.961799562734262
       },
       "nextControl": {
-        "x": 5.319985734664764,
-        "y": 3.575677603423681
+        "x": 5.2035378031383726,
+        "y": 3.2522111269614844
       },
       "isLocked": false,
       "linkedName": null
@@ -36,8 +36,8 @@
         "y": 0.6
       },
       "prevControl": {
-        "x": 9.495206847360912,
-        "y": -0.08574893009985785
+        "x": 10.676590584878742,
+        "y": 0.12105563480741921
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,11 +48,11 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.42005076142131886,
+      "minWaypointRelativePos": 0.39,
       "maxWaypointRelativePos": 0.7347715736040645,
       "constraints": {
-        "maxVelocity": 3.0,
-        "maxAcceleration": 3.0,
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -123,7 +123,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 4.0,
+    "maxVelocity": 4.5,
     "maxAcceleration": 6.5,
     "maxAngularVelocity": 500.0,
     "maxAngularAcceleration": 550.0,
@@ -132,13 +132,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 66.50143432404792
+    "rotation": 61.0
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 66.5
+    "rotation": 61.0
   },
   "useDefaultConstraints": true
 }

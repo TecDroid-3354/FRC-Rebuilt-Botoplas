@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 8.088858773181169,
-        "y": 4.351997146932953
+        "x": 7.752453637660485,
+        "y": 4.416690442225392
       },
       "prevControl": {
-        "x": 9.30509272467903,
-        "y": 5.568231098430813
+        "x": 8.968687589158346,
+        "y": 5.632924393723252
       },
       "nextControl": {
-        "x": 7.4449085880580155,
-        "y": 3.7080469618097998
+        "x": 7.108503452537332,
+        "y": 3.772740257102239
       },
       "isLocked": false,
       "linkedName": null
@@ -48,11 +48,11 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.4251269035532976,
+      "minWaypointRelativePos": 0.4,
       "maxWaypointRelativePos": 1.1459390862944185,
       "constraints": {
-        "maxVelocity": 2.75,
-        "maxAcceleration": 2.75,
+        "maxVelocity": 2.2,
+        "maxAcceleration": 2.2,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -113,7 +113,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 4.0,
+    "maxVelocity": 4.5,
     "maxAcceleration": 6.5,
     "maxAngularVelocity": 500.0,
     "maxAngularAcceleration": 550.0,
@@ -122,13 +122,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -67.149
+    "rotation": -61.6108114079135
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -88.45184230102214
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }

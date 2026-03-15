@@ -17,6 +17,7 @@ import com.pathplanner.lib.events.EventTrigger
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
+import frc.robot.constants.Constants.isFlipped
 import frc.robot.constants.RobotConstants.Autonomous
 import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.StatesHandler
@@ -50,7 +51,8 @@ class RobotContainer {
 
     fun teleopInitConfig() {
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
-        superstructure.resetDrivePose()
+        superstructure.disableSubsystemsInitCMD()
+        if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
     }
 
     fun autoInitConfig() {
@@ -66,13 +68,16 @@ class RobotContainer {
     }
 
     fun configureAutonomousEventTriggers() {
-        EventTrigger(Autonomous.EventTriggerStrings.INTAKE_DEPLOY).onTrue(superstructure.intakeStateCMD())
-        EventTrigger(Autonomous.EventTriggerStrings.DISABLE_INTAKE_ROLLERS).onTrue(superstructure.disableIntake())
-        EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD).onTrue(
-            superstructure.shootStateSequenceAutoCMD()
-                .withTimeout(4.0.seconds)
-                .andThen(superstructure.disableSubsystemsCMD())
-        )
+        EventTrigger(Autonomous.EventTriggerStrings.INTAKE_DEPLOY)
+            .onTrue(superstructure.intakeStateCMD())
+        EventTrigger(Autonomous.EventTriggerStrings.DISABLE_INTAKE_ROLLERS)
+            .onTrue(superstructure.disableIntake())
+        EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD)
+            .onTrue(
+                superstructure.shootStateSequenceAutoCMD()
+                    .withTimeout(4.5.seconds)
+                    .andThen(superstructure.disableSubsystemsCMD())
+            )
     }
 
     /**0
@@ -86,8 +91,9 @@ class RobotContainer {
         autoChooser.addDefaultOption("None", Commands.none())
 
         try {
-            autoChooser.addOption("(Working) Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
-            autoChooser.addOption("(Testing) Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
+            autoChooser.addOption("Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
+            autoChooser.addOption("Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
+            autoChooser.addOption("Angular offset Test", PathPlannerAuto("Test-Left"))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {

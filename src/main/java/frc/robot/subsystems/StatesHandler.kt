@@ -1,6 +1,7 @@
 package frc.robot.subsystems
 
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
@@ -31,7 +32,7 @@ class StatesHandler(
     }
 
     private fun configureStatesConditions() {
-        controller.start().onTrue(superstructure.resetDrivePose()) // Reset rotation
+        //controller.start().onTrue(superstructure.resetDrivePoseRed()) // Reset rotation
         stateMachine.addCondition(
             { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) },
             NeutralState,
@@ -115,7 +116,12 @@ class StatesHandler(
     }
 
     private fun configureBindings() {
-        controller.start().onTrue(superstructure.resetDrivePose()) // Reset rotation
+        controller.start().onTrue(Commands.select(
+            mapOf<Alliance, Command>(
+                Alliance.Blue to superstructure.resetDrivePoseBlue(),
+                Alliance.Red to superstructure.resetDrivePoseRed()
+            ), { if (isFlipped.invoke()) Alliance.Red else Alliance.Blue }
+        )) // Reset rotation
 
         controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true))   // Coast Intake + Hood
@@ -136,19 +142,22 @@ class StatesHandler(
         controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystemsCMD())
 
-        controller.y().onTrue(superstructure.noStateShootOnly())
-            .onFalse(superstructure.disableShooter())
-
-        controller.b().onTrue(superstructure.noStateIndexerOnly())
-            .onFalse(superstructure.disableIndexer())
-
-        controller.a().onTrue(superstructure.noStateHoodOnly())
-
         controller.rightBumper().onTrue(superstructure.intakeStateCMD())
             .onFalse(superstructure.disableIntake())
 
         controller.leftBumper().onTrue(superstructure.noStateIndexerReversedOnly())
             .onFalse(superstructure.disableIndexer())
+
+        controller.x().whileTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.driveTargetingHUB(),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.driveTargetingHUB(),
+                FieldZones.NEUTRAL_ZONE to superstructure.driveTargetingBumpAssist()
+            ),
+            { superstructure.getRobotCurrentZone() }))
+            .onFalse(superstructure.driveFollowingDriverInput())
+
+        controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisable())
 
 //        controller.x().whileTrue(superstructure.followTrajectory(
 //            superstructure.getOnTheFlyPathFromWaypoints(

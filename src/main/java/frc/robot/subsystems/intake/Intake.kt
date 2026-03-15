@@ -204,7 +204,7 @@ class Intake() : SysIdSubsystem("Intake") {
      * Calls [setRollersVoltage] in order to set an output to the roller's controller
      * @return a command calling the voltage method
      */
-    private fun setRollersVoltageCMD(voltage: Voltage): Command {
+    fun setRollersVoltageCMD(voltage: Voltage): Command {
         return InstantCommand({ setRollersVoltage(voltage) }, this)
     }
 
@@ -225,7 +225,6 @@ class Intake() : SysIdSubsystem("Intake") {
         )
     }
 
-
     /**
      * Retracts the intake and then enables the rollers through a [SequentialCommandGroup]
      * @return A sequential command group that sets a pose and disables the rollers
@@ -235,6 +234,10 @@ class Intake() : SysIdSubsystem("Intake") {
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.IdleRollersVoltage) }),
             InstantCommand({ setPosition(IntakeConstants.RetractileAngles.DeployedAngle) })
         )
+    }
+
+    fun disableRollersCMD(): Command {
+        return InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.IdleRollersVoltage) })
     }
 
     fun setDeployableAngleOnly(angle: Angle): Command {

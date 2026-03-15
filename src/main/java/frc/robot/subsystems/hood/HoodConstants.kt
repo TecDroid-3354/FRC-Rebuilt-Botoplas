@@ -68,6 +68,16 @@ object HoodConstants {
             5.25.meters to 100.0.degrees,
         )
 
+        // Scoring without hood
+//        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+//            1.646.meters to 0.0.degrees,
+//            2.05.meters to 0.0.degrees,
+//            2.54.meters to 0.0.degrees,
+//            3.354.meters to 0.0.degrees,
+//            4.128.meters to 10.0.degrees,
+//            5.02.meters to 25.0.degrees,
+//        )
+
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
         val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
             1.28.meters to 100.0.degrees,
@@ -101,7 +111,7 @@ object HoodConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(15.0)
+        private val supplyCurrentLimits : Current = Amps.of(20.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 

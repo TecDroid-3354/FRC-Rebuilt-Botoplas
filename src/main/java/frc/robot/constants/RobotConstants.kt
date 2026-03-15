@@ -78,8 +78,8 @@ object RobotConstants {
     object DriverControllerConstants {
         const val DRIVER_CONTROLLER_PORT: Int = 0
 
-        const val DRIVER_CONTROLLER_X_MULTIPLIER: Double = 0.85
-        const val DRIVER_CONTROLLER_Y_MULTIPLIER: Double = 0.85
+        const val DRIVER_CONTROLLER_X_MULTIPLIER: Double = 0.95
+        const val DRIVER_CONTROLLER_Y_MULTIPLIER: Double = 0.95
         const val DRIVER_CONTROLLER_Z_MULTIPLIER: Double = -(0.6)
 
         const val SWERVE_LOCKED_ANGLE_X_MULTIPLIER: Double = 0.5

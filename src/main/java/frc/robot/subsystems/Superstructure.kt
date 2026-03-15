@@ -97,7 +97,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
 
     // INITIALIZATION //
-    init {}
+    init {
+        shooter.defaultCommand = prepShootingStateShooterWarmUpCMD()
+    }
 
     fun setDriveDefaultCommand(command: Command) {
         drive.defaultCommand = command
@@ -122,15 +124,17 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun shootStateSequenceDefaultCMD(): Command {
         return ParallelCommandGroup(
-            driveTargetingHUB(),
             shootingStateShooterInterpolationCMD(), // Enables shooter interpolation
             shootingStateHoodInterpolationCMD(), // Enables hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
-            }.withTimeout(4.5.seconds)
+            }.withTimeout(4.0.seconds)
+                .andThen(noStateIndexerReversedOnly())
+                .andThen(WaitCommand(0.25.seconds))
                 .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
                 .andThen(WaitCommand(1.0.seconds)
+                    .andThen(noStateIntakeDanceRollersOnlyEnable())
                     .andThen(shootingStateIntakeDanceCMD())) // Makes the deployable component go up and down to push any stocked FUEL
         )
     }
@@ -148,8 +152,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(4.0.seconds)
+                .andThen(noStateIndexerReversedOnly())
+                .andThen(WaitCommand(0.25.seconds))
                 .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
                 .andThen(WaitCommand(1.0.seconds)
+                    .andThen(noStateIntakeDanceRollersOnlyEnable())
                     .andThen(shootingStateIntakeDanceCMD())) // Makes the deployable component go up and down to push any stocked FUEL
         )
     }
@@ -163,23 +170,29 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             noStateShootOnly(), // Enables shooter manual control
             noStateHoodOnly(), // Enables hood manual control
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
-                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }.withTimeout(4.5.seconds)
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }
+                .withTimeout(4.5.seconds)
+                .andThen(noStateIndexerReversedOnly())
+                .andThen(WaitCommand(0.25.seconds))
                 .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
                 .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
+                    .andThen(noStateIntakeDanceRollersOnlyEnable())
                     .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
     }
 
     fun assistStateSequenceDefaultCMD(): Command {
         return ParallelCommandGroup(
-            driveTargetingBumpAssist(),
             assistStateShooterInterpolationCMD(), // Enables shooter interpolation
             assistStateHoodInterpolationCMD(), // Enables hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
             }.withTimeout(4.5.seconds)
+                .andThen(noStateIndexerReversedOnly())
+                .andThen(WaitCommand(0.25.seconds))
                 .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
                 .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
+                    .andThen(noStateIntakeDanceRollersOnlyEnable())
                     .andThen(shootingStateIntakeDanceCMD()))) // Makes the deployable component go up and down to push any stocked FUEL
     }
 
@@ -224,7 +237,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     private fun getAngleFromJoystick(): Angle {
         val atan2Rad = atan2(MathUtil.applyDeadband(-controller.rightY, 0.3), MathUtil.applyDeadband(controller.rightX, 0.3))
         lastAngle.mut_replace(if (atan2Rad == 0.0) lastAngle else atan2Rad.plus(Math.PI / 2).radians)
-        return lastAngle
+        return if (isFlipped.invoke()) lastAngle else lastAngle.plus(180.0.degrees)
+        //return lastAngle
     }
 
     @AutoLogOutput(key = "Odometry/Last Registered Angle")
@@ -232,8 +246,12 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return lastAngle
     }
 
-    fun resetDrivePose(): Command {
+    fun resetDrivePoseRed(): Command {
         return InstantCommand({ drive.pose = Pose2d(drive.pose.translation, Rotation2d.k180deg) }, drive)
+    }
+
+    fun resetDrivePoseBlue(): Command {
+        return InstantCommand({ drive.pose = Pose2d(drive.pose.translation, Rotation2d.kZero) }, drive)
     }
 
     fun resetDrivePose(pose2d: Pose2d): Command {
@@ -296,6 +314,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return lastAngle
     }
 
+    private fun prepShootingStateShooterWarmUpCMD(): Command {
+        return shooter.setVelocityCMD({ ShooterConstants.Tunables.warmUpRPMs.get().div(60.0).rotationsPerSecond })
+    }
+
     /**
      * Intended to run during Shooting State. Enables the [Shooter] interpolation with respect to the HUB.
      * @return A [RunCommand] interpolating the [Shooter] velocity based on [getSwerveToHubDistance].
@@ -343,6 +365,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     private fun assistStateHoodInterpolationCMD(): Command {
         return hood.setAssistDistanceInterpolatedAngleCMD { getSwerveToBumpAssistDistance() }
+    }
+
+    fun noStateIntakeDanceRollersOnlyEnable(): Command {
+        return intake.setRollersVoltageCMD(IntakeConstants.VoltageTargets.DancingRollersVoltage)
     }
 
     fun noStateIntakeDeployableOnlyEnable(): Command {
@@ -429,6 +455,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return intake.disableIntakeCMD()
     }
 
+    fun disableIntakeRollers(): Command {
+        return intake.disableRollersCMD()
+    }
+
     fun disableIndexer(): Command {
         return indexer.stopIndexerCMD()
     }
@@ -442,6 +472,15 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             storeHood(),
             disableIndexer(),
             disableIntake(),
+            disableShooter()
+        )
+    }
+
+    fun disableSubsystemsInitCMD(): Command {
+        return ParallelCommandGroup(
+            storeHood(),
+            disableIndexer(),
+            disableIntakeRollers(),
             disableShooter()
         )
     }

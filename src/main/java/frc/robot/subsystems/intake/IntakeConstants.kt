@@ -48,7 +48,7 @@ object IntakeConstants {
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        val RetractedAngle               : Angle = 100.0.degrees
+        val RetractedAngle               : Angle = 60.0.degrees
         val DeployedAngle                : Angle = 0.0.degrees
     }
 
@@ -58,6 +58,7 @@ object IntakeConstants {
      */
     object VoltageTargets {
         var EnabledRollersVoltage           : Voltage = Tunables.enabledRollersVoltage.get().volts
+        var DancingRollersVoltage           : Voltage = Tunables.dancingRollersVoltage.get().volts
         var IdleRollersVoltage              : Voltage = Tunables.idleRollersVoltage.get().volts
     }
 
@@ -70,7 +71,8 @@ object IntakeConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
-        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 6.0)
+        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 6.5)
+        val dancingRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Dancing Rollers Voltage", 3.0)
         val idleRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
     }
 
