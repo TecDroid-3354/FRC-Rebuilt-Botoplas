@@ -71,7 +71,7 @@ object IntakeConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
-        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 6.5)
+        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 6.0)
         val dancingRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Dancing Rollers Voltage", 3.0)
         val idleRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
     }
