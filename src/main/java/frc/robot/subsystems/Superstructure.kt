@@ -291,7 +291,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         val xComponent = HUB_TO_SWERVE_VECTOR.first
         val yComponent = HUB_TO_SWERVE_VECTOR.second
 
-        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).radians
+        // Shooter is facing backwards with reference to the Swerve, hence we add PI to shoot.
+        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).plus(Math.PI).radians
         lastAngle.mut_replace(atan2Rad)
 
         return lastAngle
@@ -359,7 +360,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     fun noStateIntakeDanceRollersOnlyEnable(): Command {
-        return intake.setRollersVoltageCMD(IntakeConstants.VoltageTargets.DancingRollersVoltage)
+        return intake.setRollersVelocityCMD(IntakeConstants.RPSTargets.ClusteringRollersRPS)
     }
 
     fun noStateIntakeDeployableOnlyEnable(): Command {

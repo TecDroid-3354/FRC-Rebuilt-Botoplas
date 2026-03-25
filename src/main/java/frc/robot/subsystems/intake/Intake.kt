@@ -20,37 +20,24 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
-import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
-import frc.template.utils.volts
+import frc.template.utils.rotationsPerSecond
 import org.littletonrobotics.junction.AutoLogOutput
-import java.util.Optional
 import kotlin.math.abs
 
 class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------------
     // PRIVATE — Deployable Motors Declaration
     // ---------------------------------------
-    private val leadDeployableMotor     : OpTalonFX =
+    private val deployableMotorController     : OpTalonFX =
         OpTalonFX(IntakeConstants.Identification.LEAD_DEPLOY_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
-    private val followerDeployableMotor : OpTalonFX =
-        OpTalonFX(IntakeConstants.Identification.FOLLOWER_DEPLOY_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
 
     // -----------------------------------
     // PRIVATE — Intake motors Declaration
     // -----------------------------------
-    private val rollersMotorController  : OpTalonFX =
-        OpTalonFX(IntakeConstants.Identification.ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
-
-    // --------------------------------------
-    // PRIVATE — Absolute Encoder declaration
-    // --------------------------------------
-    private val absoluteEncoder         : ThroughBoreAbsoluteEncoder =
-        ThroughBoreAbsoluteEncoder(
-            IntakeConstants.Identification.ABSOLUTE_ENCODER_ID,
-            IntakeConstants.Configuration.AbsoluteEncoder.offset,
-            IntakeConstants.Configuration.AbsoluteEncoder.inverted,
-            IntakeConstants.Configuration.AbsoluteEncoder.brand,
-            Optional.of(RobotConstants.Identification.ALTERNATE_CANBUS))
+    private val rollersLeadMotorController  : OpTalonFX =
+        OpTalonFX(IntakeConstants.Identification.LEAD_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
+    private val rollersFollowerMotorController  : OpTalonFX =
+        OpTalonFX(IntakeConstants.Identification.FOLLOWER_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
 
     // -------------------------------
     // PRIVATE — Useful variables
@@ -65,19 +52,14 @@ class Intake() : SysIdSubsystem("Intake") {
         "Intake Deploy Component Motor ID ${IntakeConstants.Identification.LEAD_DEPLOY_MOTOR_ID} Disconnected",
         Alert.AlertType.kError)
 
-    private val followerDeployableConnectedAlert: Alert =
+    private val rollersLeadComponentConnectedAlert: Alert =
         Alert(IntakeConstants.Telemetry.INTAKE_CONNECTED_ALERTS_FIELD,
-        "Intake Deploy Component Motor ID ${IntakeConstants.Identification.FOLLOWER_DEPLOY_MOTOR_ID} Disconnected",
+        "Intake Rollers Component Motor ID ${IntakeConstants.Identification.LEAD_ROLLERS_MOTOR_ID} Disconnected",
         Alert.AlertType.kError)
 
-    private val rollersComponentConnectedAlert: Alert =
+    private val rollersFollowerComponentConnectedAlert: Alert =
         Alert(IntakeConstants.Telemetry.INTAKE_CONNECTED_ALERTS_FIELD,
-        "Intake Rollers Component Motor ID ${IntakeConstants.Identification.ROLLERS_MOTOR_ID} Disconnected",
-        Alert.AlertType.kError)
-
-    private val absoluteEncoderConnectedAlert: Alert =
-        Alert(IntakeConstants.Telemetry.INTAKE_CONNECTED_ALERTS_FIELD,
-            "Intake Absolute Encoder ID ${IntakeConstants.Identification.ABSOLUTE_ENCODER_ID} Disconnected",
+            "Intake Rollers Component Motor ID ${IntakeConstants.Identification.FOLLOWER_ROLLERS_MOTOR_ID} Disconnected",
             Alert.AlertType.kError)
 
     // --------------------------------------------------------------------------------
@@ -90,17 +72,17 @@ class Intake() : SysIdSubsystem("Intake") {
      * [motorPosition] holds the current motor's position without gear ratios
      */
     override val motorPosition: Angle
-        get() = leadDeployableMotor.getPosition()
+        get() = deployableMotorController.getPosition()
     /**
      * [motorVelocity] holds the current motor's velocity without gear ratios
      */
     override val motorVelocity: AngularVelocity
-        get() = leadDeployableMotor.getVelocity()
+        get() = deployableMotorController.getVelocity()
     /**
      * [power] holds the current motor's power
      */
     override val power: Double
-        get() = leadDeployableMotor.getPower()
+        get() = deployableMotorController.getPower()
 
 
     /**
@@ -115,17 +97,15 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     init {
         configureMotors()
-        matchRelativeToAbsolute()
     }
 
     /**
      * Called every 20ms loop. Used to update alerts and keep track of changes in PIDF and voltage targets values.
      */
     override fun periodic() {
-        leadDeployableConnectedAlert.set(leadDeployableMotor.getIsConnected().not())
-        followerDeployableConnectedAlert.set(followerDeployableMotor.getIsConnected().not())
-        rollersComponentConnectedAlert.set(rollersMotorController.getIsConnected().not())
-        absoluteEncoderConnectedAlert.set(absoluteEncoder.isConnected.not())
+        leadDeployableConnectedAlert.set(deployableMotorController.getIsConnected().not())
+        rollersLeadComponentConnectedAlert.set(rollersLeadMotorController.getIsConnected().not())
+        rollersFollowerComponentConnectedAlert.set(rollersFollowerMotorController.getIsConnected().not())
 
         if (IntakeConstants.Tunables.motorkP.hasChanged(hashCode())
             || IntakeConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -137,11 +117,11 @@ class Intake() : SysIdSubsystem("Intake") {
             )
         }
 
-        if (IntakeConstants.Tunables.enabledRollersVoltage.hasChanged(hashCode())
-            || IntakeConstants.Tunables.idleRollersVoltage.hasChanged(hashCode())) {
-            updateRollersTargetVoltage(
-                IntakeConstants.Tunables.enabledRollersVoltage.get(),
-                IntakeConstants.Tunables.idleRollersVoltage.get()
+        if (IntakeConstants.Tunables.enabledRollersRPMs.hasChanged(hashCode())
+            || IntakeConstants.Tunables.idleRollersRPMs.hasChanged(hashCode())) {
+            updateRollersTargetVelocity(
+                IntakeConstants.Tunables.enabledRollersRPMs.get(),
+                IntakeConstants.Tunables.idleRollersRPMs.get()
             )
         }
     }
@@ -158,15 +138,19 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     private fun setPosition(angle: Angle) {
         targetAngle = IntakeConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
-        leadDeployableMotor.positionRequestSubsystem(
+        deployableMotorController.positionRequestSubsystem(
             angle,
             IntakeConstants.PhysicalLimits.Limits,
             IntakeConstants.PhysicalLimits.Reduction
         )
     }
 
+    /**
+     * Common method for setting voltage to the deployable controller.
+     * Usable only when running a [sysIdRoutines]
+     */
     override fun setVoltage(voltage: Voltage) {
-        leadDeployableMotor.voltageRequest(voltage)
+        deployableMotorController.voltageRequest(voltage)
     }
 
     // -------------------------------------------
@@ -177,8 +161,8 @@ class Intake() : SysIdSubsystem("Intake") {
      * Sets a desired [Voltage] to the intake's rollers motor controller
      * @param voltage the desired voltage to be applied
      */
-    fun setRollersVoltage(voltage: Voltage) {
-        rollersMotorController.voltageRequest(voltage)
+    fun setRollersVelocity(velocity: AngularVelocity) {
+        rollersLeadMotorController.velocityRequest(velocity)
     }
 
     // -----------------------------------------
@@ -201,11 +185,11 @@ class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------
 
     /**
-     * Calls [setRollersVoltage] in order to set an output to the roller's controller
+     * Calls [setRollersVelocity] in order to set an output to the roller's controller
      * @return a command calling the voltage method
      */
-    fun setRollersVoltageCMD(voltage: Voltage): Command {
-        return InstantCommand({ setRollersVoltage(voltage) }, this)
+    fun setRollersVelocityCMD(velocity: AngularVelocity): Command {
+        return InstantCommand({ setRollersVelocity(velocity) }, this)
     }
 
     // ---------------------------------
@@ -221,7 +205,7 @@ class Intake() : SysIdSubsystem("Intake") {
             setPositionCMD(IntakeConstants.RetractileAngles.DeployedAngle),
             WaitUntilCommand { getDeployableError()
                 .lte(IntakeConstants.PhysicalLimits.DeployableAngleDelta) },
-            setRollersVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage)
+            setRollersVelocityCMD(IntakeConstants.RPSTargets.EnabledRollersRPS)
         )
     }
 
@@ -231,34 +215,18 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     fun disableIntakeCMD(): Command {
         return ParallelCommandGroup(
-            InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.IdleRollersVoltage) }),
+            InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) }),
             InstantCommand({ setPosition(IntakeConstants.RetractileAngles.DeployedAngle) })
         )
     }
 
     fun disableRollersCMD(): Command {
-        return InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.IdleRollersVoltage) })
+        return InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) })
     }
 
     fun setDeployableAngleOnly(angle: Angle): Command {
         return InstantCommand({ setPosition(angle) }, this )
     }
-
-    // ---------------------------------
-    // PRIVATE — Matching absolute encoder to motor's relative encoder
-    // ---------------------------------
-
-    /**
-     * Literally matches the absolute encoder position to the [leadDeployableMotor] to always ensure its set angles
-     * are within the correct [frc.template.utils.safety.MeasureLimits]
-     */
-    private fun matchRelativeToAbsolute() {
-        val absolutePosition = absoluteEncoder.position
-
-        leadDeployableMotor.getMotorInstance()
-            .setPosition(IntakeConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
-    }
-
 
     // -------------------------------
     // PUBLIC — SysId Routines
@@ -297,23 +265,13 @@ class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------
 
     /**
-     * The current deployable component position according to the absolute encoder.
-     * This position can be seen live in the "Intake" tab of AdvantageScope.
-     * @return the deployable component current angle
-     */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_ENCODER_FIELD, unit = "degrees")
-    private fun getDeployableIntakeAbsoluteAngleDegrees(): Double {
-        return absoluteEncoder.position.`in`(Degrees)
-    }
-
-    /**
      * The current deployable component position according to the lead motor.
      * This position can be seen live in the "Intake" tab of AdvantageScope.
      * @return the deployable component current angle
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_FIELD, unit = "degrees")
     private fun getDeployableIntakeAngleDegrees(): Double {
-        return IntakeConstants.PhysicalLimits.Reduction.apply(leadDeployableMotor.getPosition().`in`(Degrees))
+        return IntakeConstants.PhysicalLimits.Reduction.apply(deployableMotorController.getPosition().`in`(Degrees))
     }
 
     /**
@@ -337,20 +295,20 @@ class Intake() : SysIdSubsystem("Intake") {
         return abs(
             targetAngle.`in`(Degrees).minus(
                 IntakeConstants.PhysicalLimits.Reduction.apply(
-                    leadDeployableMotor.getPosition().`in`(Degrees)
+                    deployableMotorController.getPosition().`in`(Degrees)
                 )
             )
         ).degrees
     }
 
     /**
-     * The current voltage of the rollers component.
+     * The current RPMs of the rollers component.
      * This voltage can be seen live in the "Intake" tab of AdvantageScope.
      * @return the roller's motor voltage
      */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_VOLTAGE_FIELD)
-    private fun getRollersVoltage(): Voltage {
-        return rollersMotorController.getOutputVoltage()
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_RPM_FIELD)
+    private fun getRollersVelocity(): AngularVelocity {
+        return rollersLeadMotorController.getVelocity()
     }
 
     // -------------------------------
@@ -362,10 +320,7 @@ class Intake() : SysIdSubsystem("Intake") {
      * @return an [InstantCommand] requesting motor coast.
      */
     fun coastCMD(): Command {
-        return InstantCommand({
-            leadDeployableMotor.coast()
-            followerDeployableMotor.coast()
-                              }, this)
+        return InstantCommand({ deployableMotorController.coast() }, this)
     }
 
     /**
@@ -373,23 +328,20 @@ class Intake() : SysIdSubsystem("Intake") {
      * @return an [InstantCommand] requesting motor brake.
      */
     fun brakeCMD(): Command {
-        return InstantCommand({
-            leadDeployableMotor.brake()
-            followerDeployableMotor.brake()
-        }, this)
+        return InstantCommand({ deployableMotorController.brake() }, this)
     }
 
     // -------------------------------
     // Motor configuration (Phoenix 6)
     // -------------------------------
     private fun configureMotors() {
-        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
-        followerDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
+        deployableMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
 
-        followerDeployableMotor.follow(leadDeployableMotor.getMotorInstance(),
-            IntakeConstants.Configuration.followerAlignment)
+        rollersLeadMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
+        rollersFollowerMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
 
-        rollersMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.rollerMotorConfig)
+        rollersFollowerMotorController.follow(rollersLeadMotorController.getMotorInstance(),
+            IntakeConstants.Configuration.rollerFollowerAlignment)
     }
 
     /**
@@ -411,8 +363,7 @@ class Intake() : SysIdSubsystem("Intake") {
             )
         )
 
-        leadDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig.withSlot0(newSlot0Configs))
-        followerDeployableMotor.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig.withSlot0(newSlot0Configs))
+        deployableMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig.withSlot0(newSlot0Configs))
     }
 
     /**
@@ -420,8 +371,8 @@ class Intake() : SysIdSubsystem("Intake") {
      * @param enabledVoltage Voltage target when active. Received live
      * @param idleVoltage Voltage target when idle. Received live
      */
-    private fun updateRollersTargetVoltage(enabledVoltage: Double, idleVoltage: Double) {
-        IntakeConstants.VoltageTargets.EnabledRollersVoltage = enabledVoltage.volts
-        IntakeConstants.VoltageTargets.IdleRollersVoltage = idleVoltage.volts
+    private fun updateRollersTargetVelocity(enabledVelocity: Double, idleVelocity: Double) {
+        IntakeConstants.RPSTargets.EnabledRollersRPS = enabledVelocity.rotationsPerSecond
+        IntakeConstants.RPSTargets.IdleRollersRPS = idleVelocity.rotationsPerSecond
     }
 }

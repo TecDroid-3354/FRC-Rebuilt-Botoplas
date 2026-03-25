@@ -2,6 +2,7 @@ package frc.robot.subsystems.indexer
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs
 import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
@@ -22,8 +23,9 @@ object IndexerConstants {
          * Unique ID of every component in the shooter
          */
         object Identification {
-                const val HOPPER_ROLLERS_ID     : Int = 30
-                const val TOWER_ROLLERS_ID      : Int = 31
+                const val HOPPER_ROLLERS_ID             : Int = 30
+                const val LEAD_TOWER_ROLLERS_ID         : Int = 31
+                const val FOLLOWER_TOWER_ROLLERS_ID     : Int = 32
         }
 
         /**
@@ -42,7 +44,7 @@ object IndexerConstants {
                 val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
 
                 val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers velocity", 65.0)
-                val towerRollersVelocity           : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers velocity", 100.0)
+                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers velocity", 100.0)
         }
 
         /**
@@ -51,10 +53,15 @@ object IndexerConstants {
          */
         object Configuration {
                 // ---------------------------------
+                // PRIVATE — Motor Alignment values
+                // ---------------------------------
+                val followerTowerMotorAlignmentValue    : MotorAlignmentValue = MotorAlignmentValue.Aligned
+
+                // ---------------------------------
                 // PRIVATE — Motor Outputs
                 // ---------------------------------
                 private val neutralMode                 : NeutralModeValue = NeutralModeValue.Coast
-                private val hopperMotorOrientation     : InvertedValue = InvertedValue.Clockwise_Positive
+                private val hopperMotorOrientation      : InvertedValue = InvertedValue.Clockwise_Positive
                 private val towerMotorOrientation       : InvertedValue = InvertedValue.CounterClockwise_Positive
 
                 // ---------------------------------
@@ -107,7 +114,7 @@ object IndexerConstants {
          */
         object Telemetry {
                 const val INDEXER_TAB: String = "Indexer"
-                const val Hopper_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
+                const val HPPER_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
                 const val TOWER_ENABLED_FIELD: String = "${INDEXER_TAB}/Tower Enabled"
                 const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
         }

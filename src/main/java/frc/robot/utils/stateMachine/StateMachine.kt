@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.CommandScheduler
 import edu.wpi.first.wpilibj2.command.Commands
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import net.tecdroid.util.stateMachine.builders.ConditionBuilder
 import org.jgrapht.Graph
@@ -64,6 +65,11 @@ class EdgeCommand : DefaultEdge() {
     var restricted : Boolean = false
 }
 
+fun Command.scheduleCMD(): Command {
+    CommandScheduler.getInstance().schedule(this)
+    return this
+}
+
 /**
  * The states
  * @param currentState Initial State
@@ -77,7 +83,7 @@ class StateMachine(private var currentState: States) : SubsystemBase() {
     // Change the state default command
     private fun changeStateDefaultCommand(defaultCommand: Command) {
         defaultCommand.cancel()
-        //removeDefaultCommand()
+        removeDefaultCommand()
         defaultCommand.addRequirements(this)
         setDefaultCommand(defaultCommand)
     }
@@ -142,17 +148,16 @@ class StateMachine(private var currentState: States) : SubsystemBase() {
             // Normal transition
 
             // execute end command
-            CommandScheduler.getInstance().schedule(
-                currentState.config.endCommand
-            )
+            if (targetState.config.endCommand.isScheduled) return else targetState.config.endCommand.scheduleCMD()
 
             // And then execute the initial command of the new state
-            CommandScheduler.getInstance().schedule(
-                targetState.config.initialCommand
-            )
+            if (targetState.config.initialCommand.isScheduled) return else targetState.config.initialCommand.scheduleCMD()
 
             // set the new default command
-            changeStateDefaultCommand(targetState.config.defaultCommand)
+            if (targetState.config.defaultCommand.isScheduled) return else {
+                if (targetState.config.defaultCommand == Commands.none()) changeStateDefaultCommand(InstantCommand())
+                else changeStateDefaultCommand(targetState.config.defaultCommand)
+            }
 
             // Change the state
             currentState = targetState

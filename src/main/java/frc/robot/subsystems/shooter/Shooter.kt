@@ -300,9 +300,9 @@ class Shooter() : SysIdSubsystem("Shooter") {
         followerRightMotorFirst.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
         followerRightMotorSecond.applyConfigAndClearFaults(ShooterConstants.Configuration.motorsConfig)
 
-        followerLeftMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Aligned)
-        followerRightMotorFirst.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Opposed)
-        followerRightMotorSecond.follow(leadMotorController.getMotorInstance(), MotorAlignmentValue.Opposed)
+        followerLeftMotorSecond.follow(leadMotorController.getMotorInstance(), ShooterConstants.Configuration.leftFollowerAlignment)
+        followerRightMotorFirst.follow(leadMotorController.getMotorInstance(), ShooterConstants.Configuration.rightFollowerAlignment)
+        followerRightMotorSecond.follow(leadMotorController.getMotorInstance(), ShooterConstants.Configuration.rightFollowerAlignment)
     }
 
     /**

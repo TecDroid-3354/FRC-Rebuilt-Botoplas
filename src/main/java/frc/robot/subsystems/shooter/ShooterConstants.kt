@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter
 
 import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.math.Matrix
 import edu.wpi.first.math.numbers.N2
@@ -105,6 +106,12 @@ object ShooterConstants {
      * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
      */
     object Configuration {
+        // ---------------------------------
+        // PUBLIC — Follower Alignment
+        // ---------------------------------
+        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Aligned
+        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Opposed
+
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
