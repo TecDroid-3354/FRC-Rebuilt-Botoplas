@@ -5,23 +5,20 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.Units.Amps
-import edu.wpi.first.units.Units.RadiansPerSecond
 import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Time
-import edu.wpi.first.units.measure.Voltage
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
-import frc.template.utils.devices.ThroughBoreBrand
 import frc.template.utils.mechanical.Reduction
+import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
-import frc.template.utils.volts
 import java.util.Optional
 
 object IntakeConstants {
@@ -29,10 +26,9 @@ object IntakeConstants {
      * Unique ID of every component in the shooter
      */
     object Identification {
-        const val ROLLERS_MOTOR_ID          : Int = 21
-        const val LEAD_DEPLOY_MOTOR_ID      : Int = 22 // Right Motor
-        const val FOLLOWER_DEPLOY_MOTOR_ID  : Int = 23 // Left Motor
-        const val ABSOLUTE_ENCODER_ID       : Int = 20
+        const val LEAD_DEPLOY_MOTOR_ID          : Int = 22 // Right Motor
+        const val LEAD_ROLLERS_MOTOR_ID         : Int = 21
+        const val FOLLOWER_ROLLERS_MOTOR_ID     : Int = 23 // Left Motor
     }
 
     /**
@@ -56,10 +52,10 @@ object IntakeConstants {
      * Pre-defined voltage targets for the [frc.robot.subsystems.intake.Intake] rollers.
      * Only these targets should be used since velocity is constant.
      */
-    object VoltageTargets {
-        var EnabledRollersVoltage           : Voltage = Tunables.enabledRollersVoltage.get().volts
-        var DancingRollersVoltage           : Voltage = Tunables.dancingRollersVoltage.get().volts
-        var IdleRollersVoltage              : Voltage = Tunables.idleRollersVoltage.get().volts
+    object RPSTargets {
+        var EnabledRollersRPS           : AngularVelocity = Tunables.enabledRollersRPMs.get().div(60.0).rotationsPerSecond
+        var ClusteringRollersRPS        : AngularVelocity = Tunables.clusteringRollersRPMs.get().div(60.0).rotationsPerSecond
+        var IdleRollersRPS              : AngularVelocity = Tunables.idleRollersRPMs.get().div(60.0).rotationsPerSecond
     }
 
     /**
@@ -71,9 +67,9 @@ object IntakeConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
-        val enabledRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 6.5)
-        val dancingRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Dancing Rollers Voltage", 3.0)
-        val idleRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
+        val enabledRollersRPMs      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers RPMs", 5_000.0)
+        val clusteringRollersRPMs   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers RPMs", 2_000.0)
+        val idleRollersRPMs         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers RPMs", 0.0)
     }
 
     /**
@@ -81,25 +77,16 @@ object IntakeConstants {
      * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
      */
     object Configuration {
-        // ----------------------------------------
-        // PUBLIC — Absolute Encoder Configurations
-        // ----------------------------------------
-        object AbsoluteEncoder {
-            val offset                  : Angle = 0.0.degrees
-            val inverted                : Boolean = false
-            val brand                   : ThroughBoreBrand = ThroughBoreBrand.WCP
-        }
-
         // ---------------------------------
         // PUBLIC — Follower Alignment
         // ---------------------------------
-        val followerAlignment                : MotorAlignmentValue = MotorAlignmentValue.Opposed
+        val rollerFollowerAlignment                 : MotorAlignmentValue = MotorAlignmentValue.Opposed
 
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
         private val neutralMode                     : NeutralModeValue = NeutralModeValue.Brake
-        private val deployableMotorsOrientation     : InvertedValue = InvertedValue.CounterClockwise_Positive
+        private val deployableMotorOrientation     : InvertedValue = InvertedValue.CounterClockwise_Positive
         private val rollerMotorOrientation          : InvertedValue = InvertedValue.CounterClockwise_Positive
 
         // ---------------------------------
@@ -127,7 +114,7 @@ object IntakeConstants {
         // PUBLIC — Motor Configuration Object
         // -----------------------------------
         val deployableMotorsConfig = KrakenMotors.createTalonFXConfiguration(
-            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, deployableMotorsOrientation)),
+            Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, deployableMotorOrientation)),
             Optional.of(KrakenMotors.configureCurrentLimits(
                 supplyCurrentLimits,
                 statorCurrentEnable,
@@ -157,9 +144,8 @@ object IntakeConstants {
     object Telemetry {
         const val INTAKE_TAB                    : String = "Intake"
         const val INTAKE_CONNECTED_ALERTS_FIELD : String = "${INTAKE_TAB}/Intake Connection Alerts"
-        const val INTAKE_VOLTAGE_FIELD          : String = "${INTAKE_TAB}/Rollers Component Voltage"
+        const val INTAKE_RPM_FIELD              : String = "${INTAKE_TAB}/Rollers Component RPMs"
         const val INTAKE_ANGLE_FIELD            : String = "${INTAKE_TAB}/Deployable Component Angle (Motor)"
-        const val INTAKE_ANGLE_ENCODER_FIELD    : String = "${INTAKE_TAB}/Deployable Component Angle (Encoder)"
         const val INTAKE_TARGET_ANGLE_FIELD     : String = "${INTAKE_TAB}/Deployable Component Target Angle"
         const val INTAKE_DEPLOYABLE_ERROR       : String = "${INTAKE_TAB}/Deployable Component Angle error"
     }

@@ -21,8 +21,8 @@ class StatesHandler(
     private val stateMachine: StateMachine = StateMachine(NeutralState)
 
     init {
-        //configureStatesConditions()
-        //configureStatesCommands()
+        configureStatesConditions()
+        configureStatesCommands()
         configureBindings()
     }
 
@@ -32,7 +32,6 @@ class StatesHandler(
     }
 
     private fun configureStatesConditions() {
-        //controller.start().onTrue(superstructure.resetDrivePoseRed()) // Reset rotation
         stateMachine.addCondition(
             { superstructure.isInsideZone(FieldZones.NEUTRAL_ZONE) },
             NeutralState,
@@ -72,12 +71,12 @@ class StatesHandler(
             5
         )
 
-        stateMachine.addCondition(
-            { controller.x().asBoolean },
-            GoingUnderTrench,
-            Phase.Teleop,
-            6
-        )
+//        stateMachine.addCondition(
+//            { controller.x().asBoolean },
+//            GoingUnderTrench,
+//            Phase.Teleop,
+//            6
+//        )
 
         stateMachine.addCondition(
             { controller.povLeft().asBoolean } ,
@@ -94,8 +93,12 @@ class StatesHandler(
 //            superstructure.disableSubsystems()
 //        ))
 //
-//        ShootState.setInitialCommand(superstructure.driveTargetingHUB())
-//        ShootState.setDefaultCommand(superstructure.shootStateSequenceDefaultCMD())
+        ShootState.setInitialCommand(
+            superstructure.driveTargetingHUB().alongWith(
+                superstructure.shootStateSequenceDefaultCMD()
+            )
+        )
+        //ShootState.setDefaultCommand(superstructure.shootStateSequenceDefaultCMD())
 //        ShootState.setEndCommand(superstructure.driveFollowingDriverInput().andThen(
 //            superstructure.disableSubsystems()
 //        ))
@@ -128,15 +131,15 @@ class StatesHandler(
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
-        controller.rightTrigger().onTrue(Commands.select(
-            mapOf<FieldZones, Command>(
-                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
-                FieldZones.RED_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
-                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
-            ),
-            { superstructure.getRobotCurrentZone() }
-
-        ))
+//        controller.rightTrigger().onTrue(Commands.select(
+//            mapOf<FieldZones, Command>(
+//                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+//                FieldZones.RED_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
+//                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+//            ),
+//            { superstructure.getRobotCurrentZone() }
+//
+//        ))
             .onFalse(superstructure.disableSubsystemsCMD().alongWith(superstructure.driveFollowingDriverInput()))
 
         controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())

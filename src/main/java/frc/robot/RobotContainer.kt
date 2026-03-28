@@ -52,7 +52,7 @@ class RobotContainer {
     fun teleopInitConfig() {
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
         superstructure.disableSubsystemsInitCMD()
-        if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
+        //if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
     }
 
     fun autoInitConfig() {
@@ -75,7 +75,7 @@ class RobotContainer {
         EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD)
             .onTrue(
                 superstructure.shootStateSequenceAutoCMD()
-                    .withTimeout(4.5.seconds)
+                    .withTimeout(2.0.seconds)
                     .andThen(superstructure.disableSubsystemsCMD())
             )
     }

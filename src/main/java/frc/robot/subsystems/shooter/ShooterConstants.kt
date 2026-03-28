@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter
 
 import com.ctre.phoenix6.signals.InvertedValue
+import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.math.Matrix
 import edu.wpi.first.math.numbers.N2
@@ -68,25 +69,29 @@ object ShooterConstants {
         val MAX_RPS               : AngularVelocity = RotationsPerSecond.of(6_000.0 / 60)
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
+        // Score With Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            2.02.meters to (2_400.0).div(60.0).rotationsPerSecond,
-            2.52.meters to (2_650.0).div(60.0).rotationsPerSecond,
-            3.02.meters to (2_800.0).div(60.0).rotationsPerSecond,
-            3.52.meters to (2_900.0).div(60.0).rotationsPerSecond,
-            4.02.meters to (3_050.0).div(60.0).rotationsPerSecond,
-            5.25.meters to (3_150.0).div(60.0).rotationsPerSecond,
-        )
-
 //        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-//            1.646.meters to 2_270.div(60.0).rotationsPerSecond,
-//            2.05.meters to 2_540.div(60.0).rotationsPerSecond,
-//            2.54.meters to 2_620.div(60.0).rotationsPerSecond,
-//            3.354.meters to 2_790.div(60.0).rotationsPerSecond,
-//            4.128.meters to 3_070.div(60.0).rotationsPerSecond,
-//            5.02.meters to 3_420.div(60.0).rotationsPerSecond,
+//            2.02.meters to (2_400.0).div(60.0).rotationsPerSecond,
+//            2.52.meters to (2_650.0).div(60.0).rotationsPerSecond,
+//            3.02.meters to (2_800.0).div(60.0).rotationsPerSecond,
+//            3.52.meters to (2_900.0).div(60.0).rotationsPerSecond,
+//            4.02.meters to (3_050.0).div(60.0).rotationsPerSecond,
+//            5.25.meters to (3_150.0).div(60.0).rotationsPerSecond,
 //        )
 
+        // Score Without Hood
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
+        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.646.meters to 2_270.div(60.0).rotationsPerSecond,
+            2.05.meters to 2_540.div(60.0).rotationsPerSecond,
+            2.54.meters to 2_620.div(60.0).rotationsPerSecond,
+            3.354.meters to 2_790.div(60.0).rotationsPerSecond,
+            4.128.meters to 3_070.div(60.0).rotationsPerSecond,
+            5.02.meters to 3_420.div(60.0).rotationsPerSecond,
+        )
+
+        // Assist
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterAssistInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
             1.28.meters to 2_000.0.div(60.0).rotationsPerSecond,
@@ -101,6 +106,12 @@ object ShooterConstants {
      * in a public [com.ctre.phoenix6.configs.TalonFXConfiguration]
      */
     object Configuration {
+        // ---------------------------------
+        // PUBLIC — Follower Alignment
+        // ---------------------------------
+        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Aligned
+        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Opposed
+
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------

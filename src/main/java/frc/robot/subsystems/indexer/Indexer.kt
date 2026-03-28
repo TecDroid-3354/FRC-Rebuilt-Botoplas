@@ -16,10 +16,13 @@ class Indexer() : SubsystemBase() {
     // -------------------------------
     // PRIVATE — Motors Declaration
     // -------------------------------
-    private val hopperRollersMotor          : OpTalonFX =
+    private val hopperRollersMotor                  : OpTalonFX =
         OpTalonFX(IndexerConstants.Identification.HOPPER_ROLLERS_ID)
-    private val towerRollersMotor           : OpTalonFX =
-        OpTalonFX(IndexerConstants.Identification.TOWER_ROLLERS_ID)
+    
+    private val leadTowerRollersMotor               : OpTalonFX =
+        OpTalonFX(IndexerConstants.Identification.LEAD_TOWER_ROLLERS_ID)
+    private val towerFollowerRollersMotor           : OpTalonFX =
+        OpTalonFX(IndexerConstants.Identification.FOLLOWER_TOWER_ROLLERS_ID)
 
     // -------------------------------
     // PRIVATE — Enabled flags
@@ -35,9 +38,14 @@ class Indexer() : SubsystemBase() {
             "Indexer Belts Motor ID ${IndexerConstants.Identification.HOPPER_ROLLERS_ID} Disconnected",
             Alert.AlertType.kError)
 
-    private val towerRollersAlert  : Alert =
+    private val leadTowerRollersAlert  : Alert =
         Alert(IndexerConstants.Telemetry.INDEXER_CONNECTED_ALERTS_FIELD,
-            "Tower Rollers Motor ID ${IndexerConstants.Identification.TOWER_ROLLERS_ID} Disconnected",
+            "Tower Rollers Motor ID ${IndexerConstants.Identification.LEAD_TOWER_ROLLERS_ID} Disconnected",
+            Alert.AlertType.kError)
+
+    private val followerTowerRollersAlert  : Alert =
+        Alert(IndexerConstants.Telemetry.INDEXER_CONNECTED_ALERTS_FIELD,
+            "Tower Rollers Motor ID ${IndexerConstants.Identification.FOLLOWER_TOWER_ROLLERS_ID} Disconnected",
             Alert.AlertType.kError)
 
     /**
@@ -45,7 +53,9 @@ class Indexer() : SubsystemBase() {
      */
     init {
         hopperRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.hopperRollersConfig)
-        towerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig)
+        leadTowerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig)
+        towerFollowerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig)
+        towerFollowerRollersMotor.follow(leadTowerRollersMotor.getMotorInstance(), IndexerConstants.Configuration.followerTowerMotorAlignmentValue)
     }
 
     /**
@@ -53,7 +63,8 @@ class Indexer() : SubsystemBase() {
      */
     override fun periodic() {
         indexerRollersAlert.set(hopperRollersMotor.getIsConnected().not())
-        towerRollersAlert.set(towerRollersMotor.getIsConnected().not())
+        leadTowerRollersAlert.set(leadTowerRollersMotor.getIsConnected().not())
+        followerTowerRollersAlert.set(towerFollowerRollersMotor.getIsConnected().not())
 
         if (IndexerConstants.Tunables.HopperRollersVelocity.hasChanged(hashCode())) {
             updateHopperBeltsTargetVelocity(
@@ -104,7 +115,7 @@ class Indexer() : SubsystemBase() {
      * TowerRollersVoltage within the constants is used.
      */
     private fun enableTowerRollers() {
-        towerRollersMotor.velocityRequest(IndexerConstants.RPSTargets.TowerRollersVelocity)
+        leadTowerRollersMotor.velocityRequest(IndexerConstants.RPSTargets.TowerRollersVelocity)
         towerEnabled   = true
     }
 
@@ -112,7 +123,7 @@ class Indexer() : SubsystemBase() {
      * Stops tower rollers
      */
     private fun stopTowerRollers() {
-        towerRollersMotor.stopMotor()
+        leadTowerRollersMotor.stopMotor()
         towerEnabled   = false
     }
 
@@ -130,7 +141,7 @@ class Indexer() : SubsystemBase() {
      * TowerRollersVoltage within the constants is used.
      */
     private fun enableTowerRollersReversed() {
-        towerRollersMotor.velocityRequest(-IndexerConstants.RPSTargets.TowerRollersVelocity)
+        leadTowerRollersMotor.velocityRequest(-IndexerConstants.RPSTargets.TowerRollersVelocity)
         towerEnabled   = true
     }
 
@@ -206,7 +217,7 @@ class Indexer() : SubsystemBase() {
      * Returns whether the indexer components are enabled.
      * This can be seen live in the "Indexer" tab of AdvantageScope.
      */
-    @AutoLogOutput(key = IndexerConstants.Telemetry.Hopper_ENABLED_FIELD)
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HPPER_ENABLED_FIELD)
     fun isIndexerEnabled(): Boolean {
         return hopperEnabled
     }
@@ -254,6 +265,7 @@ class Indexer() : SubsystemBase() {
         )
 
         hopperRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.hopperRollersConfig.withSlot0(newSlot0Configs))
-        towerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig.withSlot0(newSlot0Configs))
+        leadTowerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig.withSlot0(newSlot0Configs))
+        towerFollowerRollersMotor.applyConfigAndClearFaults(IndexerConstants.Configuration.towerRollersConfig.withSlot0(newSlot0Configs))
     }
 }

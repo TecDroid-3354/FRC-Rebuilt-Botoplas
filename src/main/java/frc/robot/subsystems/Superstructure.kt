@@ -96,11 +96,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     private val hood    : Hood      = Hood()
 
 
-    // INITIALIZATION //
-    init {
-        shooter.defaultCommand = prepShootingStateShooterWarmUpCMD()
-    }
-
     fun setDriveDefaultCommand(command: Command) {
         drive.defaultCommand = command
     }
@@ -129,7 +124,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
-            }.withTimeout(4.0.seconds)
+            }.withTimeout(2.0.seconds)
                 .andThen(noStateIndexerReversedOnly())
                 .andThen(WaitCommand(0.25.seconds))
                 .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
@@ -151,7 +146,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             shootingStateHoodInterpolationCMD(), // Enables hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(4.0.seconds)
+            }.withTimeout(2.0.seconds)
                 .andThen(noStateIndexerReversedOnly())
                 .andThen(WaitCommand(0.25.seconds))
                 .andThen(shootingStateIndexerEnableCMD()) // Enables the indexer, both hopper and tower rollers
@@ -171,7 +166,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             noStateHoodOnly(), // Enables hood manual control
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE) }
-                .withTimeout(4.5.seconds)
+                .withTimeout(2.0.seconds)
                 .andThen(noStateIndexerReversedOnly())
                 .andThen(WaitCommand(0.25.seconds))
                 .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
@@ -187,7 +182,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
-            }.withTimeout(4.5.seconds)
+            }.withTimeout(2.0.seconds)
                 .andThen(noStateIndexerReversedOnly())
                 .andThen(WaitCommand(0.25.seconds))
                 .andThen(noStateIndexerOnly()) // Enables the indexer, both hopper and tower rollers
@@ -296,7 +291,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         val xComponent = HUB_TO_SWERVE_VECTOR.first
         val yComponent = HUB_TO_SWERVE_VECTOR.second
 
-        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).radians
+        // Shooter is facing backwards with reference to the Swerve, hence we add PI to shoot.
+        val atan2Rad = atan2(yComponent.`in`(Meters), xComponent.`in`(Meters)).plus(Math.PI).radians
         lastAngle.mut_replace(atan2Rad)
 
         return lastAngle
@@ -312,10 +308,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         lastAngle.mut_replace(atan2Rad)
 
         return lastAngle
-    }
-
-    private fun prepShootingStateShooterWarmUpCMD(): Command {
-        return shooter.setVelocityCMD({ ShooterConstants.Tunables.warmUpRPMs.get().div(60.0).rotationsPerSecond })
     }
 
     /**
@@ -368,7 +360,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     fun noStateIntakeDanceRollersOnlyEnable(): Command {
-        return intake.setRollersVoltageCMD(IntakeConstants.VoltageTargets.DancingRollersVoltage)
+        return intake.setRollersVelocityCMD(IntakeConstants.RPSTargets.ClusteringRollersRPS)
     }
 
     fun noStateIntakeDeployableOnlyEnable(): Command {
