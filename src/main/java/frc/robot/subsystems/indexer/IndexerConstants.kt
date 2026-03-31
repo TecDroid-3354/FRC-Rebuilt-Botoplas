@@ -6,14 +6,15 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RadiansPerSecond
+import edu.wpi.first.units.Units.RotationsPerSecond
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Time
-import frc.robot.subsystems.shooter.ShooterConstants.PhysicalLimits
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
+import frc.template.utils.mechanical.Reduction
 import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
 import java.util.Optional
@@ -29,12 +30,20 @@ object IndexerConstants {
         }
 
         /**
+         * Every physical aspect needed to be considered in code
+         */
+        object PhysicalLimits {
+                val HopperReduction: Reduction = Reduction(20.0/3.0)
+                val TowerReduction: Reduction = Reduction(1.0)
+        }
+
+        /**
          * Pre-defined voltage targets for each set of rollers.
          * Only these targets should be used since velocity is constant.
          */
         object RPSTargets {
-                var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().rotationsPerSecond
-                var TowerRollersVelocity          : AngularVelocity = Tunables.towerRollersVelocity.get().rotationsPerSecond
+                var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().div(60.0).rotationsPerSecond
+                var TowerRollersVelocity          : AngularVelocity = Tunables.towerRollersVelocity.get().div(60.0).rotationsPerSecond
         }
 
         object Tunables {
@@ -43,8 +52,8 @@ object IndexerConstants {
                 val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kD", 0.0)
                 val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
 
-                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers velocity", 65.0)
-                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers velocity", 100.0)
+                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPMs", 3_900.0)
+                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPMs", 6_000.0)
         }
 
         /**
@@ -81,7 +90,7 @@ object IndexerConstants {
                 // ---------------------------------
                 // PRIVATE — Motion Magic
                 // ---------------------------------
-                private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
+                private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(100.0)
                 private val acceleration        : Time = 0.1.seconds
                 private val jerkTime            : Time = 0.2.seconds
 
@@ -99,13 +108,18 @@ object IndexerConstants {
                         Optional.of(
                                 KrakenMotors.configureAngularMotionMagic(
                                         AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
-                                        PhysicalLimits.Reduction
+                                        PhysicalLimits.HopperReduction
                                 ))
                 )
 
                 val towerRollersConfig =
-                        hopperRollersConfig.withMotorOutput(MotorOutputConfigs()
-                                .withInverted(towerMotorOrientation))
+                        hopperRollersConfig
+                                .withMotorOutput(KrakenMotors.configureMotorOutputs(neutralMode, towerMotorOrientation))
+                                .withMotionMagic(KrakenMotors.configureAngularMotionMagic(
+                                        AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
+                                        PhysicalLimits.TowerReduction
+                                ))
+
         }
 
         /**

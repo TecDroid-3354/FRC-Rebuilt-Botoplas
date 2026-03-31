@@ -1,21 +1,25 @@
 package frc.robot.subsystems.shooter
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
-import edu.wpi.first.units.AngleUnit
+import edu.wpi.first.units.DistanceUnit
+import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.Amps
-import edu.wpi.first.units.Units.RotationsPerSecond
-import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Distance
+import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Time
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
-import frc.template.utils.controlProfiles.AngularMotionTargets
+import frc.template.utils.Sprocket
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.degrees
+import frc.template.utils.controlProfiles.LinearMotionTargets
 import frc.template.utils.devices.KrakenMotors
+import frc.template.utils.inches
 import frc.template.utils.mechanical.Reduction
+import frc.template.utils.meters
 import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
@@ -35,17 +39,19 @@ object IntakeConstants {
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction                   : Reduction = Reduction((50.0/9.0) * (50.0/18.0) * (50.0/14.0))
-        val Limits                      : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 100.0.degrees)
-        val DeployableAngleDelta        : Angle = 12.0.degrees  // The acceptable error before enabling rollers.
+        val DeployableReduction                   : Reduction = Reduction(50.0/3.0)
+        val DeployableLimits                      : MeasureLimits<DistanceUnit> = MeasureLimits(0.1.meters, 0.3.meters)
+
+        val RollersReduction : Reduction = Reduction(7.0/3.0)
     }
 
     /**
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        val RetractedAngle               : Angle = 60.0.degrees
-        val DeployedAngle                : Angle = 0.0.degrees
+        val ClusteredDisplacement               : Distance = 0.1.meters
+        val DeployedDisplacement                : Distance = 0.25.meters
+        val DeployableDisplacementDelta         : Distance = 0.05.meters
     }
 
     /**
@@ -68,7 +74,7 @@ object IntakeConstants {
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
         val enabledRollersRPMs      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers RPMs", 5_000.0)
-        val clusteringRollersRPMs   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers RPMs", 2_000.0)
+        val clusteringRollersRPMs   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers RPMs", 1_200.0)
         val idleRollersRPMs         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers RPMs", 0.0)
     }
 
@@ -86,7 +92,7 @@ object IntakeConstants {
         // PRIVATE — Motor Outputs
         // ---------------------------------
         private val neutralMode                     : NeutralModeValue = NeutralModeValue.Brake
-        private val deployableMotorOrientation     : InvertedValue = InvertedValue.CounterClockwise_Positive
+        private val deployableMotorOrientation      : InvertedValue = InvertedValue.CounterClockwise_Positive
         private val rollerMotorOrientation          : InvertedValue = InvertedValue.CounterClockwise_Positive
 
         // ---------------------------------
@@ -106,9 +112,29 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(0.6)
-        private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.1.seconds
+        private val deployCruiseVelocity      : LinearVelocity = Units.MetersPerSecond.of(0.75)
+        private val deployAcceleration        : Time = 0.1.seconds
+        private val deployJerktime            : Time = 0.1.seconds
+
+        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.25)
+        private val clusterAcceleration       : Time = 1.0.seconds
+        private val clusterJerkTime           : Time = 1.0.seconds
+
+        val deployableMotorSprocket   : Sprocket = Sprocket.fromRadius(3.25.inches.div(2.0))
+
+        val deployMotionMagic         : MotionMagicConfigs =
+            KrakenMotors.configureLinearMotionMagic(
+                LinearMotionTargets(deployCruiseVelocity, deployAcceleration, deployJerktime),
+                PhysicalLimits.DeployableReduction,
+                deployableMotorSprocket
+            )
+
+        val clusteringMotionMagic     : MotionMagicConfigs =
+            KrakenMotors.configureLinearMotionMagic(
+                LinearMotionTargets(clusterCruiseVelocity, clusterAcceleration, clusterJerkTime),
+                PhysicalLimits.DeployableReduction,
+                deployableMotorSprocket
+            )
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
@@ -120,10 +146,7 @@ object IntakeConstants {
                 statorCurrentEnable,
                 statorCurrentLimits)),
             Optional.of(KrakenMotors.configureSlot0(controlGains)),
-            Optional.of(KrakenMotors.configureAngularMotionMagic(
-                AngularMotionTargets(cruiseVelocity, acceleration,jerkTime),
-                PhysicalLimits.Reduction
-            ))
+            Optional.of(deployMotionMagic)
         )
 
         val rollerMotorConfig = KrakenMotors.createTalonFXConfiguration(
@@ -142,11 +165,13 @@ object IntakeConstants {
      * Also used for [frc.robot.utils.controlProfiles.LoggedTunableNumber]
      */
     object Telemetry {
-        const val INTAKE_TAB                    : String = "Intake"
-        const val INTAKE_CONNECTED_ALERTS_FIELD : String = "${INTAKE_TAB}/Intake Connection Alerts"
-        const val INTAKE_RPM_FIELD              : String = "${INTAKE_TAB}/Rollers Component RPMs"
-        const val INTAKE_ANGLE_FIELD            : String = "${INTAKE_TAB}/Deployable Component Angle (Motor)"
-        const val INTAKE_TARGET_ANGLE_FIELD     : String = "${INTAKE_TAB}/Deployable Component Target Angle"
-        const val INTAKE_DEPLOYABLE_ERROR       : String = "${INTAKE_TAB}/Deployable Component Angle error"
+        const val INTAKE_TAB                        : String = "Intake"
+        const val INTAKE_CONNECTED_ALERTS_FIELD     : String = "${INTAKE_TAB}/Intake Connection Alerts"
+        const val INTAKE_RPM_FIELD                  : String = "${INTAKE_TAB}/Rollers Component RPMs"
+        const val INTAKE_MOTOR_ANGLE_FIELD          : String = "${INTAKE_TAB}/Deployable Component Angle (Motor)"
+        const val INTAKE_MOTOR_TARGET_ANGLE_FIELD   : String = "${INTAKE_TAB}/Deployable Component Target Angle (Motor)"
+        const val INTAKE_DISPLACEMENT_FIELD         : String = "${INTAKE_TAB}/Deployable Component Displacement"
+        const val INTAKE_TARGET_DISPLACEMENT_FIELD  : String = "${INTAKE_TAB}/Deployable Component Target Displacement"
+        const val INTAKE_DEPLOYABLE_ERROR           : String = "${INTAKE_TAB}/Deployable Component Angle Error"
     }
 }

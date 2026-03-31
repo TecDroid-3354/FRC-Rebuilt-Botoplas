@@ -15,6 +15,8 @@ package frc.robot;
 
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.Constants;
@@ -90,6 +92,9 @@ public class Robot extends LoggedRobot {
       // Warms up FollowPathCommand, as the first run a path might have significantly more delay than subsequent runs.
       CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
       CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+
+      // Start Elastic
+      WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
   }
 
   /** This function is called periodically during all modes. */

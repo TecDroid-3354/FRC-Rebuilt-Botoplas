@@ -15,7 +15,7 @@ import net.tecdroid.util.stateMachine.builders.ConditionBuilder.Condition
 
 enum class States(var config: StateConfig) {
     PrepShootingState(StateConfig()),
-    ShootState(StateConfig()),
+    ScoreState(StateConfig()),
     NeutralState(StateConfig()),
     IntakeState(StateConfig()),
     AssistState(StateConfig()),

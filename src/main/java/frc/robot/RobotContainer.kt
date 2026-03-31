@@ -17,7 +17,6 @@ import com.pathplanner.lib.events.EventTrigger
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
-import frc.robot.constants.Constants.isFlipped
 import frc.robot.constants.RobotConstants.Autonomous
 import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.StatesHandler
@@ -51,7 +50,7 @@ class RobotContainer {
 
     fun teleopInitConfig() {
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
-        superstructure.disableSubsystemsInitCMD()
+        superstructure.disableSubsystemsCMD()
         //if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
     }
 
@@ -71,10 +70,10 @@ class RobotContainer {
         EventTrigger(Autonomous.EventTriggerStrings.INTAKE_DEPLOY)
             .onTrue(superstructure.intakeStateCMD())
         EventTrigger(Autonomous.EventTriggerStrings.DISABLE_INTAKE_ROLLERS)
-            .onTrue(superstructure.disableIntake())
+            .onTrue(superstructure.disableIntakeRollersCMD())
         EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD)
             .onTrue(
-                superstructure.shootStateSequenceAutoCMD()
+                superstructure.scoreStateSequenceAutoCMD()
                     .withTimeout(2.0.seconds)
                     .andThen(superstructure.disableSubsystemsCMD())
             )

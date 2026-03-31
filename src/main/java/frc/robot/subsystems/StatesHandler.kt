@@ -22,7 +22,7 @@ class StatesHandler(
 
     init {
         configureStatesConditions()
-        configureStatesCommands()
+        //configureStatesCommands()
         configureBindings()
     }
 
@@ -59,7 +59,7 @@ class StatesHandler(
             { superstructure.isInsideZone(
                 if (isFlipped.invoke()) FieldZones.RED_ALLIANCE_ZONE else FieldZones.BLUE_ALLIANCE_ZONE
             ) && controller.rightTrigger().asBoolean },
-            ShootState,
+            ScoreState,
             Phase.Teleop,
             4
         )
@@ -87,27 +87,35 @@ class StatesHandler(
     }
 
     private fun configureStatesCommands() {
-//        AssistState.setInitialCommand(superstructure.driveTargetingBumpAssist())
-//        AssistState.setDefaultCommand(superstructure.assistStateSequenceDefaultCMD())
-//        AssistState.setEndCommand(superstructure.driveFollowingDriverInput().andThen(
-//            superstructure.disableSubsystems()
-//        ))
-//
-        ShootState.setInitialCommand(
-            superstructure.driveTargetingHUB().alongWith(
-                superstructure.shootStateSequenceDefaultCMD()
+        AssistState.setInitialCommand(
+            superstructure.driveTargetingBump().alongWith(
+                superstructure.assistStateSequenceDefaultCMD()
             )
         )
-        //ShootState.setDefaultCommand(superstructure.shootStateSequenceDefaultCMD())
-//        ShootState.setEndCommand(superstructure.driveFollowingDriverInput().andThen(
-//            superstructure.disableSubsystems()
-//        ))
-//
-//        IntakeState.setDefaultCommand(superstructure.intakeStateCMD())
-//        //IntakeState.setEndCommand(superstructure.disableIntake())
-//
-//        EmergencyShootState.setDefaultCommand(superstructure.shootStateSequenceWithoutOdometryCMD())
-        //EmergencyShootState.setEndCommand(superstructure.disableSubsystems())
+
+        AssistState.setEndCommand(
+            superstructure.driveFollowingDriverInput().andThen(
+                superstructure.disableSubsystemsCMD()
+            )
+        )
+
+        ScoreState.setInitialCommand(
+            superstructure.driveTargetingHUB().alongWith(
+                superstructure.scoreStateSequenceDefaultCMD()
+            )
+        )
+
+        ScoreState.setEndCommand(
+            superstructure.driveFollowingDriverInput().andThen(
+                superstructure.disableSubsystemsCMD()
+            )
+        )
+
+        IntakeState.setInitialCommand(superstructure.intakeStateCMD())
+        IntakeState.setEndCommand(superstructure.disableIntakeRollersCMD())
+
+        EmergencyShootState.setInitialCommand(superstructure.scoreStateSequenceWithoutOdometryCMD())
+        EmergencyShootState.setEndCommand(superstructure.disableSubsystemsCMD())
 
         //GoingUnderTrench.setInitialCommand(superstructure.storeHood())
 //        GoingUnderTrench.setDefaultCommand(superstructure.followTrajectory(
@@ -121,8 +129,8 @@ class StatesHandler(
     private fun configureBindings() {
         controller.start().onTrue(Commands.select(
             mapOf<Alliance, Command>(
-                Alliance.Blue to superstructure.resetDrivePoseBlue(),
-                Alliance.Red to superstructure.resetDrivePoseRed()
+                Alliance.Blue to superstructure.resetDrivePoseBlueCMD(),
+                Alliance.Red to superstructure.resetDrivePoseRedCMD()
             ), { if (isFlipped.invoke()) Alliance.Red else Alliance.Blue }
         )) // Reset rotation
 
@@ -131,36 +139,33 @@ class StatesHandler(
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
-//        controller.rightTrigger().onTrue(Commands.select(
-//            mapOf<FieldZones, Command>(
-//                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
-//                FieldZones.RED_ALLIANCE_ZONE to superstructure.shootStateSequenceDefaultCMD(),
-//                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
-//            ),
-//            { superstructure.getRobotCurrentZone() }
-//
-//        ))
+        controller.rightTrigger().onTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD(),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD(),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+            ),
+            { superstructure.getRobotCurrentZone() }
+
+        ))
             .onFalse(superstructure.disableSubsystemsCMD().alongWith(superstructure.driveFollowingDriverInput()))
 
-        controller.leftTrigger().onTrue(superstructure.shootStateSequenceWithoutOdometryCMD())
+        controller.leftTrigger().onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystemsCMD())
 
         controller.rightBumper().onTrue(superstructure.intakeStateCMD())
-            .onFalse(superstructure.disableIntake())
-
-        controller.leftBumper().onTrue(superstructure.noStateIndexerReversedOnly())
-            .onFalse(superstructure.disableIndexer())
+            .onFalse(superstructure.disableIntakeRollersCMD())
 
         controller.x().whileTrue(Commands.select(
             mapOf<FieldZones, Command>(
                 FieldZones.BLUE_ALLIANCE_ZONE to superstructure.driveTargetingHUB(),
                 FieldZones.RED_ALLIANCE_ZONE to superstructure.driveTargetingHUB(),
-                FieldZones.NEUTRAL_ZONE to superstructure.driveTargetingBumpAssist()
+                FieldZones.NEUTRAL_ZONE to superstructure.driveTargetingBump()
             ),
             { superstructure.getRobotCurrentZone() }))
             .onFalse(superstructure.driveFollowingDriverInput())
 
-        controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisable())
+        controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
 
 //        controller.x().whileTrue(superstructure.followTrajectory(
 //            superstructure.getOnTheFlyPathFromWaypoints(

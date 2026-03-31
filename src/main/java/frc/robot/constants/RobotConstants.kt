@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.LinearAcceleration
 import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Mass
 import edu.wpi.first.units.measure.MomentOfInertia
+import edu.wpi.first.units.measure.Time
 import frc.template.utils.degrees
 import frc.template.utils.degreesPerSecond
 import frc.template.utils.degreesPerSecondPerSecond
@@ -21,6 +22,7 @@ import frc.template.utils.inches
 import frc.template.utils.metersPerSecond
 import frc.template.utils.metersPerSecondPerSecond
 import frc.template.utils.rotationsPerSecond
+import frc.template.utils.seconds
 import kotlin.math.pow
 
 object RobotConstants {
@@ -88,9 +90,11 @@ object RobotConstants {
 
     object Control {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 2.0.degrees
-        val INTAKE_DEPLOYABLE_DANCE_DELTA           : Angle = 30.0.degrees
-        val INTAKE_DEPLOYABLE_DANCE_TOLERANCE       : Angle = 2.0.degrees
         val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 1.0.rotationsPerSecond
+    }
+
+    object LoopInfo {
+        val loopPeriod: Time = 0.02.seconds
     }
 
     object Telemetry {

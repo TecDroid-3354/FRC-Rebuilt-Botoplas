@@ -1,9 +1,10 @@
 package frc.robot.subsystems.intake
 
 import com.ctre.phoenix6.configs.Slot0Configs
-import edu.wpi.first.units.Units.Degrees
+import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
@@ -17,12 +18,16 @@ import frc.robot.subsystems.shooter.IntakeConstants
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.meters
 import frc.template.utils.rotationsPerSecond
 import org.littletonrobotics.junction.AutoLogOutput
 import kotlin.math.abs
+
+enum class IntakePositions {
+    DEPLOYED, CLUSTERED;
+}
 
 class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------------
@@ -42,7 +47,7 @@ class Intake() : SysIdSubsystem("Intake") {
     // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetAngle: Angle = IntakeConstants.RetractileAngles.RetractedAngle
+    private var targetDisplacement: Distance = IntakeConstants.RetractileAngles.ClusteredDisplacement
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -65,8 +70,8 @@ class Intake() : SysIdSubsystem("Intake") {
     // --------------------------------------------------------------------------------
     // PRIVATE SYS ID — Running Conditions, Relevant Variables and Routines Declaration
     // --------------------------------------------------------------------------------
-    override val sysIdForwardRunningCondition: () -> Boolean = { getDeployableIntakeAngleDegrees() < IntakeConstants.PhysicalLimits.Limits.maximum.`in`(Degrees) }
-    override val sysIdBackwardRunningCondition: () -> Boolean = { getDeployableIntakeAngleDegrees() > IntakeConstants.PhysicalLimits.Limits.minimum.`in`(Degrees) }
+    override val sysIdForwardRunningCondition: () -> Boolean = { getDeployableDisplacementMeters() < IntakeConstants.PhysicalLimits.DeployableLimits.maximum.`in`(Units.Meters) }
+    override val sysIdBackwardRunningCondition: () -> Boolean = { getDeployableDisplacementMeters() > IntakeConstants.PhysicalLimits.DeployableLimits.minimum.`in`(Units.Meters) }
 
     /**
      * [motorPosition] holds the current motor's position without gear ratios
@@ -131,23 +136,52 @@ class Intake() : SysIdSubsystem("Intake") {
     // ----------------------------------------------
 
     /**
-     * Calls a [OpTalonFX.positionRequestSubsystem] in order to clamp the requested angle between the
-     * [IntakeConstants.PhysicalLimits.Limits] set. It also considers reduction,
+     * Calls a [OpTalonFX.positionRequestSubsystem] in order to clamp the requested displacement between the
+     * [IntakeConstants.PhysicalLimits.DeployableLimits] set. It also considers reduction,
      * so it's just necessary to give it to the method.
-     * @param angle The desired intake position.
+     * @param displacement The desired intake displacement.
      */
-    private fun setPosition(angle: Angle) {
-        targetAngle = IntakeConstants.PhysicalLimits.Limits.coerceIn(angle) as Angle
+    private fun setPosition(displacement: Distance) {
+        targetDisplacement = IntakeConstants.PhysicalLimits.DeployableLimits.coerceIn(displacement) as Distance
         deployableMotorController.positionRequestSubsystem(
-            angle,
-            IntakeConstants.PhysicalLimits.Limits,
-            IntakeConstants.PhysicalLimits.Reduction
+            targetDisplacement,
+            IntakeConstants.PhysicalLimits.DeployableLimits,
+            IntakeConstants.PhysicalLimits.DeployableReduction,
+            IntakeConstants.Configuration.deployableMotorSprocket
         )
+    }
+
+    /**
+     * Intended to change the [com.ctre.phoenix6.configs.MotionMagicConfigs] depending on the requested position.
+     * Re-configuration of the motor is necessary, since changing [com.ctre.phoenix6.configs.MotionMagicConfigs]
+     * on-the-fly requires [com.ctre.phoenix6.controls.DynamicMotionMagicVoltage], which is a Pro Licensed feature.
+     * - CLUSTERED is intended to use while shooting, hence it must be slower.
+     * - DEPLOYED is used with normal velocity.
+     * @param position The requested position.
+     */
+    private fun setPosition(position: IntakePositions) {
+        when (position) {
+            IntakePositions.CLUSTERED -> {
+                deployableMotorController.applyConfigAndClearFaults(
+                    IntakeConstants.Configuration.deployableMotorsConfig.withMotionMagic(
+                        IntakeConstants.Configuration.clusteringMotionMagic
+                    )
+                )
+                setPosition(IntakeConstants.RetractileAngles.DeployedDisplacement)
+            }
+            IntakePositions.DEPLOYED -> {
+                deployableMotorController.applyConfigAndClearFaults(
+                    IntakeConstants.Configuration.deployableMotorsConfig
+                )
+                setPosition(IntakeConstants.RetractileAngles.DeployedDisplacement)
+            }
+        }
     }
 
     /**
      * Common method for setting voltage to the deployable controller.
      * Usable only when running a [sysIdRoutines]
+     * @param voltage The SysId-requested voltage.
      */
     override fun setVoltage(voltage: Voltage) {
         deployableMotorController.voltageRequest(voltage)
@@ -158,8 +192,8 @@ class Intake() : SysIdSubsystem("Intake") {
     // -------------------------------------------
 
     /**
-     * Sets a desired [Voltage] to the intake's rollers motor controller
-     * @param voltage the desired voltage to be applied
+     * Sets a desired [AngularVelocity] to the intake's rollers motor controller
+     * @param velocity The desired velocity to be applied
      */
     fun setRollersVelocity(velocity: AngularVelocity) {
         rollersLeadMotorController.velocityRequest(velocity)
@@ -171,13 +205,12 @@ class Intake() : SysIdSubsystem("Intake") {
 
     /**
      * Sets a desired [IntakePositions] which holds a known position for either retracted o deployed position.
-     * Keeps track of the current requested position and assigns it to [targetAngle].
-     * @param pose the desired pose to go to
-     * @return A command requesting the given [IntakePositions] and then waiting until the error minimizes for
-     * precise control.
+     * Keeps track of the current requested position and assigns it to [targetDisplacement].
+     * @param position the desired pose to go to
+     * @return A command requesting the given [IntakePositions].
      */
-    private fun setPositionCMD(pose: Angle): Command {
-        return InstantCommand({ setPosition(pose) }, this)
+    private fun setPositionCMD(position: IntakePositions): Command {
+        return InstantCommand({ setPosition(position) }, this)
     }
 
     // ---------------------------------
@@ -200,32 +233,46 @@ class Intake() : SysIdSubsystem("Intake") {
      * Deploys the intake and then enables the rollers through a [SequentialCommandGroup]
      * @return A sequential command group that sets a pose and enables the rollers
      */
-    fun enableIntakeCMD(): Command {
+    fun deployAndEnableIntakeCMD(): Command {
         return SequentialCommandGroup(
-            setPositionCMD(IntakeConstants.RetractileAngles.DeployedAngle),
+            setPositionCMD(IntakePositions.DEPLOYED),
             WaitUntilCommand { getDeployableError()
-                .lte(IntakeConstants.PhysicalLimits.DeployableAngleDelta) },
+                .lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta) },
             setRollersVelocityCMD(IntakeConstants.RPSTargets.EnabledRollersRPS)
         )
     }
 
     /**
-     * Retracts the intake and then enables the rollers through a [SequentialCommandGroup]
-     * @return A sequential command group that sets a pose and disables the rollers
+     * Deploys the intake and then disables the rollers through a [SequentialCommandGroup]
+     * @return A sequential command group that sets a pose and enables the rollers
      */
-    fun disableIntakeCMD(): Command {
-        return ParallelCommandGroup(
-            InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) }),
-            InstantCommand({ setPosition(IntakeConstants.RetractileAngles.DeployedAngle) })
+    fun deployAndDisableIntakeCMD(): Command {
+        return SequentialCommandGroup(
+            setPositionCMD(IntakePositions.DEPLOYED),
+            disableRollersCMD()
         )
     }
 
-    fun disableRollersCMD(): Command {
-        return InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) })
+    fun clusterIntakeCMD(): Command {
+        return ParallelCommandGroup(
+            InstantCommand({ setPosition(IntakePositions.CLUSTERED) }),
+            InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.ClusteringRollersRPS) })
+        )
     }
 
-    fun setDeployableAngleOnly(angle: Angle): Command {
-        return InstantCommand({ setPosition(angle) }, this )
+    /**
+     * Sets the [IntakeConstants.RPSTargets.IdleRollersRPS] velocity to the rollers through. Subsystem is set as requirement.
+     * @return An [InstantCommand] that sets a pose and disables the rollers
+     */
+    fun disableRollersCMD(): Command {
+        return InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) }, this)
+    }
+
+    fun setDeployableDisplacementOnly(displacement: Distance): Command {
+        return ParallelCommandGroup(
+            InstantCommand({ setPosition(displacement) }),
+            InstantCommand({ setRollersVelocity(0.0.rotationsPerSecond) })
+        )
     }
 
     // -------------------------------
@@ -261,54 +308,78 @@ class Intake() : SysIdSubsystem("Intake") {
     }
 
     // ---------------------------------
-    // PUBLIC — Telemetry methods
+    // PRIVATE — Telemetry methods
     // ---------------------------------
 
     /**
-     * The current deployable component position according to the lead motor.
+     * The current deployable component position (in motor rotations).
      * This position can be seen live in the "Intake" tab of AdvantageScope.
      * @return the deployable component current angle
      */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_ANGLE_FIELD, unit = "degrees")
-    private fun getDeployableIntakeAngleDegrees(): Double {
-        return IntakeConstants.PhysicalLimits.Reduction.apply(deployableMotorController.getPosition().`in`(Degrees))
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_MOTOR_ANGLE_FIELD)
+    private fun getDeployableAngleMotor(): Angle {
+        return deployableMotorController.getPosition()
+    }
+
+    /**
+     * The target deployable component position (in motor rotations).
+     * This position can be seen live in the "Intake" tab of AdvantageScope.
+     * @return the deployable component target angle
+     */
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_MOTOR_TARGET_ANGLE_FIELD)
+    private fun getDeployableTargetAngleMotor(): Angle {
+        return IntakeConstants.PhysicalLimits.DeployableReduction.unapply(
+            IntakeConstants.Configuration.deployableMotorSprocket.linearDisplacementToAngularDisplacement(
+                targetDisplacement
+            )
+        )
+    }
+
+    /**
+     * The current deployable component position.
+     * This position can be seen live in the "Intake" tab of AdvantageScope.
+     * @return the deployable component current displacement
+     */
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_DISPLACEMENT_FIELD, unit = "meters")
+    private fun getDeployableDisplacementMeters(): Double {
+        return IntakeConstants.PhysicalLimits.DeployableReduction.apply(
+            IntakeConstants.Configuration.deployableMotorSprocket.angularDisplacementToLinearDisplacement(
+                deployableMotorController.getPosition()
+            )
+        ).`in`(Units.Meters)
     }
 
     /**
      * The target deployable component position.
      * This position can be seen live in the "Intake" tab of AdvantageScope.
-     * @return the deployable component target angle
+     * @return the deployable component target displacement
      */
-    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_TARGET_ANGLE_FIELD)
-    private fun getDeployableIntakeTargetAngleDegrees(): Double {
-        return targetAngle.`in`(Degrees)
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_TARGET_DISPLACEMENT_FIELD, unit = "meters")
+    private fun getDeployableIntakeTargetDisplacementMeters(): Double {
+        return targetDisplacement.`in`(Units.Meters)
     }
 
     /**
-     * Gets the subsystem error by subtracting the current [targetAngle] to the actual motor's angle reading,
-     * after transforming it to a subsystem angle.
+     * Gets the subsystem error by subtracting the current displacement from the [targetDisplacement],
+     * after transforming the motor reading to subsystem displacement.
      * This error can be seen live in the "Intake" tab of AdvantageScope.
-     * @return The error between the deployable component [targetAngle] and its current position.
+     * @return The error between the deployable component [targetDisplacement] and its current position.
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_DEPLOYABLE_ERROR)
-    fun getDeployableError(): Angle {
+    fun getDeployableError(): Distance {
         return abs(
-            targetAngle.`in`(Degrees).minus(
-                IntakeConstants.PhysicalLimits.Reduction.apply(
-                    deployableMotorController.getPosition().`in`(Degrees)
-                )
-            )
-        ).degrees
+            targetDisplacement.`in`(Units.Meters).minus(getDeployableDisplacementMeters())
+        ).meters
     }
 
     /**
-     * The current RPMs of the rollers component.
+     * The current RPMs of the rollers component. The motor reports in RPS, hence the .times(60.0)
      * This voltage can be seen live in the "Intake" tab of AdvantageScope.
-     * @return the roller's motor voltage
+     * @return the roller's motor velocity.
      */
     @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_RPM_FIELD)
     private fun getRollersVelocity(): AngularVelocity {
-        return rollersLeadMotorController.getVelocity()
+        return rollersLeadMotorController.getVelocity().times(60.0)
     }
 
     // -------------------------------
@@ -334,6 +405,11 @@ class Intake() : SysIdSubsystem("Intake") {
     // -------------------------------
     // Motor configuration (Phoenix 6)
     // -------------------------------
+
+    /**
+     * Clears faults and applies the corresponding configuration to both the deployable and rollers motors.
+     * Follower Control is also applied to the corresponding rollers motor.
+     */
     private fun configureMotors() {
         deployableMotorController.applyConfigAndClearFaults(IntakeConstants.Configuration.deployableMotorsConfig)
 
@@ -345,12 +421,12 @@ class Intake() : SysIdSubsystem("Intake") {
     }
 
     /**
-     * Used to update the PIDF of the deployable component motors. Initial configuration remains the same, only [Slot0Configs] regarding
+     * Used to update the PIDF of the deployable component motor. Initial configuration remains the same, only [Slot0Configs] regarding
      * kP, kI, kD and kF are changed depending on the value passed to the [frc.robot.utils.controlProfiles.LoggedTunableNumber]
-     * @param kP P coefficient received live
-     * @param kI I coefficient received live
-     * @param kD D coefficient received live
-     * @param kF F coefficient received live
+     * @param kP P coefficient received live through AdvantageScope or Elastic.
+     * @param kI I coefficient received live through AdvantageScope or Elastic.
+     * @param kD D coefficient received live through AdvantageScope or Elastic.
+     * @param kF F coefficient received live through AdvantageScope or Elastic.
      */
     private fun updateDeployableMotorsPIDF(kP: Double, kI: Double, kD: Double, kF: Double) {
         val newSlot0Configs: Slot0Configs = KrakenMotors.configureSlot0(
@@ -367,9 +443,9 @@ class Intake() : SysIdSubsystem("Intake") {
     }
 
     /**
-     * Used to update the voltage targets of the rollers component.
-     * @param enabledVoltage Voltage target when active. Received live
-     * @param idleVoltage Voltage target when idle. Received live
+     * Used to update the RPS targets of the rollers component.
+     * @param enabledVelocity Target RPS when active. Received live through AdvantageScope or Elastic.
+     * @param idleVelocity Target RPS when idle. Received live through AdvantageScope or Elastic.
      */
     private fun updateRollersTargetVelocity(enabledVelocity: Double, idleVelocity: Double) {
         IntakeConstants.RPSTargets.EnabledRollersRPS = enabledVelocity.rotationsPerSecond
