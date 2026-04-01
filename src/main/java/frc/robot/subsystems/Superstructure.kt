@@ -318,7 +318,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * Enables both the hopper and tower rollers.
      * @return A [ParallelCommandGroup] enabling hopper and tower rollers.
      */
-    private fun indexerEnableCMD(): Command {
+    fun indexerEnableCMD(): Command {
         return indexer.enableIndexerCMD()
     }
 
@@ -351,6 +351,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun noStateIntakeDeployableOnlyDisableCMD(): Command {
         return intake.setDeployableDisplacementOnly(IntakeConstants.RetractileAngles.ClusteredDisplacement)
+    }
+
+    fun noStateHopperBeltsOnly(): Command {
+        return indexer.enableHopperBeltsCMD()
+    }
+
+    fun noStateFeederRollersOnly(): Command {
+        return indexer.enableTowerRollersCMD()
     }
 
     /**

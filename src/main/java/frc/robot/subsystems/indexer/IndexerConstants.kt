@@ -25,8 +25,8 @@ object IndexerConstants {
          */
         object Identification {
                 const val HOPPER_ROLLERS_ID             : Int = 30
-                const val LEAD_TOWER_ROLLERS_ID         : Int = 31
-                const val FOLLOWER_TOWER_ROLLERS_ID     : Int = 32
+                const val LEAD_TOWER_ROLLERS_ID         : Int = 44
+                const val FOLLOWER_TOWER_ROLLERS_ID     : Int = 45
         }
 
         /**
@@ -38,12 +38,12 @@ object IndexerConstants {
         }
 
         /**
-         * Pre-defined voltage targets for each set of rollers.
+         * Pre-defined velocity targets for each set of rollers.
          * Only these targets should be used since velocity is constant.
          */
         object RPSTargets {
-                var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().div(60.0).rotationsPerSecond
-                var TowerRollersVelocity          : AngularVelocity = Tunables.towerRollersVelocity.get().div(60.0).rotationsPerSecond
+                var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().rotationsPerSecond
+                var TowerRollersVelocity         : AngularVelocity = Tunables.towerRollersVelocity.get().rotationsPerSecond
         }
 
         object Tunables {
@@ -52,8 +52,8 @@ object IndexerConstants {
                 val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kD", 0.0)
                 val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
 
-                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPMs", 3_900.0)
-                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPMs", 6_000.0)
+                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPS", 55.0)
+                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPS", 50.0)
         }
 
         /**
@@ -70,8 +70,8 @@ object IndexerConstants {
                 // PRIVATE — Motor Outputs
                 // ---------------------------------
                 private val neutralMode                 : NeutralModeValue = NeutralModeValue.Coast
-                private val hopperMotorOrientation      : InvertedValue = InvertedValue.Clockwise_Positive
-                private val towerMotorOrientation       : InvertedValue = InvertedValue.CounterClockwise_Positive
+                private val hopperMotorOrientation      : InvertedValue = InvertedValue.CounterClockwise_Positive
+                private val towerMotorOrientation       : InvertedValue = InvertedValue.Clockwise_Positive
 
                 // ---------------------------------
                 // PRIVATE — Current Limits

@@ -109,8 +109,8 @@ object ShooterConstants {
         // ---------------------------------
         // PUBLIC — Follower Alignment
         // ---------------------------------
-        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Aligned
-        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Opposed
+        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Opposed
+        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Aligned
 
         // ---------------------------------
         // PRIVATE — Motor Outputs
@@ -171,5 +171,4 @@ object ShooterConstants {
         const val SHOOTER_TARGET_RPM_FIELD: String = "${SHOOTER_TAB}/Shooter Target RPMs"
         const val SHOOTER_CONNECTED_ALERTS_FIELD: String = "${SHOOTER_TAB}/Shooter Connection Alerts"
     }
-
 }

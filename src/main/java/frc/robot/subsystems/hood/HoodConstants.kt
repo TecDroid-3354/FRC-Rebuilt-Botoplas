@@ -94,7 +94,7 @@ object HoodConstants {
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
-        private val neutralMode              : NeutralModeValue = NeutralModeValue.Brake
+        private val neutralMode              : NeutralModeValue = NeutralModeValue.Coast
         private val motorOrientation         : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------

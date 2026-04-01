@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
+import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.constants.RobotConstants
@@ -22,6 +23,7 @@ import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.meters
 import frc.template.utils.rotationsPerSecond
+import frc.template.utils.seconds
 import org.littletonrobotics.junction.AutoLogOutput
 import kotlin.math.abs
 
@@ -152,33 +154,6 @@ class Intake() : SysIdSubsystem("Intake") {
     }
 
     /**
-     * Intended to change the [com.ctre.phoenix6.configs.MotionMagicConfigs] depending on the requested position.
-     * Re-configuration of the motor is necessary, since changing [com.ctre.phoenix6.configs.MotionMagicConfigs]
-     * on-the-fly requires [com.ctre.phoenix6.controls.DynamicMotionMagicVoltage], which is a Pro Licensed feature.
-     * - CLUSTERED is intended to use while shooting, hence it must be slower.
-     * - DEPLOYED is used with normal velocity.
-     * @param position The requested position.
-     */
-    private fun setPosition(position: IntakePositions) {
-        when (position) {
-            IntakePositions.CLUSTERED -> {
-                deployableMotorController.applyConfigAndClearFaults(
-                    IntakeConstants.Configuration.deployableMotorsConfig.withMotionMagic(
-                        IntakeConstants.Configuration.clusteringMotionMagic
-                    )
-                )
-                setPosition(IntakeConstants.RetractileAngles.DeployedDisplacement)
-            }
-            IntakePositions.DEPLOYED -> {
-                deployableMotorController.applyConfigAndClearFaults(
-                    IntakeConstants.Configuration.deployableMotorsConfig
-                )
-                setPosition(IntakeConstants.RetractileAngles.DeployedDisplacement)
-            }
-        }
-    }
-
-    /**
      * Common method for setting voltage to the deployable controller.
      * Usable only when running a [sysIdRoutines]
      * @param voltage The SysId-requested voltage.
@@ -203,14 +178,49 @@ class Intake() : SysIdSubsystem("Intake") {
     // PRIVATE — CMD Motors Control — Deployable
     // -----------------------------------------
 
+
     /**
      * Sets a desired [IntakePositions] which holds a known position for either retracted o deployed position.
      * Keeps track of the current requested position and assigns it to [targetDisplacement].
      * @param position the desired pose to go to
      * @return A command requesting the given [IntakePositions].
      */
-    private fun setPositionCMD(position: IntakePositions): Command {
+    private fun setPositionWithDisplacementCMD(position: Distance): Command {
         return InstantCommand({ setPosition(position) }, this)
+    }
+
+    /**
+     * Intended to change the [com.ctre.phoenix6.configs.MotionMagicConfigs] depending on the requested position.
+     * Re-configuration of the motor is necessary, since changing [com.ctre.phoenix6.configs.MotionMagicConfigs]
+     * on-the-fly requires [com.ctre.phoenix6.controls.DynamicMotionMagicVoltage], which is a Pro Licensed feature.
+     * - CLUSTERED is intended to use while shooting, hence it must be slower.
+     * - DEPLOYED is used with normal velocity.
+     * @param position The requested position.
+     */
+    private fun setPositionCMD(position: IntakePositions): Command {
+        return when (position) {
+            IntakePositions.CLUSTERED ->
+                SequentialCommandGroup(
+                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
+                            IntakeConstants.Configuration.deployableMotorsConfig.withMotionMagic(
+                                IntakeConstants.Configuration.clusteringMotionMagic
+                            )
+                        )
+                    }),
+                    WaitCommand(0.08.seconds),
+                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.ClusteredDisplacement)
+                )
+
+            IntakePositions.DEPLOYED ->
+                SequentialCommandGroup(
+                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
+                        IntakeConstants.Configuration.deployableMotorsConfig
+                        )
+                    }),
+                    WaitCommand(0.08.seconds),
+                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.DeployedDisplacement)
+                )
+        }
     }
 
     // ---------------------------------
@@ -255,8 +265,9 @@ class Intake() : SysIdSubsystem("Intake") {
 
     fun clusterIntakeCMD(): Command {
         return ParallelCommandGroup(
-            InstantCommand({ setPosition(IntakePositions.CLUSTERED) }),
-            InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.ClusteringRollersRPS) })
+            setPositionCMD(IntakePositions.CLUSTERED),
+            //InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.ClusteringRollersRPS) })
+            InstantCommand({ setRollersVelocity(0.0.rotationsPerSecond) })
         )
     }
 

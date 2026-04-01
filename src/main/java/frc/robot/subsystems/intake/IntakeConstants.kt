@@ -30,9 +30,9 @@ object IntakeConstants {
      * Unique ID of every component in the shooter
      */
     object Identification {
-        const val LEAD_DEPLOY_MOTOR_ID          : Int = 22 // Right Motor
+        const val LEAD_DEPLOY_MOTOR_ID          : Int = 23 // Right Motor
         const val LEAD_ROLLERS_MOTOR_ID         : Int = 21
-        const val FOLLOWER_ROLLERS_MOTOR_ID     : Int = 23 // Left Motor
+        const val FOLLOWER_ROLLERS_MOTOR_ID     : Int = 22 // Left Motor
     }
 
     /**
@@ -40,7 +40,7 @@ object IntakeConstants {
      */
     object PhysicalLimits {
         val DeployableReduction                   : Reduction = Reduction(50.0/3.0)
-        val DeployableLimits                      : MeasureLimits<DistanceUnit> = MeasureLimits(0.1.meters, 0.3.meters)
+        val DeployableLimits                      : MeasureLimits<DistanceUnit> = MeasureLimits(0.01.meters, 0.315.meters)
 
         val RollersReduction : Reduction = Reduction(7.0/3.0)
     }
@@ -49,8 +49,10 @@ object IntakeConstants {
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        val ClusteredDisplacement               : Distance = 0.1.meters
-        val DeployedDisplacement                : Distance = 0.25.meters
+        // TODO: Need to measure actual displacement when clustering our intake once deployed can´t return
+        // to its original position.
+        val ClusteredDisplacement               : Distance = 0.15.meters
+        val DeployedDisplacement                : Distance = 0.313354.meters
         val DeployableDisplacementDelta         : Distance = 0.05.meters
     }
 
@@ -68,7 +70,7 @@ object IntakeConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kP", 0.6)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kP", 0.5)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
@@ -91,7 +93,7 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
-        private val neutralMode                     : NeutralModeValue = NeutralModeValue.Brake
+        private val neutralMode                     : NeutralModeValue = NeutralModeValue.Coast
         private val deployableMotorOrientation      : InvertedValue = InvertedValue.CounterClockwise_Positive
         private val rollerMotorOrientation          : InvertedValue = InvertedValue.CounterClockwise_Positive
 
@@ -112,7 +114,7 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val deployCruiseVelocity      : LinearVelocity = Units.MetersPerSecond.of(0.75)
+        private val deployCruiseVelocity      : LinearVelocity = Units.MetersPerSecond.of(0.85)
         private val deployAcceleration        : Time = 0.1.seconds
         private val deployJerktime            : Time = 0.1.seconds
 
@@ -120,7 +122,7 @@ object IntakeConstants {
         private val clusterAcceleration       : Time = 1.0.seconds
         private val clusterJerkTime           : Time = 1.0.seconds
 
-        val deployableMotorSprocket   : Sprocket = Sprocket.fromRadius(3.25.inches.div(2.0))
+        val deployableMotorSprocket   : Sprocket = Sprocket.fromRadius(3.0.inches.div(2.0))
 
         val deployMotionMagic         : MotionMagicConfigs =
             KrakenMotors.configureLinearMotionMagic(

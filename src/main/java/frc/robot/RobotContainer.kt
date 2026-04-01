@@ -49,7 +49,7 @@ class RobotContainer {
     }
 
     fun teleopInitConfig() {
-        superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
+        //superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
         superstructure.disableSubsystemsCMD()
         //if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
     }
