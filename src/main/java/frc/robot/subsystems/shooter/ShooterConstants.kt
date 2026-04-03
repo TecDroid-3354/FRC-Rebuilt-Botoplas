@@ -52,12 +52,12 @@ object ShooterConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.5)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.8)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.8)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.9)
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 3100.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2600.0)
         val warmUpRPMs : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Warm Up RPMs", 1500.0)
     }
 
@@ -75,11 +75,11 @@ object ShooterConstants {
             1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
             2.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
             2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
-            3.000.meters to (2_500.0).div(60.0).rotationsPerSecond,
-            3.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_550.0).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_675.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_650.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_700.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_750.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_800.0).div(60.0).rotationsPerSecond,
         )
 
         // Assist

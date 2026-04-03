@@ -157,7 +157,7 @@ class StatesHandler(
         controller.leftTrigger().onTrue(superstructure.scoreStateSequenceDefaultCMD())
             .onFalse(superstructure.disableSubsystemsCMD())
 
-        controller.rightBumper().onTrue(superstructure.noStateIntakeRollersOnlyVoltageEnableCMD())
+        controller.rightBumper().onTrue(superstructure.intakeStateCMD())
             .onFalse(superstructure.disableIntakeRollersCMD())
 
 //        controller.rightBumper().onTrue(superstructure.intakeStateCMD())

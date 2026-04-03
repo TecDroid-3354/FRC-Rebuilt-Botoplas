@@ -17,7 +17,6 @@ import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
-import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -34,20 +33,20 @@ object HoodConstants {
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction((11.2121 * 7.4) * 2.0) // Old: 11.2121
-        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 20.0.degrees)
+        val Reduction           : Reduction = Reduction((142.0/13.0) * (60.0/9.0) * (37.0/22.0)) // Old: (11.2121 * 7.4) * 2
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 25.0.degrees)
     }
 
     /**
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.35)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.5)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.1)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
 
-        val motorAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 0.0)
+        val hoodTunableAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 16.0)
     }
 
     /**
@@ -59,14 +58,14 @@ object HoodConstants {
         // Score With Hood
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
         val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.397.meters to (05.0).degrees,
-            2.000.meters to (10.0).degrees,
-            2.500.meters to (12.0).degrees,
-            3.000.meters to (12.0).degrees,
-            3.500.meters to (13.0).degrees,
-            4.000.meters to (14.0).degrees,
-            4.500.meters to (15.0).degrees,
-            5.000.meters to (20.0).degrees,
+            1.397.meters to (06.0).degrees,
+            2.000.meters to (12.0).degrees,
+            2.500.meters to (14.4).degrees,
+            3.000.meters to (16.5 + 0.3).degrees,
+            3.500.meters to (17.0 + 0.3).degrees,
+            4.000.meters to (20.0 + 0.3).degrees,
+            4.500.meters to (22.0 + 0.3).degrees,
+            5.000.meters to (24.5 + 0.3).degrees,
         )
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
@@ -109,8 +108,8 @@ object HoodConstants {
         // PRIVATE — Motion Magic
         // ---------------------------------
         private val cruiseVelocity          : AngularVelocity = RadiansPerSecond.of(100.0)
-        private val acceleration            : Time = 0.1.seconds
-        private val jerkTime                : Time = 0.2.seconds
+        private val acceleration            : Time = 0.05.seconds
+        private val jerkTime                : Time = 0.0.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object

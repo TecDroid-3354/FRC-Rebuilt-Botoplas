@@ -26,7 +26,6 @@ class LedController: SubsystemBase() {
     // PRIVATE — Useful variables
     // -------------------------------
     private var currentPWM               : Double = 0.0
-    private var targetPattern            : Pattern = LedPatterns.SolidColors.YELLOW
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -40,16 +39,13 @@ class LedController: SubsystemBase() {
     /**
      * Called upon [frc.robot.subsystems.LedController] creation. Used to initialize a pattern.
      */
-    init {
-        setPatternCMD(LedPatterns.FixedPalettePatters.RAINBOW_LAVA_PALETTE)
-    }
+    init {}
 
     /**
      * Called every 20ms loop. Used to update alerts.
      */
     override fun periodic() {
         ledControllerAlert.set(ledController.isAlive.not())
-        setPattern(targetPattern)
     }
 
     // ---------------------------------
@@ -81,9 +77,6 @@ class LedController: SubsystemBase() {
         setPWM(pattern.pwmValue)
     }
 
-    private fun setTargetPWM(pattern: Pattern) {
-        targetPattern = pattern
-    }
     // -------------------------------
     // PUBLIC — CMD LED Control
     // -------------------------------
@@ -92,7 +85,7 @@ class LedController: SubsystemBase() {
      * A command version of [setPattern]. [LedController] is added as requirement
      */
     fun setPatternCMD(pattern: Pattern): Command {
-        return InstantCommand({ setTargetPWM(pattern) }, this)
+        return InstantCommand({ setPattern(pattern) }, this)
     }
 
     // -------------------------------

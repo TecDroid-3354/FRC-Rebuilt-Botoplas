@@ -172,10 +172,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             scoreStateHoodInterpolationCMD(), // Enables Hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(4.0.seconds)
+            }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-//                .andThen(WaitCommand(1.0.seconds)
-//                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
+                .andThen(WaitCommand(0.75.seconds)
+                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
 
@@ -194,7 +194,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(1.0.seconds)
+                .andThen(WaitCommand(0.75.seconds)
                     .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
@@ -213,10 +213,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             noStateHoodOnlyCMD(), // Enables Hood manual control
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(4.0.seconds)
+            }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD())) // Enables the Indexer, both hopper and tower rollers
-                //.andThen(WaitCommand(2.0.seconds)) // Safety for deployable assuming full hopper
-                    //.andThen(intakeClusterCMD()))) // Enables Intake clustering to push FUELS towards the tower
+                .andThen(WaitCommand(0.75.seconds)) // Safety for deployable assuming full hopper
+                    .andThen(intakeClusterCMD()) // Enables Intake clustering to push FUELS towards the tower
     }
 
     /*----------------------------------------------------------------------------------------------------*/
@@ -239,7 +239,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                     && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
             }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
+                .andThen(WaitCommand(0.75.seconds) // Safety for deployable assuming full hopper
                     .andThen(intakeClusterCMD()))) // Enables Intake clustering to push FUELS towards the tower
     }
 
@@ -295,10 +295,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [SequentialCommandGroup] with the above specifica
      */
     fun intakeStateCMD(): Command {
-        return return ParallelCommandGroup(
-            intake.deployAndEnableIntakeCMD(),
-            indexerIdleEnableCMD()
-        )
+        return intake.deployAndEnableIntakeCMD()
     }
 
     /**
@@ -404,7 +401,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [Command] with the above specifications
      */
     fun noStateHoodOnlyCMD(): Command {
-        return hood.setAngleTunableCMD { HoodConstants.Tunables.motorAngle.get().degrees }
+        return hood.setAngleTunableCMD { HoodConstants.Tunables.hoodTunableAngle.get().degrees }
     }
 
     /*----------------------------------------------------------------------------------------------------------*/
@@ -570,11 +567,15 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     @AutoLogOutput(key = "Odometry/Joystick Target Angle")
     private fun getAngleFromJoystick(): Angle {
+        if (abs(-controller.rightY) < 0.3 && abs(controller.rightX) < 0.3) return lastDriveAngle
+
         val atan2Rad = atan2( // Gets the "raw" angle from the joysticks, after applying a dead band
             MathUtil.applyDeadband(-controller.rightY, 0.3),
             MathUtil.applyDeadband(controller.rightX, 0.3))
-        // Decides whether to keep last angle (when joystick was released) or adjust this one to meet robot frame
-        lastDriveAngle.mut_replace(if (atan2Rad == 0.0) lastDriveAngle else atan2Rad.plus(Math.PI / 2).radians)
+            .plus(Math.PI / 2)
+
+        lastDriveAngle.mut_replace(atan2Rad.radians)
+
         // To ensure consistent rotation, 180.0 degrees are added when in Blue Alliance.
         return if (isFlipped.invoke()) lastDriveAngle else lastDriveAngle.plus(180.0.degrees)
     }

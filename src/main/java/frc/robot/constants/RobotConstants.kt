@@ -97,7 +97,7 @@ object RobotConstants {
 
     object Control {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 2.0.degrees
-        val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 1.0.rotationsPerSecond
+        val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 0.8.rotationsPerSecond
     }
 
     object LoopInfo {
