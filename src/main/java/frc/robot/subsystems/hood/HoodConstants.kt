@@ -17,6 +17,7 @@ import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
+import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -33,8 +34,8 @@ object HoodConstants {
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction(11.2121)
-        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 100.0.degrees)
+        val Reduction           : Reduction = Reduction((11.2121 * 7.4) * 2.0) // Old: 11.2121
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 20.0.degrees)
     }
 
     /**
@@ -57,32 +58,24 @@ object HoodConstants {
 
         // Score With Hood
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
-//        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-//            2.02.meters to 4.2.degrees,
-//            2.52.meters to 10.0.degrees,
-//            3.02.meters to 15.0.degrees,
-//            3.52.meters to 20.0.degrees,
-//            4.02.meters to 35.0.degrees,
-//            5.25.meters to 100.0.degrees,
-//        )
-
-        // Score Without Hood
         val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.646.meters to 0.0.degrees,
-            2.05.meters to 0.0.degrees,
-            2.54.meters to 0.0.degrees,
-            3.354.meters to 0.0.degrees,
-            4.128.meters to 10.0.degrees,
-            5.02.meters to 25.0.degrees,
+            1.397.meters to (05.0).degrees,
+            2.000.meters to (10.0).degrees,
+            2.500.meters to (12.0).degrees,
+            3.000.meters to (12.0).degrees,
+            3.500.meters to (13.0).degrees,
+            4.000.meters to (14.0).degrees,
+            4.500.meters to (15.0).degrees,
+            5.000.meters to (20.0).degrees,
         )
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
         val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.28.meters to 100.0.degrees,
-            2.0.meters to 100.0.degrees,
-            2.5.meters to 100.0.degrees,
-            3.0.meters to 100.0.degrees,
-            3.5.meters to 100.0.degrees,
+            1.28.meters to 20.0.degrees,
+            2.0.meters to 20.0.degrees,
+            2.5.meters to 20.0.degrees,
+            3.0.meters to 20.0.degrees,
+            3.5.meters to 20.0.degrees,
         )
     }
 
@@ -100,7 +93,7 @@ object HoodConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits      : Current = Amps.of(20.0)
+        private val supplyCurrentLimits      : Current = Amps.of(15.0)
         private val statorCurrentLimits      : Current = Amps.of(40.0)
         private val statorCurrentLimitEnable : Boolean = false
 

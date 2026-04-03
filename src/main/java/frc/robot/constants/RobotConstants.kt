@@ -31,7 +31,7 @@ object RobotConstants {
     }
 
     object RobotPhysics {
-        val RobotMass       : Mass              = Kilograms.of(50.0)
+        val RobotMass       : Mass              = Kilograms.of(50.8)
         val RobotLength     : Distance          = 26.5.inches
         val RobotWidth      : Distance          = 26.5.inches
         val RobotMOI        : MomentOfInertia   = KilogramSquareMeters.of( // As per PathPlanner rough estimate
@@ -86,6 +86,13 @@ object RobotConstants {
 
         const val SWERVE_LOCKED_ANGLE_X_MULTIPLIER: Double = 0.5
         const val SWERVE_LOCKED_ANGLE_Y_MULTIPLIER: Double = 0.5
+    }
+
+    object LedControllerConstants {
+        const val LED_CONTROLLER_PORT: Int = 2
+        const val LED_CONTROLLER_TAB: String = "Rev Blinking"
+        const val LED_CONTROLLER_CONNECTED_ALERTS_FIELD: String = "${LED_CONTROLLER_TAB}/Rev Blinking Alerts"
+        const val TARGET_PWM_FIELD: String = "${LED_CONTROLLER_TAB}/Target PWM"
     }
 
     object Control {

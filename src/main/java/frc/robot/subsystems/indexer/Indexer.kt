@@ -161,6 +161,10 @@ class Indexer() : SubsystemBase() {
         return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersVelocity } })
     }
 
+    fun enableHopperBeltsIdleCMD(): Command {
+        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersIdleVelocity } })
+    }
+
     /**
      * Command version of [stopHopperBelts].
      */
@@ -173,6 +177,10 @@ class Indexer() : SubsystemBase() {
      */
     fun enableTowerRollersCMD(): Command {
         return InstantCommand({ enableTowerRollers { IndexerConstants.RPSTargets.TowerRollersVelocity } })
+    }
+
+    fun enableTowerRollersIdleCMD(): Command {
+        return InstantCommand({ enableTowerRollers { IndexerConstants.RPSTargets.TowerRollersIdleVelocity } })
     }
 
     /**
@@ -197,10 +205,10 @@ class Indexer() : SubsystemBase() {
         )
     }
 
-    fun enableIndexerReversedCMD(): Command {
+    fun enableIndexerIdleCMD(): Command {
         return ParallelCommandGroup(
-            InstantCommand({ enableHopperBeltsReversed() }),
-            InstantCommand({ enableTowerRollersReversed() })
+            enableHopperBeltsIdleCMD(),
+            enableTowerRollersIdleCMD()
         )
     }
 
@@ -243,7 +251,7 @@ class Indexer() : SubsystemBase() {
      * Returns whether the indexer components are enabled.
      * This can be seen live in the "Indexer" tab of AdvantageScope.
      */
-    @AutoLogOutput(key = IndexerConstants.Telemetry.HPPER_ENABLED_FIELD)
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_ENABLED_FIELD)
     fun isIndexerEnabled(): Boolean {
         return hopperEnabled
     }

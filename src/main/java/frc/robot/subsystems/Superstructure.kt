@@ -27,6 +27,7 @@ import frc.robot.commands.DriveCommands
 import frc.robot.constants.Constants.isFlipped
 import frc.robot.constants.FieldConstants
 import frc.robot.constants.FieldZones
+import frc.robot.constants.Pattern
 import frc.robot.constants.RobotConstants
 import frc.robot.constants.SwerveTunerConstants
 import frc.robot.subsystems.drivetrain.Drive
@@ -66,10 +67,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         ModuleIOTalonFX(SwerveTunerConstants.BackRight)
     )
 
-    private val intake  : Intake    = Intake()
-    private val indexer : Indexer   = Indexer()
-    private val shooter : Shooter   = Shooter()
-    private val hood    : Hood      = Hood()
+    private val intake  : Intake        = Intake()
+    private val indexer : Indexer       = Indexer()
+    private val shooter : Shooter       = Shooter()
+    private val hood    : Hood          = Hood()
+    private val leds    : LedController = LedController()
 
     /*--------------------------------------------------------------------------------------------------*/
     /*---------------------------------------- USEFUL VARIABLES ----------------------------------------*/
@@ -85,8 +87,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     // For odometry corrections. Order of cameras is not relevant; all of them require the Drive's rotation.
     private val vision = Vision(
         drive::addVisionMeasurement,
-        VisionIOLimelight(VisionConstants.frontLimelight,   { drive.rotation }),
-        VisionIOLimelight(VisionConstants.leftLimelight,    { drive.rotation }),
+        VisionIOLimelight(VisionConstants.leftLimelight,   { drive.rotation }),
+        VisionIOLimelight(VisionConstants.backLimelight,    { drive.rotation }),
         VisionIOLimelight(VisionConstants.rightLimelight,   { drive.rotation })
     )
 
@@ -170,12 +172,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             scoreStateHoodInterpolationCMD(), // Enables Hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-                    // Waits until Drive angle is within tolerance
-                    && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
-            }.withTimeout(2.0.seconds)
+            }.withTimeout(4.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(1.0.seconds)
-                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
+//                .andThen(WaitCommand(1.0.seconds)
+//                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
 
@@ -213,10 +213,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             noStateHoodOnlyCMD(), // Enables Hood manual control
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(2.0.seconds)
-                .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(1.0.seconds) // Safety for deployable assuming full hopper
-                    .andThen(intakeClusterCMD()))) // Enables Intake clustering to push FUELS towards the tower
+            }.withTimeout(4.0.seconds)
+                .andThen(indexerEnableCMD())) // Enables the Indexer, both hopper and tower rollers
+                //.andThen(WaitCommand(2.0.seconds)) // Safety for deployable assuming full hopper
+                    //.andThen(intakeClusterCMD()))) // Enables Intake clustering to push FUELS towards the tower
     }
 
     /*----------------------------------------------------------------------------------------------------*/
@@ -295,14 +295,17 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [SequentialCommandGroup] with the above specifica
      */
     fun intakeStateCMD(): Command {
-        return intake.deployAndEnableIntakeCMD()
+        return return ParallelCommandGroup(
+            intake.deployAndEnableIntakeCMD(),
+            indexerIdleEnableCMD()
+        )
     }
 
     /**
      * In the interest of shooting faster, the [Intake] retracts, causing the hopper to cluster the FUELS towards the tower.
      * @return A [SequentialCommandGroup] requesting the [Intake] to retract, and then deploying it again.
      */
-    private fun intakeClusterCMD(): Command {
+    fun intakeClusterCMD(): Command {
         return SequentialCommandGroup(
             intake.clusterIntakeCMD(),
             WaitUntilCommand { intake.getDeployableError().lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta)},
@@ -322,17 +325,40 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return indexer.enableIndexerCMD()
     }
 
+    fun indexerIdleEnableCMD(): Command {
+        return indexer.enableIndexerIdleCMD()
+    }
+
+    /*--------------------------------------------------------------------------------------------------*/
+    /*---------------------------------------- LED COMMANDS --------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------*/
+
+    /**
+     * Sets an LED Pattern
+     */
+    fun setLEDPattern(pattern: Pattern): Command {
+        return leds.setPatternCMD(pattern)
+    }
+
     /*-------------------------------------------------------------------------------------------------*/
     /*--------------------------------------- NO STATE COMMANDS ---------------------------------------*/
     /*-------------------------------------------------------------------------------------------------*/
 
     /**
-     * Enables the intake rollers with the specified [IntakeConstants.RPSTargets.ClusteringRollersRPS]
+     * Enables the intake rollers with the specified [IntakeConstants.VoltageTargets.ClusteringRollersVoltage]
      * which can be modified live for tuning. Intake's not deployed nor clustered. just the rollers enabled.
      * @return a [Command] with the above specifications
      */
-    fun noStateIntakeClusterRollersOnlyEnableCMD(): Command {
-        return intake.setRollersVelocityCMD(IntakeConstants.RPSTargets.ClusteringRollersRPS)
+    fun noStateIntakeRollersVoltageOnlyTunableCMD(): Command {
+        return intake.setRollersVoltageTunableCMD { IntakeConstants.VoltageTargets.EnabledRollersVoltage }
+    }
+
+    fun noStateIntakeRollersOnlyVoltageEnableCMD(): Command {
+        return intake.setRollersVoltageCMD()
+    }
+
+    fun noStateIntakeRollersOnlyVoltageDisableCMD(): Command {
+        return intake.stopRollersVoltageCMD()
     }
 
     /**
@@ -449,8 +475,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
             { shootingCalcs.getLatestShootingParameters().driveAngle }
-        ).until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
-            .andThen(InstantCommand({ drive.stopWithX() }))
+        )//.until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
+//            .andThen(InstantCommand({ drive.stopWithX() }))
     }
 
     /**
@@ -467,8 +493,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
             ::getDriveToHubAngle
-        ).until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
-            .andThen(InstantCommand({ drive.stopWithX() }))
+        )//.until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
+//            .andThen(InstantCommand({ drive.stopWithX() }))
     }
 
     /**

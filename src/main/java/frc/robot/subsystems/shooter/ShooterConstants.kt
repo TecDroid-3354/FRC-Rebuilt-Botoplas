@@ -71,24 +71,15 @@ object ShooterConstants {
 
         // Score With Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-//        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-//            2.02.meters to (2_400.0).div(60.0).rotationsPerSecond,
-//            2.52.meters to (2_650.0).div(60.0).rotationsPerSecond,
-//            3.02.meters to (2_800.0).div(60.0).rotationsPerSecond,
-//            3.52.meters to (2_900.0).div(60.0).rotationsPerSecond,
-//            4.02.meters to (3_050.0).div(60.0).rotationsPerSecond,
-//            5.25.meters to (3_150.0).div(60.0).rotationsPerSecond,
-//        )
-
-        // Score Without Hood
-        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.646.meters to 2_270.div(60.0).rotationsPerSecond,
-            2.05.meters to 2_540.div(60.0).rotationsPerSecond,
-            2.54.meters to 2_620.div(60.0).rotationsPerSecond,
-            3.354.meters to 2_790.div(60.0).rotationsPerSecond,
-            4.128.meters to 3_070.div(60.0).rotationsPerSecond,
-            5.02.meters to 3_420.div(60.0).rotationsPerSecond,
+            1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_550.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_675.0).div(60.0).rotationsPerSecond,
         )
 
         // Assist

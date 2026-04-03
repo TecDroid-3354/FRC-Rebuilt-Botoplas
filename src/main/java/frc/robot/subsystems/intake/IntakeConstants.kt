@@ -7,11 +7,11 @@ import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.DistanceUnit
 import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.Amps
-import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Time
+import edu.wpi.first.units.measure.Voltage
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.Sprocket
 import frc.template.utils.controlProfiles.ControlGains
@@ -20,9 +20,9 @@ import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.inches
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
-import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
+import frc.template.utils.volts
 import java.util.Optional
 
 object IntakeConstants {
@@ -40,7 +40,7 @@ object IntakeConstants {
      */
     object PhysicalLimits {
         val DeployableReduction                   : Reduction = Reduction(50.0/3.0)
-        val DeployableLimits                      : MeasureLimits<DistanceUnit> = MeasureLimits(0.01.meters, 0.315.meters)
+        val DeployableLimits                      : MeasureLimits<DistanceUnit> = MeasureLimits(0.06.meters, 0.307.meters)
 
         val RollersReduction : Reduction = Reduction(7.0/3.0)
     }
@@ -51,8 +51,8 @@ object IntakeConstants {
     object RetractileAngles {
         // TODO: Need to measure actual displacement when clustering our intake once deployed can´t return
         // to its original position.
-        val ClusteredDisplacement               : Distance = 0.15.meters
-        val DeployedDisplacement                : Distance = 0.313354.meters
+        val ClusteredDisplacement               : Distance = 0.07.meters
+        val DeployedDisplacement                : Distance = 0.303354.meters
         val DeployableDisplacementDelta         : Distance = 0.05.meters
     }
 
@@ -60,10 +60,10 @@ object IntakeConstants {
      * Pre-defined voltage targets for the [frc.robot.subsystems.intake.Intake] rollers.
      * Only these targets should be used since velocity is constant.
      */
-    object RPSTargets {
-        var EnabledRollersRPS           : AngularVelocity = Tunables.enabledRollersRPMs.get().div(60.0).rotationsPerSecond
-        var ClusteringRollersRPS        : AngularVelocity = Tunables.clusteringRollersRPMs.get().div(60.0).rotationsPerSecond
-        var IdleRollersRPS              : AngularVelocity = Tunables.idleRollersRPMs.get().div(60.0).rotationsPerSecond
+    object VoltageTargets {
+        var EnabledRollersVoltage           : Voltage = Tunables.enabledRollersVoltage.get().volts
+        var ClusteringRollersVoltage        : Voltage = Tunables.clusteringRollersVoltage.get().volts
+        var IdleRollersVoltage              : Voltage = Tunables.idleRollersVoltage.get().volts
     }
 
     /**
@@ -75,9 +75,9 @@ object IntakeConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kD", 0.0)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
-        val enabledRollersRPMs      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers RPMs", 5_000.0)
-        val clusteringRollersRPMs   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers RPMs", 1_200.0)
-        val idleRollersRPMs         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers RPMs", 0.0)
+        val enabledRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 10.0)
+        val clusteringRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers Voltage", 10.0)
+        val idleRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
     }
 
     /**
@@ -95,19 +95,19 @@ object IntakeConstants {
         // ---------------------------------
         private val neutralMode                     : NeutralModeValue = NeutralModeValue.Coast
         private val deployableMotorOrientation      : InvertedValue = InvertedValue.CounterClockwise_Positive
-        private val rollerMotorOrientation          : InvertedValue = InvertedValue.CounterClockwise_Positive
+        private val rollerMotorOrientation          : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(40.0)
+        private val supplyCurrentLimits : Current = Amps.of(30.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 
         // ---------------------------------
         // PUBLIC — Slot 0
         // ---------------------------------
-        val controlGains                : ControlGains = ControlGains(
+        val deployControlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.22427, v = 0.078651, a = 0.0069529, g = 0.063911)
 
@@ -147,7 +147,7 @@ object IntakeConstants {
                 supplyCurrentLimits,
                 statorCurrentEnable,
                 statorCurrentLimits)),
-            Optional.of(KrakenMotors.configureSlot0(controlGains)),
+            Optional.of(KrakenMotors.configureSlot0(deployControlGains)),
             Optional.of(deployMotionMagic)
         )
 

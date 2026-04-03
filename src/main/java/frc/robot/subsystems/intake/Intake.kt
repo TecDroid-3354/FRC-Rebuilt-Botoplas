@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
+import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
 import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
@@ -22,9 +23,10 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.meters
-import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
+import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.function.Supplier
 import kotlin.math.abs
 
 enum class IntakePositions {
@@ -124,11 +126,13 @@ class Intake() : SysIdSubsystem("Intake") {
             )
         }
 
-        if (IntakeConstants.Tunables.enabledRollersRPMs.hasChanged(hashCode())
-            || IntakeConstants.Tunables.idleRollersRPMs.hasChanged(hashCode())) {
+        if (IntakeConstants.Tunables.enabledRollersVoltage.hasChanged(hashCode())
+            || IntakeConstants.Tunables.clusteringRollersVoltage.hasChanged(hashCode())
+            || IntakeConstants.Tunables.idleRollersVoltage.hasChanged(hashCode())) {
             updateRollersTargetVelocity(
-                IntakeConstants.Tunables.enabledRollersRPMs.get(),
-                IntakeConstants.Tunables.idleRollersRPMs.get()
+                IntakeConstants.Tunables.enabledRollersVoltage.get(),
+                IntakeConstants.Tunables.clusteringRollersVoltage.get(),
+                IntakeConstants.Tunables.idleRollersVoltage.get()
             )
         }
     }
@@ -168,10 +172,10 @@ class Intake() : SysIdSubsystem("Intake") {
 
     /**
      * Sets a desired [AngularVelocity] to the intake's rollers motor controller
-     * @param velocity The desired velocity to be applied
+     * @param voltage The desired velocity to be applied
      */
-    fun setRollersVelocity(velocity: AngularVelocity) {
-        rollersLeadMotorController.velocityRequest(velocity)
+    fun setRollersVoltage(voltage: Voltage) {
+        rollersLeadMotorController.voltageRequest(voltage)
     }
 
     // -----------------------------------------
@@ -228,17 +232,28 @@ class Intake() : SysIdSubsystem("Intake") {
     // ---------------------------------
 
     /**
-     * Calls [setRollersVelocity] in order to set an output to the roller's controller
+     * Calls [setRollersVoltage] in order to set an output to the roller's controller
      * @return a command calling the voltage method
      */
-    fun setRollersVelocityCMD(velocity: AngularVelocity): Command {
-        return InstantCommand({ setRollersVelocity(velocity) }, this)
+    private fun setRollersVoltageCMD(voltage: Voltage): Command {
+        return InstantCommand({ setRollersVoltage(voltage) }, this)
     }
 
     // ---------------------------------
     // PUBLIC — CMD Subsystem control
     // ---------------------------------
 
+    fun setRollersVoltageCMD(): Command {
+        return InstantCommand({ rollersLeadMotorController.voltageRequest(10.0.volts) }, this)
+    }
+
+    fun stopRollersVoltageCMD(): Command {
+        return InstantCommand({ rollersLeadMotorController.voltageRequest(0.0.volts) }, this)
+    }
+
+    fun setRollersVoltageTunableCMD(voltage: Supplier<Voltage>): Command {
+        return RunCommand({ setRollersVoltage(voltage.get()) }, this )
+    }
     /**
      * Deploys the intake and then enables the rollers through a [SequentialCommandGroup]
      * @return A sequential command group that sets a pose and enables the rollers
@@ -248,7 +263,7 @@ class Intake() : SysIdSubsystem("Intake") {
             setPositionCMD(IntakePositions.DEPLOYED),
             WaitUntilCommand { getDeployableError()
                 .lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta) },
-            setRollersVelocityCMD(IntakeConstants.RPSTargets.EnabledRollersRPS)
+            setRollersVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage)
         )
     }
 
@@ -264,25 +279,25 @@ class Intake() : SysIdSubsystem("Intake") {
     }
 
     fun clusterIntakeCMD(): Command {
-        return ParallelCommandGroup(
+        return SequentialCommandGroup(
+            InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
+            WaitCommand(0.25.seconds),
             setPositionCMD(IntakePositions.CLUSTERED),
-            //InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.ClusteringRollersRPS) })
-            InstantCommand({ setRollersVelocity(0.0.rotationsPerSecond) })
         )
     }
 
     /**
-     * Sets the [IntakeConstants.RPSTargets.IdleRollersRPS] velocity to the rollers through. Subsystem is set as requirement.
+     * Sets the [IntakeConstants.VoltageTargets.IdleRollersVoltage] velocity to the rollers through. Subsystem is set as requirement.
      * @return An [InstantCommand] that sets a pose and disables the rollers
      */
     fun disableRollersCMD(): Command {
-        return InstantCommand({ setRollersVelocity(IntakeConstants.RPSTargets.IdleRollersRPS) }, this)
+        return InstantCommand({ setRollersVoltage(0.0.volts) }, this)
     }
 
     fun setDeployableDisplacementOnly(displacement: Distance): Command {
         return ParallelCommandGroup(
             InstantCommand({ setPosition(displacement) }),
-            InstantCommand({ setRollersVelocity(0.0.rotationsPerSecond) })
+            disableRollersCMD()
         )
     }
 
@@ -443,10 +458,10 @@ class Intake() : SysIdSubsystem("Intake") {
         val newSlot0Configs: Slot0Configs = KrakenMotors.configureSlot0(
             ControlGains(
                 kP, kI, kD, kF,
-                IntakeConstants.Configuration.controlGains.s,
-                IntakeConstants.Configuration.controlGains.v,
-                IntakeConstants.Configuration.controlGains.a,
-                IntakeConstants.Configuration.controlGains.g
+                IntakeConstants.Configuration.deployControlGains.s,
+                IntakeConstants.Configuration.deployControlGains.v,
+                IntakeConstants.Configuration.deployControlGains.a,
+                IntakeConstants.Configuration.deployControlGains.g
             )
         )
 
@@ -455,11 +470,12 @@ class Intake() : SysIdSubsystem("Intake") {
 
     /**
      * Used to update the RPS targets of the rollers component.
-     * @param enabledVelocity Target RPS when active. Received live through AdvantageScope or Elastic.
-     * @param idleVelocity Target RPS when idle. Received live through AdvantageScope or Elastic.
+     * @param enabledVoltage Target RPS when active. Received live through AdvantageScope or Elastic.
+     * @param idleVoltage Target RPS when idle. Received live through AdvantageScope or Elastic.
      */
-    private fun updateRollersTargetVelocity(enabledVelocity: Double, idleVelocity: Double) {
-        IntakeConstants.RPSTargets.EnabledRollersRPS = enabledVelocity.rotationsPerSecond
-        IntakeConstants.RPSTargets.IdleRollersRPS = idleVelocity.rotationsPerSecond
+    private fun updateRollersTargetVelocity(enabledVoltage: Double, clusteringVoltage: Double, idleVoltage: Double) {
+        IntakeConstants.VoltageTargets.EnabledRollersVoltage = enabledVoltage.volts
+        IntakeConstants.VoltageTargets.ClusteringRollersVoltage = clusteringVoltage.volts
+        IntakeConstants.VoltageTargets.IdleRollersVoltage = idleVoltage.volts
     }
 }

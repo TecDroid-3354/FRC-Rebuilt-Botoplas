@@ -43,7 +43,9 @@ object IndexerConstants {
          */
         object RPSTargets {
                 var HopperRollersVelocity        : AngularVelocity = Tunables.HopperRollersVelocity.get().rotationsPerSecond
+                var HopperRollersIdleVelocity        : AngularVelocity = Tunables.HopperRollersIdleVelocity.get().rotationsPerSecond
                 var TowerRollersVelocity         : AngularVelocity = Tunables.towerRollersVelocity.get().rotationsPerSecond
+                var TowerRollersIdleVelocity         : AngularVelocity = Tunables.towerRollersIdleVelocity.get().rotationsPerSecond
         }
 
         object Tunables {
@@ -53,7 +55,9 @@ object IndexerConstants {
                 val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
 
                 val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPS", 55.0)
-                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPS", 50.0)
+                val HopperRollersIdleVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers Idle RPS", 0.0)
+                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPS", 70.0)
+                val towerRollersIdleVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers Idle RPS", 0.0)
         }
 
         /**
@@ -76,8 +80,8 @@ object IndexerConstants {
                 // ---------------------------------
                 // PRIVATE — Current Limits
                 // ---------------------------------
-                private val supplyCurrentLimits : Current = Amps.of(40.0)
-                private val statorCurrentLimits : Current = Amps.of(40.0)
+                private val supplyCurrentLimits : Current = Amps.of(20.0)
+                private val statorCurrentLimits : Current = Amps.of(20.0)
                 private val statorCurrentEnable : Boolean = false
 
                 // ---------------------------------
@@ -128,7 +132,7 @@ object IndexerConstants {
          */
         object Telemetry {
                 const val INDEXER_TAB: String = "Indexer"
-                const val HPPER_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
+                const val HOPPER_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
                 const val TOWER_ENABLED_FIELD: String = "${INDEXER_TAB}/Tower Enabled"
                 const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
         }

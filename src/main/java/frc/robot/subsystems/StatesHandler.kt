@@ -139,10 +139,30 @@ class StatesHandler(
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true)) // Brake Intake + Hood
 
-        controller.rightBumper().onTrue(superstructure.noStateFeederRollersOnly()).onFalse(superstructure.disableIndexerCMD())
-        controller.leftBumper().onTrue(superstructure.noStateHopperBeltsOnly()).onFalse(superstructure.disableIndexerCMD())
-        controller.rightTrigger().onTrue(superstructure.noStateShootOnlyCMD()).onFalse(superstructure.disableShooterCMD())
-        controller.leftTrigger().onTrue(superstructure.noStateIntakeDeployableOnlyEnableCMD()).onFalse(superstructure.noStateIntakeDeployableOnlyDisableCMD())
+        controller.y().whileTrue(superstructure.driveTargetingHUB()).onFalse(superstructure.driveFollowingDriverInput())
+
+        controller.x().onTrue(superstructure.noStateShootOnlyCMD()).onFalse(superstructure.disableShooterCMD())
+
+//        controller.b().onTrue(superstructure.noStateHopperBeltsOnly())
+//            .onFalse(superstructure.disableIndexerCMD())
+//
+//        controller.x().whileTrue(superstructure.noStateFeederRollersOnly())
+//            .onFalse(superstructure.disableIndexerCMD())
+
+        //controller.a().whileTrue(superstructure.driveTrackingTarget()).onFalse(superstructure.driveFollowingDriverInput())
+
+        controller.rightTrigger().onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD())
+            .onFalse(superstructure.disableSubsystemsCMD())
+
+        controller.leftTrigger().onTrue(superstructure.scoreStateSequenceDefaultCMD())
+            .onFalse(superstructure.disableSubsystemsCMD())
+
+        controller.rightBumper().onTrue(superstructure.noStateIntakeRollersOnlyVoltageEnableCMD())
+            .onFalse(superstructure.disableIntakeRollersCMD())
+
+//        controller.rightBumper().onTrue(superstructure.intakeStateCMD())
+//            .onFalse(superstructure.disableIntakeRollersCMD().alongWith(superstructure.disableIndexerCMD()))
+        //controller.leftBumper().onTrue(superstructure.intakeClusterCMD())
 
 //        controller.rightTrigger().onTrue(Commands.select(
 //            mapOf<FieldZones, Command>(
