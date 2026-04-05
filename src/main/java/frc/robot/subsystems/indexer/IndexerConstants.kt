@@ -54,9 +54,9 @@ object IndexerConstants {
                 val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kD", 0.0)
                 val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Motors kF", 0.0)
 
-                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPS", 55.0)
+                val HopperRollersVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers RPS", 75.0)
                 val HopperRollersIdleVelocity         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Hopper Rollers Idle RPS", 0.0)
-                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPS", 70.0)
+                val towerRollersVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers RPS", 75.0)
                 val towerRollersIdleVelocity          : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INDEXER_TAB}/Tower Rollers Idle RPS", 0.0)
         }
 

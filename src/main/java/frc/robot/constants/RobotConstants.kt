@@ -3,6 +3,7 @@ package frc.robot.constants
 import com.pathplanner.lib.path.PathConstraints
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Transform2d
+import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.KilogramSquareMeters
 import edu.wpi.first.units.Units.Kilograms
 import edu.wpi.first.units.Units.Meters
@@ -67,13 +68,22 @@ object RobotConstants {
     object Autonomous {
         object NameStrings {
             const val RIGHT_AUTO        : String    = "RightAutoTwoCycles"
+            const val RIGHT_MULTI_PATH_AUTO        : String    = "Multi-Path-Right"
             const val LEFT_AUTO         : String    = "LeftAutoTwoCycles"
         }
 
         object EventTriggerStrings {
             const val INTAKE_DEPLOY                 : String    = "Intake Deploy"
             const val DISABLE_INTAKE_ROLLERS        : String    = "Disable Intake Rollers"
-            const val SHOOT_CMD                     : String    = "Score"
+            const val SCORE                     : String    = "Score"
+            const val ENABLE_SHOOTER                     : String    = "Enable Shooter"
+            const val INTAKE_LEDS                     : String    = "Intake LEDs"
+            const val SCORE_LEDS                     : String    = "Score LEDs"
+        }
+
+        object ShootingConstants {
+            val RIGHT_SIDE_SHOOTER_RPS              : AngularVelocity   = 2_700.0.div(60.0).rotationsPerSecond
+            val RIGHT_SIDE_HOOD_ANGLE               : Angle             = 18.91.degrees
         }
     }
 
@@ -89,19 +99,35 @@ object RobotConstants {
     }
 
     object LedControllerConstants {
-        const val LED_CONTROLLER_PORT: Int = 2
+        const val LED_CONTROLLER_PORT: Int = 0
         const val LED_CONTROLLER_TAB: String = "Rev Blinking"
         const val LED_CONTROLLER_CONNECTED_ALERTS_FIELD: String = "${LED_CONTROLLER_TAB}/Rev Blinking Alerts"
         const val TARGET_PWM_FIELD: String = "${LED_CONTROLLER_TAB}/Target PWM"
     }
 
     object Control {
-        val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle = 2.0.degrees
-        val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity = 0.8.rotationsPerSecond
+        val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle             = 3.0.degrees
+        val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity   = 0.8.rotationsPerSecond
+        val TIME_DELTA_BEFORE_CLUSTERING            : Time              = 0.2.seconds
     }
 
     object LoopInfo {
         val loopPeriod: Time = 0.02.seconds
+    }
+
+    object AllianceShiftsInfo {
+        private val TransitionShiftEnd: ClosedRange<Time> = Units.Seconds.of(133.0)..Units.Seconds.of(130.0)
+        private val FirstShift: ClosedRange<Time> = Units.Seconds.of(108.0)..Units.Seconds.of(105.0)
+        private val SecondShift: ClosedRange<Time> = Units.Seconds.of(83.0)..Units.Seconds.of(80.0)
+        private val ThirdShift: ClosedRange<Time> = Units.Seconds.of(58.0)..Units.Seconds.of(55.0)
+        private val LastShift: ClosedRange<Time> = Units.Seconds.of(33.0)..Units.Seconds.of(30.0)
+        val Shifts: List<ClosedRange<Time>> = listOf(
+            TransitionShiftEnd,
+            FirstShift,
+            SecondShift,
+            ThirdShift,
+            LastShift
+        )
     }
 
     object Telemetry {

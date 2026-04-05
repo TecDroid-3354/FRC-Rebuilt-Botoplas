@@ -152,10 +152,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
                     // Waits until Drive angle is within tolerance
-                    && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
+                    && getDriveCurrentRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
             }.withTimeout(1.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(1.0.seconds)
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
                     .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
@@ -174,7 +174,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(0.75.seconds)
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
                     .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
@@ -185,16 +185,16 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * - A little [WaitCommand] is used to ensure drive has the right rotation.
      * @return A [ParallelCommandGroup] with the above specifications.
      */
-    fun scoreStateSequenceAutoCMD(): Command {
+    fun scoreStateSequenceAutoRightCMD(): Command {
         return ParallelCommandGroup(
-            WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
-            scoreStateShooterInterpolationCMD(), // Enables Shooter interpolation
-            scoreStateHoodInterpolationCMD(), // Enables Hood interpolation
+            //WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
+            shooter.setVelocityCMD { RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_SHOOTER_RPS }, // Enables Shooter
+            hood.setAngleCMD(RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_HOOD_ANGLE), // Enables Hood
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(2.0.seconds)
+            }.withTimeout(1.2.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(0.75.seconds)
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
                     .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
         )
     }
@@ -215,7 +215,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD())) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(0.75.seconds)) // Safety for deployable assuming full hopper
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)) // Safety for deployable assuming full hopper
                     .andThen(intakeClusterCMD()) // Enables Intake clustering to push FUELS towards the tower
     }
 
@@ -235,11 +235,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             assistStateHoodInterpolationCMD(), // Enables Hood interpolation
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-                    // Waits until Drive angle is within tolerance
-                    && getDriveRotationError() < RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING
             }.withTimeout(2.0.seconds)
                 .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(0.75.seconds) // Safety for deployable assuming full hopper
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING) // Safety for deployable assuming full hopper
                     .andThen(intakeClusterCMD()))) // Enables Intake clustering to push FUELS towards the tower
     }
 
@@ -394,6 +392,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return shooter.setVelocityCMD { ShooterConstants.Tunables.enabledRPMs.get().div(60.0).rotationsPerSecond }
     }
 
+    fun noStateShootOnlyCMD(rpms: Double): Command {
+        return shooter.setVelocityCMD { rpms.div(60.0).rotationsPerSecond }
+    }
+
     /**
      * Intended to use during [net.tecdroid.util.stateMachine.States.EmergencyShootState].
      * A fixed angle is set to the [Hood] without calling any interpolation as during the mentioned state,
@@ -442,10 +444,24 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     /**
      * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
-     * [Shooter] and [Intake] ROLLERS. This method does NOT request an [Intake] position.
+     * [Shooter] and [Intake] rollers while commanding deployed position.
      * @return A [ParallelCommandGroup] with the above requests.
      */
     fun disableSubsystemsCMD(): Command {
+        return ParallelCommandGroup(
+            storeHoodCMD(),
+            disableIndexerCMD(),
+            intake.deployAndDisableIntakeCMD(),
+            disableShooterCMD()
+        )
+    }
+
+    /**
+     * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
+     * [Shooter] and [Intake] ROLLERS. This method does NOT request an [Intake] position.
+     * @return A [ParallelCommandGroup] with the above requests.
+     */
+    fun disableSubsystemsInitCMD(): Command {
         return ParallelCommandGroup(
             storeHoodCMD(),
             disableIndexerCMD(),
@@ -523,6 +539,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     /**
+     * Stops the [Drive] with an X arrangement in the wheels to avoid movement.
+     * @return A [RunCommand] with the above specifications.
+     */
+    fun stopDriveWithX(): Command {
+        return RunCommand({ drive.stopWithX() }, drive)
+    }
+
+    /**
      * Intended to reset [drive.pose] when in Red Alliance. This means, keep translation and override angle to 180.
      * @return An [InstantCommand] resetting the [Drive] pose.
      */
@@ -584,8 +608,47 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * The difference between the target angle (updated in [lastDriveAngle]) and the current [Drive] angle.
      * @return The [Drive] error to reach target angle.
      */
-    fun getDriveRotationError(): Angle {
+    fun getDriveCurrentRotationError(): Angle {
         return abs(lastDriveAngle.`in`(Degrees) - drive.rotation.degrees).degrees
+    }
+
+    /**
+     * The difference between the HUB angle and the current [Drive] angle.
+     * @return The [Drive] error to reach HUB angle.
+     */
+    @AutoLogOutput(key = "Odometry/Drive to HUB Theta Error")
+    fun getDriveToHubRotationError(): Angle {
+        return abs(getDriveToHubTargetAngle().`in`(Degrees) - drive.rotation.degrees).degrees
+    }
+
+    /**
+     * Determines whether the [Drive] is within tolerance to score into the HUB.
+     * The .minus(2 * PI) is because in the upper side of the field, [getDriveToHubRotationError]
+     * returns the error angle plus one rotation.
+     * @return Whether the [Drive] is within tolerance to score into the HUB.
+     */
+    @AutoLogOutput(key = "Odometry/IsDriveAtSetpoint")
+    fun isDriveAtScoreSetpoint(): Boolean {
+        val rotationError = if (getDriveToHubRotationError().gte(Math.PI.times(2.0).radians))
+            getDriveToHubRotationError().minus(Math.PI.times(2.0).radians) else getDriveToHubRotationError()
+        return abs(rotationError.`in`(Degrees)) <
+                (RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING.`in`(Degrees))
+    }
+
+    /**
+     * Gets the [Drive] -> HUB vector and calculates its angle. PI is added to account for [Shooter] facing backwards.
+     * Unlike [getDriveToHubAngle], this method does not update [lastDriveAngle], since it is only used to determine
+     * if the [Drive] is at setpoint when scoring.
+     * @return The [Drive] -> HUB [Angle]
+     */
+    private fun getDriveToHubTargetAngle(): Angle {
+        val driveToHubTranslation = getDriveToHubTranslation()
+
+        // Shooter is facing backwards with reference to the robot, hence we add PI to shoot.
+        val atan2Rad = atan2(driveToHubTranslation.measureY.`in`(Meters), driveToHubTranslation.measureX.`in`(Meters))
+            .plus(Math.PI).radians
+
+        return atan2Rad
     }
 
     /**

@@ -41,9 +41,9 @@ object HoodConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.5)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 1.85)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
-        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.1)
+        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.125)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
 
         val hoodTunableAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 16.0)
@@ -70,11 +70,14 @@ object HoodConstants {
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
         val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.28.meters to 20.0.degrees,
-            2.0.meters to 20.0.degrees,
-            2.5.meters to 20.0.degrees,
-            3.0.meters to 20.0.degrees,
-            3.5.meters to 20.0.degrees,
+            1.397.meters to (25.0).degrees,
+            2.000.meters to (25.0).degrees,
+            2.500.meters to (25.0).degrees,
+            3.000.meters to (22.5).degrees,
+            3.500.meters to (22.5).degrees,
+            4.000.meters to (22.5).degrees,
+            4.500.meters to (20.0).degrees,
+            5.000.meters to (20.0).degrees,
         )
     }
 

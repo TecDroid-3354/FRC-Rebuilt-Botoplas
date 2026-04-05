@@ -49,10 +49,8 @@ object IntakeConstants {
      * Idle deployable positions for each intake state: retracted and deployed
      */
     object RetractileAngles {
-        // TODO: Need to measure actual displacement when clustering our intake once deployed can´t return
-        // to its original position.
         val ClusteredDisplacement               : Distance = 0.07.meters
-        val DeployedDisplacement                : Distance = 0.303354.meters
+        val DeployedDisplacement                : Distance = 0.28.meters // 0.303354
         val DeployableDisplacementDelta         : Distance = 0.05.meters
     }
 
@@ -100,7 +98,7 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(30.0)
+        private val supplyCurrentLimits : Current = Amps.of(25.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 
@@ -114,7 +112,7 @@ object IntakeConstants {
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val deployCruiseVelocity      : LinearVelocity = Units.MetersPerSecond.of(0.85)
+        private val deployCruiseVelocity      : LinearVelocity = Units.MetersPerSecond.of(1.0)
         private val deployAcceleration        : Time = 0.1.seconds
         private val deployJerktime            : Time = 0.1.seconds
 

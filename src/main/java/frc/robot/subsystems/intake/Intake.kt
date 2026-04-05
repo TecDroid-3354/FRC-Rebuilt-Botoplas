@@ -281,7 +281,7 @@ class Intake() : SysIdSubsystem("Intake") {
     fun clusterIntakeCMD(): Command {
         return SequentialCommandGroup(
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
-            WaitCommand(0.25.seconds),
+            //WaitCommand(0.25.seconds),
             setPositionCMD(IntakePositions.CLUSTERED),
         )
     }
