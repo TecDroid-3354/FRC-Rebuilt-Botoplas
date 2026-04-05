@@ -153,7 +153,7 @@ class StatesHandler(
 
         //controller.a().whileTrue(superstructure.driveTrackingTarget()).onFalse(superstructure.driveFollowingDriverInput())
 
-        controller.rightTrigger(0.4).onTrue(Commands.select(
+        controller.rightTrigger(0.6).onTrue(Commands.select(
             mapOf<FieldZones, Command>(
                 FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD()
                     .alongWith(setShootingLed()),

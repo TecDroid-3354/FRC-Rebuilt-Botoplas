@@ -283,7 +283,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in ShooterConstants.Control.shooterScoreInterpolationPoints) {
+        for (point in ShooterConstants.Control.shooterScoreHighCurvatureInterpolationPoints) {
             scoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))

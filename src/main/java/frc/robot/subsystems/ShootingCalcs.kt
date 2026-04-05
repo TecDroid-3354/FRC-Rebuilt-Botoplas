@@ -232,7 +232,7 @@ class ShootingCalcs(
      */
     private fun configureInterpolationPoints() {
         // Shooter
-        for (point in ShooterConstants.Control.shooterScoreInterpolationPoints) {
+        for (point in ShooterConstants.Control.shooterScoreHighCurvatureInterpolationPoints) {
             shooterScoreInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond))
@@ -247,14 +247,14 @@ class ShootingCalcs(
         }
 
         // Hood
-        for (point in HoodConstants.Control.hoodScoreDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodScoreHighCurvatureInterpolationPoints) {
             hoodScoreInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees))
             )
         }
 
-        for (point in HoodConstants.Control.hoodAssistDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodAssistInterpolationPoints) {
             hoodAssistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees))

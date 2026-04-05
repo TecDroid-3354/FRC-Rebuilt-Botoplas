@@ -214,9 +214,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(2.0.seconds)
-                .andThen(indexerEnableCMD())) // Enables the Indexer, both hopper and tower rollers
+                .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
                 .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)) // Safety for deployable assuming full hopper
-                    .andThen(intakeClusterCMD()) // Enables Intake clustering to push FUELS towards the tower
+                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
     }
 
     /*----------------------------------------------------------------------------------------------------*/

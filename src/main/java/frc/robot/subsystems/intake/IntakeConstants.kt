@@ -50,7 +50,7 @@ object IntakeConstants {
      */
     object RetractileAngles {
         val ClusteredDisplacement               : Distance = 0.07.meters
-        val DeployedDisplacement                : Distance = 0.28.meters // 0.303354
+        val DeployedDisplacement                : Distance = 0.295.meters // 0.303354
         val DeployableDisplacementDelta         : Distance = 0.05.meters
     }
 

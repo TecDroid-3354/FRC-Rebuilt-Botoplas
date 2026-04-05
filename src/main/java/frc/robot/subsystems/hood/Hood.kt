@@ -268,13 +268,13 @@ class Hood() : SysIdSubsystem("Hood") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in HoodConstants.Control.hoodScoreDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodScoreHighCurvatureInterpolationPoints) {
             hoodScoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }
 
-        for (point in HoodConstants.Control.hoodAssistDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodAssistInterpolationPoints) {
             hoodAssistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))

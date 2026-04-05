@@ -55,9 +55,8 @@ object HoodConstants {
     object Control {
         val HoodLowestPosition: Angle = 0.0.degrees
 
-        // Score With Hood
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
-        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+        val hoodScoreHighCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
             1.397.meters to (06.0).degrees,
             2.000.meters to (12.0).degrees,
             2.500.meters to (14.4).degrees,
@@ -68,8 +67,20 @@ object HoodConstants {
             5.000.meters to (24.5 + 0.3).degrees,
         )
 
+        // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
+        val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.397.meters to (07.0).degrees,
+            2.000.meters to (14.0).degrees,
+            2.500.meters to (18.0).degrees,
+            3.000.meters to (20.0).degrees,
+            3.500.meters to (22.0).degrees,
+            4.000.meters to (25.0).degrees,
+            4.500.meters to (25.0).degrees,
+            5.000.meters to (25.0).degrees,
+        )
+
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
-        val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+        val hoodAssistInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
             1.397.meters to (25.0).degrees,
             2.000.meters to (25.0).degrees,
             2.500.meters to (25.0).degrees,

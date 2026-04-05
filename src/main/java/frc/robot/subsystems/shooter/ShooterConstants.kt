@@ -3,11 +3,8 @@ package frc.robot.subsystems.shooter
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.numbers.N2
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RotationsPerSecond
-import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
@@ -15,18 +12,12 @@ import edu.wpi.first.units.measure.Time
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
 import frc.template.utils.seconds
 import java.util.Optional
-import edu.wpi.first.math.Nat
-import edu.wpi.first.math.numbers.N1
-import edu.wpi.first.units.Units
 import frc.template.utils.rotationsPerSecond
-import kotlin.math.sin
-import kotlin.math.cos
 
 data class ShooterPoint(val hubDistance: Distance, val shooterRPS: AngularVelocity)
 
@@ -69,9 +60,9 @@ object ShooterConstants {
         val MAX_RPS               : AngularVelocity = RotationsPerSecond.of(6_000.0 / 60)
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
-        // Score With Hood
+        // Score without too much use of the Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+        val shooterScoreHighCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
             1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
             2.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
             2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
@@ -80,6 +71,20 @@ object ShooterConstants {
             4.000.meters to (2_700.0).div(60.0).rotationsPerSecond,
             4.500.meters to (2_800.0).div(60.0).rotationsPerSecond,
             5.000.meters to (2_850.0).div(60.0).rotationsPerSecond,
+        )
+
+        // Score with full much use of the Hood
+        // The increment per step (0.5 meters) gets bigger as we meet the limit of Hood's range, relying on pure RPMs.
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
+        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.397.meters to (2_150.0).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_300.0).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_350.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_475.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_575.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_825.0).div(60.0).rotationsPerSecond,
         )
 
         // Assist

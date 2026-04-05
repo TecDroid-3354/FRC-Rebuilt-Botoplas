@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.865178316690441,
-        "y": 8.764079885877317
+        "x": 9.719129814550644,
+        "y": 9.216932952924394
       },
       "isLocked": false,
       "linkedName": null
@@ -20,12 +20,12 @@
         "y": 4.42962910128388
       },
       "prevControl": {
-        "x": 8.115605274413161,
-        "y": 4.197090292065001
+        "x": 7.778330955777463,
+        "y": 3.937960057061342
       },
       "nextControl": {
-        "x": 4.517788873038516,
-        "y": 4.74015691868759
+        "x": 4.649058431589503,
+        "y": 5.216587540062869
       },
       "isLocked": false,
       "linkedName": null
@@ -67,8 +67,8 @@
         "y": 7.03
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 0.0,
-      "maxWaypointRelativePos": 0.17639593908629267,
+      "minWaypointRelativePos": 0.07,
+      "maxWaypointRelativePos": 0.14,
       "name": "Point Towards Zone"
     },
     {
@@ -78,7 +78,7 @@
       },
       "rotationOffset": 0.0,
       "minWaypointRelativePos": 0.45494923857868186,
-      "maxWaypointRelativePos": 0.8625904010519414,
+      "maxWaypointRelativePos": 0.65,
       "name": "Point Towards Zone"
     },
     {
