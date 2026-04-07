@@ -3,41 +3,32 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.489,
-        "y": 1.095
+        "x": 4.349586305278173,
+        "y": 0.48333808844507875
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0902650602409643,
-        "y": 0.01360240963855519
+        "x": 8.27,
+        "y": 0.4315834522111266
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.5,
-        "y": 1.238
+        "x": 7.830085592011411,
+        "y": 0.95
       },
       "prevControl": {
-        "x": 8.5,
-        "y": 0.6195909090909089
+        "x": 7.571312410841653,
+        "y": 0.7559201141226821
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.20755905511811085,
-      "rotationDegrees": 0.0
-    },
-    {
-      "waypointRelativePos": 0.5,
-      "rotationDegrees": 0.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -50,14 +41,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 3.0,
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": "Right Two Cycles Auto Paths",
+  "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 53.37
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

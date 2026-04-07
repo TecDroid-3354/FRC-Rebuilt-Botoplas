@@ -15,7 +15,6 @@ package frc.robot.subsystems.drivetrain;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -39,7 +38,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -132,7 +130,7 @@ public class Drive extends SubsystemBase {
     AutoBuilder.configure(
         this::getPose,
         this::setPose,
-        this::getChassisSpeeds,
+        this::getRobotRelativeSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
             new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
@@ -181,6 +179,7 @@ public class Drive extends SubsystemBase {
     }
     odometryLock.unlock();
 
+    updateTunableNumbers();
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
       for (var module : modules) {
@@ -243,7 +242,7 @@ public class Drive extends SubsystemBase {
       AutoBuilder.configure(
               this::getPose,
               this::setPose,
-              this::getChassisSpeeds,
+              this::getRobotRelativeSpeeds,
               this::runVelocity,
               new PPHolonomicDriveController(
                       new PIDConstants(SwerveTunerConstants.autoDrive_kP.get(),
@@ -347,9 +346,15 @@ public class Drive extends SubsystemBase {
   }
 
   /** Returns the measured chassis speeds of the robot. */
-  @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
-  public ChassisSpeeds getChassisSpeeds() {
+  @AutoLogOutput(key = "SwerveChassisSpeeds/Robot Relative Measured")
+  public ChassisSpeeds getRobotRelativeSpeeds() {
     return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  /** Returns the measured chassis speeds of the robot. */
+  @AutoLogOutput(key = "SwerveChassisSpeeds/Field Relative Measured")
+  public ChassisSpeeds getFieldRelativeSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeSpeeds(), getRotation());
   }
 
   /** Returns the position of each module in radians. */

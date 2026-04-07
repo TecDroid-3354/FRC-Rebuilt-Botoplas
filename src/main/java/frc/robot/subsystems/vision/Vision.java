@@ -56,6 +56,11 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  /**
+   * Cools down cameras by skipping the specified amount of frames.
+   * @param throttle The amount of frames the cameras should skip. The greater the number the more the frames the
+   * camera skips. value between 0 - 250.
+   */
   public void setThrottle(double throttle) {
     for(VisionIO camera : io) {
       camera.setThrottle(throttle);

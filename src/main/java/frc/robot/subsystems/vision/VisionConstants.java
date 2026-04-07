@@ -22,8 +22,8 @@ public class VisionConstants {
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Since we are using limelights, all configuration must be in the web UI. Might change if we want to move LLs live.
-  public static String frontLimelight = "limelight-front";
   public static String leftLimelight = "limelight-left";
+  public static String backLimelight = "limelight-back";
   public static String rightLimelight = "limelight-right";
 
   // Basic filtering thresholds

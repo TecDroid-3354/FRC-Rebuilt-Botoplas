@@ -1,6 +1,8 @@
 package frc.robot.subsystems.indexer
 
 import com.ctre.phoenix6.configs.Slot0Configs
+import edu.wpi.first.units.Units
+import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
@@ -10,7 +12,9 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.rotationsPerSecond
+import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
+import java.util.function.Supplier
 
 class Indexer() : SubsystemBase() {
     // -------------------------------
@@ -97,8 +101,8 @@ class Indexer() : SubsystemBase() {
      * Enables the hopper belts with the voltage stored in [IndexerConstants.RPSTargets].
      * IndexerRollersVoltage within the constants is used.
      */
-    private fun enableHopperBelts() {
-        hopperRollersMotor.velocityRequest(IndexerConstants.RPSTargets.HopperRollersVelocity)
+    private fun enableHopperBelts(velocity: Supplier<AngularVelocity>) {
+        hopperRollersMotor.velocityRequest(velocity.get())
         hopperEnabled = true
     }
 
@@ -114,8 +118,9 @@ class Indexer() : SubsystemBase() {
      * Enables the tower rollers with the voltage stored in [IndexerConstants.RPSTargets].
      * TowerRollersVoltage within the constants is used.
      */
-    private fun enableTowerRollers() {
-        leadTowerRollersMotor.velocityRequest(IndexerConstants.RPSTargets.TowerRollersVelocity)
+    private fun enableTowerRollers(velocity: Supplier<AngularVelocity>) {
+        //leadTowerRollersMotor.velocityRequest(30.0.rotationsPerSecond)
+        leadTowerRollersMotor.velocityRequest(velocity.get())
         towerEnabled   = true
     }
 
@@ -152,8 +157,12 @@ class Indexer() : SubsystemBase() {
     /**
      * Command version of [enableHopperBelts].
      */
-    private fun enableHopperBeltsCMD(): Command {
-        return InstantCommand({ enableHopperBelts() })
+    fun enableHopperBeltsCMD(): Command {
+        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersVelocity } })
+    }
+
+    fun enableHopperBeltsIdleCMD(): Command {
+        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersIdleVelocity } })
     }
 
     /**
@@ -166,8 +175,12 @@ class Indexer() : SubsystemBase() {
     /**
      * Command version of [enableTowerRollers].
      */
-    private fun enableTowerRollersCMD(): Command {
-        return InstantCommand({ enableTowerRollers() })
+    fun enableTowerRollersCMD(): Command {
+        return InstantCommand({ enableTowerRollers { IndexerConstants.RPSTargets.TowerRollersVelocity } })
+    }
+
+    fun enableTowerRollersIdleCMD(): Command {
+        return InstantCommand({ enableTowerRollers { IndexerConstants.RPSTargets.TowerRollersIdleVelocity } })
     }
 
     /**
@@ -192,10 +205,10 @@ class Indexer() : SubsystemBase() {
         )
     }
 
-    fun enableIndexerReversedCMD(): Command {
+    fun enableIndexerIdleCMD(): Command {
         return ParallelCommandGroup(
-            InstantCommand({ enableHopperBeltsReversed() }),
-            InstantCommand({ enableTowerRollersReversed() })
+            enableHopperBeltsIdleCMD(),
+            enableTowerRollersIdleCMD()
         )
     }
 
@@ -213,11 +226,32 @@ class Indexer() : SubsystemBase() {
     // PUBLIC — Telemetry methods
     // -------------------------------
 
+
+    @AutoLogOutput
+    fun getTowerVelocity(): AngularVelocity {
+        return IndexerConstants.PhysicalLimits.TowerReduction.apply(leadTowerRollersMotor.getVelocity())
+    }
+
+    @AutoLogOutput
+    fun getHopperVelocity(): AngularVelocity {
+        return IndexerConstants.PhysicalLimits.HopperReduction.apply(hopperRollersMotor.getVelocity())
+    }
+
+    @AutoLogOutput
+    fun getTargetTowerVelocity(): AngularVelocity {
+        return IndexerConstants.RPSTargets.TowerRollersVelocity
+    }
+
+    @AutoLogOutput
+    fun getTargetHopperVelocity(): AngularVelocity {
+        return IndexerConstants.RPSTargets.HopperRollersVelocity
+    }
+
     /**
      * Returns whether the indexer components are enabled.
      * This can be seen live in the "Indexer" tab of AdvantageScope.
      */
-    @AutoLogOutput(key = IndexerConstants.Telemetry.HPPER_ENABLED_FIELD)
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_ENABLED_FIELD)
     fun isIndexerEnabled(): Boolean {
         return hopperEnabled
     }

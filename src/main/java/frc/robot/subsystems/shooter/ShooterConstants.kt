@@ -3,11 +3,8 @@ package frc.robot.subsystems.shooter
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.numbers.N2
 import edu.wpi.first.units.Units.Amps
 import edu.wpi.first.units.Units.RotationsPerSecond
-import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
@@ -15,18 +12,12 @@ import edu.wpi.first.units.measure.Time
 import frc.robot.utils.controlProfiles.LoggedTunableNumber
 import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
-import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
 import frc.template.utils.seconds
 import java.util.Optional
-import edu.wpi.first.math.Nat
-import edu.wpi.first.math.numbers.N1
-import edu.wpi.first.units.Units
 import frc.template.utils.rotationsPerSecond
-import kotlin.math.sin
-import kotlin.math.cos
 
 data class ShooterPoint(val hubDistance: Distance, val shooterRPS: AngularVelocity)
 
@@ -52,12 +43,12 @@ object ShooterConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.5)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.7)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.8)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.55)
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 3100.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2600.0)
         val warmUpRPMs : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Warm Up RPMs", 1500.0)
     }
 
@@ -69,35 +60,44 @@ object ShooterConstants {
         val MAX_RPS               : AngularVelocity = RotationsPerSecond.of(6_000.0 / 60)
         val MIN_RPS               : AngularVelocity = MAX_RPS.unaryMinus()
 
-        // Score With Hood
+        // Score without too much use of the Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-//        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-//            2.02.meters to (2_400.0).div(60.0).rotationsPerSecond,
-//            2.52.meters to (2_650.0).div(60.0).rotationsPerSecond,
-//            3.02.meters to (2_800.0).div(60.0).rotationsPerSecond,
-//            3.52.meters to (2_900.0).div(60.0).rotationsPerSecond,
-//            4.02.meters to (3_050.0).div(60.0).rotationsPerSecond,
-//            5.25.meters to (3_150.0).div(60.0).rotationsPerSecond,
-//        )
+        val shooterScoreHighCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_650.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_700.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_800.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_850.0).div(60.0).rotationsPerSecond,
+        )
 
-        // Score Without Hood
+        // Score with full much use of the Hood
+        // The increment per step (0.5 meters) gets bigger as we meet the limit of Hood's range, relying on pure RPMs.
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
-        val shooterScoreInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.646.meters to 2_270.div(60.0).rotationsPerSecond,
-            2.05.meters to 2_540.div(60.0).rotationsPerSecond,
-            2.54.meters to 2_620.div(60.0).rotationsPerSecond,
-            3.354.meters to 2_790.div(60.0).rotationsPerSecond,
-            4.128.meters to 3_070.div(60.0).rotationsPerSecond,
-            5.02.meters to 3_420.div(60.0).rotationsPerSecond,
+        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            1.397.meters to (2_150.0).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_300.0).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_350.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_450.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_475.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_575.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_825.0).div(60.0).rotationsPerSecond,
         )
 
         // Assist
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterAssistInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.28.meters to 2_000.0.div(60.0).rotationsPerSecond,
-            2.0.meters to 2_450.0.div(60.0).rotationsPerSecond,
-            2.5.meters to 2_620.0.div(60.0).rotationsPerSecond,
-            3.354.meters to 2_700.0.div(60.0).rotationsPerSecond,
+            1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_600.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_700.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_800.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_900.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (3_000.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (3_100.0).div(60.0).rotationsPerSecond,
         )
     }
 
@@ -109,8 +109,8 @@ object ShooterConstants {
         // ---------------------------------
         // PUBLIC — Follower Alignment
         // ---------------------------------
-        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Aligned
-        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Opposed
+        val rightFollowerAlignment      : MotorAlignmentValue = MotorAlignmentValue.Opposed
+        val leftFollowerAlignment       : MotorAlignmentValue = MotorAlignmentValue.Aligned
 
         // ---------------------------------
         // PRIVATE — Motor Outputs
@@ -171,5 +171,4 @@ object ShooterConstants {
         const val SHOOTER_TARGET_RPM_FIELD: String = "${SHOOTER_TAB}/Shooter Target RPMs"
         const val SHOOTER_CONNECTED_ALERTS_FIELD: String = "${SHOOTER_TAB}/Shooter Connection Alerts"
     }
-
 }

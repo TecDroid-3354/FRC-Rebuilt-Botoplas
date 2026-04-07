@@ -15,10 +15,8 @@ import frc.template.utils.controlProfiles.AngularMotionTargets
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
-import frc.template.utils.devices.ThroughBoreBrand
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
-import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -29,63 +27,68 @@ object HoodConstants {
      */
     object Identification {
         const val HOOD_MOTOR_ID : Int = 51
-        const val ABSOLUTE_ENCODER_ID : Int = 50
     }
 
     /**
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction(10.5)
-        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 100.0.degrees)
+        val Reduction           : Reduction = Reduction((142.0/13.0) * (60.0/9.0) * (37.0/22.0)) // Old: (11.2121 * 7.4) * 2
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 25.0.degrees)
     }
 
     /**
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 0.35)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 1.85)
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
-        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.1)
+        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.125)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
 
-        val motorAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 0.0)
+        val hoodTunableAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 16.0)
     }
 
     /**
      * Contains all control interpolation points for the [Hood], both distance and velocity driven.
      */
     object Control {
-        val HoodDownPosition: Angle = 0.0.degrees
+        val HoodLowestPosition: Angle = 0.0.degrees
 
-        // Score With Hood
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
-//        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-//            2.02.meters to 4.2.degrees,
-//            2.52.meters to 10.0.degrees,
-//            3.02.meters to 15.0.degrees,
-//            3.52.meters to 20.0.degrees,
-//            4.02.meters to 35.0.degrees,
-//            5.25.meters to 100.0.degrees,
-//        )
+        val hoodScoreHighCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.397.meters to (06.0).degrees,
+            2.000.meters to (12.0).degrees,
+            2.500.meters to (14.4).degrees,
+            3.000.meters to (16.5 + 0.3).degrees,
+            3.500.meters to (17.0 + 0.3).degrees,
+            4.000.meters to (20.0 + 0.3).degrees,
+            4.500.meters to (22.0 + 0.3).degrees,
+            5.000.meters to (24.5 + 0.3).degrees,
+        )
 
-        // Score Without Hood
-        val hoodScoreDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.646.meters to 0.0.degrees,
-            2.05.meters to 0.0.degrees,
-            2.54.meters to 0.0.degrees,
-            3.354.meters to 0.0.degrees,
-            4.128.meters to 10.0.degrees,
-            5.02.meters to 25.0.degrees,
+        // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
+        val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.397.meters to (07.0).degrees,
+            2.000.meters to (14.0).degrees,
+            2.500.meters to (18.0).degrees,
+            3.000.meters to (20.0).degrees,
+            3.500.meters to (22.0).degrees,
+            4.000.meters to (25.0).degrees,
+            4.500.meters to (25.0).degrees,
+            5.000.meters to (25.0).degrees,
         )
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)
-        val hoodAssistDistanceInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.28.meters to 100.0.degrees,
-            2.0.meters to 100.0.degrees,
-            2.5.meters to 100.0.degrees,
-            3.0.meters to 100.0.degrees,
-            3.5.meters to 100.0.degrees,
+        val hoodAssistInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+            1.397.meters to (25.0).degrees,
+            2.000.meters to (25.0).degrees,
+            2.500.meters to (25.0).degrees,
+            3.000.meters to (22.5).degrees,
+            3.500.meters to (22.5).degrees,
+            4.000.meters to (22.5).degrees,
+            4.500.meters to (20.0).degrees,
+            5.000.meters to (20.0).degrees,
         )
     }
 
@@ -95,41 +98,32 @@ object HoodConstants {
      */
     object Configuration {
         // ---------------------------------
-        // PRIVATE — Absolute Encoder Config
-        // ---------------------------------
-        object AbsoluteEncoder {
-            val offset                  : Angle = 0.0.degrees
-            val inverted                : Boolean = false
-            val brand                   : ThroughBoreBrand = ThroughBoreBrand.WCP
-        }
-
-        // ---------------------------------
         // PRIVATE — Motor Outputs
         // ---------------------------------
-        private val neutralMode         : NeutralModeValue = NeutralModeValue.Brake
-        private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+        private val neutralMode              : NeutralModeValue = NeutralModeValue.Coast
+        private val motorOrientation         : InvertedValue = InvertedValue.Clockwise_Positive
 
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(20.0)
-        private val statorCurrentLimits : Current = Amps.of(40.0)
-        private val statorCurrentEnable : Boolean = false
+        private val supplyCurrentLimits      : Current = Amps.of(15.0)
+        private val statorCurrentLimits      : Current = Amps.of(40.0)
+        private val statorCurrentLimitEnable : Boolean = false
 
 
         // ---------------------------------
         // PUBLIC — Slot 0
         // ---------------------------------
-        val controlGains                : ControlGains = ControlGains(
+        val controlGains                     : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.25, v = 0.12, a = 0.01, g = 0.0)
 
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
-        private val cruiseVelocity      : AngularVelocity = RadiansPerSecond.of(100.0)
-        private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.2.seconds
+        private val cruiseVelocity          : AngularVelocity = RadiansPerSecond.of(100.0)
+        private val acceleration            : Time = 0.05.seconds
+        private val jerkTime                : Time = 0.0.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
@@ -140,7 +134,7 @@ object HoodConstants {
             Optional.of(
                 KrakenMotors.configureCurrentLimits(
                     supplyCurrentLimits,
-                    statorCurrentEnable,
+                    statorCurrentLimitEnable,
                     statorCurrentLimits
                 )),
             Optional.of(
@@ -160,7 +154,6 @@ object HoodConstants {
     object Telemetry {
         const val HOOD_TAB          : String = "Hood"
         const val HOOD_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Angle"
-        const val HOOD_ABSOLUTE_ENCODER_ANGLE_FIELD  : String = "${HOOD_TAB}/Absolute Encoder Angle"
         const val HOOD_TARGET_ANGLE_FIELD  : String = "${HOOD_TAB}/Hood Target Angle"
         const val HOOD_CONNECTED_ALERTS_FIELD  : String = "${HOOD_TAB}/Hood Connection alert"
     }

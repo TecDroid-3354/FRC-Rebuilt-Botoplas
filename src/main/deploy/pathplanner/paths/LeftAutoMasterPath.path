@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.427218259629101,
-        "y": 7.5996005706134095
+        "x": 4.427,
+        "y": 7.6
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.257061340941512,
-        "y": 7.987760342368045
+        "x": 9.388582181517897,
+        "y": 8.102863058937624
       },
       "isLocked": false,
       "linkedName": null
@@ -32,12 +32,12 @@
     },
     {
       "anchor": {
-        "x": 3.198,
-        "y": 7.483152639087019
+        "x": 3.1,
+        "y": 7.22
       },
       "prevControl": {
-        "x": 9.4861828070151,
-        "y": 8.233640910792463
+        "x": 10.0814122681883,
+        "y": 8.50530670470756
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,11 +48,11 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.4,
-      "maxWaypointRelativePos": 1.1459390862944185,
+      "minWaypointRelativePos": 0.44061302681992404,
+      "maxWaypointRelativePos": 1.104725415070237,
       "constraints": {
-        "maxVelocity": 2.2,
-        "maxAcceleration": 2.2,
+        "maxVelocity": 2.0,
+        "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -100,6 +100,12 @@
       "command": null
     },
     {
+      "name": "Enable Shooter",
+      "waypointRelativePos": 1.8250319284801986,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
       "name": "Disable Intake Rollers",
       "waypointRelativePos": 1.9175126903553155,
       "endWaypointRelativePos": null,
@@ -113,16 +119,16 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 4.5,
-    "maxAcceleration": 6.5,
-    "maxAngularVelocity": 500.0,
-    "maxAngularAcceleration": 550.0,
+    "maxVelocity": 3.25,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 200.0,
+    "maxAngularAcceleration": 225.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -61.6108114079135
+    "rotation": 118.851
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",

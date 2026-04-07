@@ -7,13 +7,18 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
 import com.ctre.phoenix6.controls.MotionMagicVoltage
 import com.ctre.phoenix6.controls.VoltageOut
 import com.ctre.phoenix6.hardware.TalonFX
+import com.ctre.phoenix6.signals.ControlModeValue
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
+import edu.wpi.first.units.DistanceUnit
+import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
+import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.Voltage
+import frc.template.utils.Sprocket
 import frc.template.utils.hertz
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.safety.MeasureLimits
@@ -57,6 +62,15 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
         if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
         val subsystemClampedAngle: Angle = limits.coerceIn(position) as Angle
         val motorTransformedAngle: Angle = reduction.unapply(subsystemClampedAngle)
+        positionRequest(motorTransformedAngle)
+    }
+
+    fun positionRequestSubsystem(displacement: Distance, limits: MeasureLimits<DistanceUnit>, reduction: Reduction, sprocket: Sprocket) {
+        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
+        val subsystemClampedDistance: Distance = limits.coerceIn(displacement) as Distance
+        val requestedLinearDisplacementToAngularDisplacement: Angle =
+            sprocket.linearDisplacementToAngularDisplacement(subsystemClampedDistance)
+        val motorTransformedAngle: Angle = reduction.unapply(requestedLinearDisplacementToAngularDisplacement)
         positionRequest(motorTransformedAngle)
     }
 

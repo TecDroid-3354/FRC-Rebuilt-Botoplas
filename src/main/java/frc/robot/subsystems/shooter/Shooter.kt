@@ -2,7 +2,6 @@ package frc.robot.subsystems.shooter
 
 import com.ctre.phoenix6.configs.Slot0Configs
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
-import com.ctre.phoenix6.signals.MotorAlignmentValue
 import edu.wpi.first.units.Units.DegreesPerSecond
 import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.Units.RotationsPerSecond
@@ -190,7 +189,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * @param distanceToTarget The current distance from chassis to the target (HUB or passed the trench to assist).
      * @return a [RunCommand] calling [setScoringInterpolatedVelocity]
      */
-    fun setScoringInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
+    fun setScoreInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
         return RunCommand({ setScoringInterpolatedVelocity(distanceToTarget.get()) }, this)
     }
     
@@ -245,6 +244,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
     /**
      * Returns the [AngularVelocity] reported by the lead motor.
      * This can be seen live in the "Shooter" tab of AdvantageScope.
+     * @return the shooter's current velocity
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_RPM_FIELD)
     fun getShooterAngularVelocity(): AngularVelocity {
@@ -254,12 +254,19 @@ class Shooter() : SysIdSubsystem("Shooter") {
     /**
      * Returns the target [AngularVelocity].
      * This can be seen live in the "Shooter" tab of AdvantageScope.
+     * @return the shooter's target velocity
      */
     @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_TARGET_RPM_FIELD)
     fun getShooterTargetAngularVelocity(): AngularVelocity {
         return targetVelocity
     }
 
+    /**
+     * Gets the difference between the [targetVelocity] and the actual one. The lowest the error is, the better
+     * accuracy our shooting will have. If not, [ShooterConstants.Configuration.controlGains] might as well
+     * be tuned.
+     * @return the shooter's velocity error
+     */
     fun getShooterAngularVelocityError(): AngularVelocity {
         return abs(
             getShooterTargetAngularVelocity().minus(getShooterAngularVelocity()).`in`(RotationsPerSecond)
@@ -276,7 +283,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in ShooterConstants.Control.shooterScoreInterpolationPoints) {
+        for (point in ShooterConstants.Control.shooterScoreHighCurvatureInterpolationPoints) {
             scoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))

@@ -14,10 +14,16 @@ package frc.robot
 
 import com.pathplanner.lib.commands.PathPlannerAuto
 import com.pathplanner.lib.events.EventTrigger
+import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
+import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
-import frc.robot.constants.Constants.isFlipped
+import edu.wpi.first.wpilibj2.command.button.Trigger
 import frc.robot.constants.RobotConstants.Autonomous
 import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.StatesHandler
@@ -26,6 +32,7 @@ import frc.template.utils.seconds
 import org.json.simple.parser.ParseException
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser
 import java.io.IOException
+import java.util.function.BooleanSupplier
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -37,6 +44,9 @@ class RobotContainer {
     private val controller = CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT)
     private val superstructure = Superstructure(controller)
     private val statesHandler = StatesHandler(superstructure, controller)
+    private val rumbleTrigger = Trigger({ isNearShiftEnd() })
+        .onTrue(statesHandler.driverControllerRumbleBoth())
+        .onFalse(statesHandler.disableControllerRumble())
 
     // Dashboard inputs
     // Set up auto routines
@@ -47,9 +57,18 @@ class RobotContainer {
     init {
         configureAutonomousEventTriggers()
         configureAutonomousRoutines()
+
+    }
+
+    fun isNearShiftEnd(): Boolean {
+        for (shift in RobotConstants.AllianceShiftsInfo.Shifts) {
+            return DriverStation.getMatchTime().seconds in shift
+        }
+        return false
     }
 
     fun teleopInitConfig() {
+        statesHandler.setDefaultLed()
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
         superstructure.disableSubsystemsInitCMD()
         //if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
@@ -57,6 +76,7 @@ class RobotContainer {
 
     fun autoInitConfig() {
         superstructure.removeDriveDefaultCommand()
+        statesHandler.setAutonomousLed()
     }
 
     fun robotEnabledConfig() {
@@ -69,15 +89,18 @@ class RobotContainer {
 
     fun configureAutonomousEventTriggers() {
         EventTrigger(Autonomous.EventTriggerStrings.INTAKE_DEPLOY)
-            .onTrue(superstructure.intakeStateCMD())
+            .onTrue(superstructure.intakeStateCMD().alongWith(statesHandler.setIntakeLed()))
         EventTrigger(Autonomous.EventTriggerStrings.DISABLE_INTAKE_ROLLERS)
-            .onTrue(superstructure.disableIntake())
-        EventTrigger(Autonomous.EventTriggerStrings.SHOOT_CMD)
+            .onTrue(superstructure.disableIntakeRollersCMD().alongWith(statesHandler.setDefaultLed()))
+        EventTrigger(Autonomous.EventTriggerStrings.SCORE)
             .onTrue(
-                superstructure.shootStateSequenceAutoCMD()
-                    .withTimeout(2.0.seconds)
-                    .andThen(superstructure.disableSubsystemsCMD())
-            )
+                superstructure.scoreStateSequenceAutoRightCMD().alongWith(statesHandler.setShootingLed())
+                    .withTimeout(5.0.seconds)
+                        .andThen(superstructure.disableSubsystemsCMD().alongWith(statesHandler.setDefaultLed()))
+                )
+
+        EventTrigger(Autonomous.EventTriggerStrings.ENABLE_SHOOTER)
+            .onTrue(superstructure.noStateShootOnlyCMD(2000.0))
     }
 
     /**0
@@ -93,7 +116,8 @@ class RobotContainer {
         try {
             autoChooser.addOption("Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
             autoChooser.addOption("Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
-            autoChooser.addOption("Angular offset Test", PathPlannerAuto("Test-Left"))
+            autoChooser.addOption("Right Multi Path Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_MULTI_PATH_AUTO))
+            autoChooser.addOption("Tuning Auto", PathPlannerAuto("Tuning-Auto"))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {

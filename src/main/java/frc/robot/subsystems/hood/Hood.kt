@@ -1,4 +1,5 @@
 package frc.robot.subsystems.hood
+
 import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.Units.DegreesPerSecond
@@ -20,9 +21,7 @@ import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
-import frc.template.utils.devices.ThroughBoreAbsoluteEncoder
 import org.littletonrobotics.junction.AutoLogOutput
-import java.util.Optional
 import java.util.function.Supplier
 import kotlin.collections.iterator
 
@@ -32,18 +31,6 @@ class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
     private val motorController     : OpTalonFX =
         OpTalonFX(HoodConstants.Identification.HOOD_MOTOR_ID)
-
-    // -------------------------------
-    // PRIVATE — Absolute Encoder Declaration
-    // -------------------------------
-    private val absoluteEncoder : ThroughBoreAbsoluteEncoder =
-        ThroughBoreAbsoluteEncoder(
-            HoodConstants.Identification.ABSOLUTE_ENCODER_ID,
-            HoodConstants.Configuration.AbsoluteEncoder.offset,
-            HoodConstants.Configuration.AbsoluteEncoder.inverted,
-            HoodConstants.Configuration.AbsoluteEncoder.brand,
-            Optional.empty()
-        )
 
     // -------------------------------
     // PRIVATE — Useful variables
@@ -58,11 +45,6 @@ class Hood() : SysIdSubsystem("Hood") {
     private val hoodConnectedAlert  : Alert =
         Alert(HoodConstants.Telemetry.HOOD_CONNECTED_ALERTS_FIELD,
             "Hood Motor ID ${HoodConstants.Identification.HOOD_MOTOR_ID} Disconnected",
-            Alert.AlertType.kError)
-
-    private val absoluteEncoderConnectedAlert: Alert =
-        Alert(HoodConstants.Telemetry.HOOD_CONNECTED_ALERTS_FIELD,
-            "Hood Absolute Encoder ID ${HoodConstants.Identification.ABSOLUTE_ENCODER_ID} Disconnected",
             Alert.AlertType.kError)
 
     // --------------------------------------------------------------------------------
@@ -97,7 +79,6 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     init {
         motorController.applyConfigAndClearFaults(HoodConstants.Configuration.motorConfig)
-        matchRelativeToAbsolute()
         interpolationConfiguration()
     }
 
@@ -106,7 +87,6 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     override fun periodic() {
         hoodConnectedAlert.set(motorController.getIsConnected().not())
-        absoluteEncoderConnectedAlert.set(absoluteEncoder.isConnected.not())
 
         if (HoodConstants.Tunables.motorkP.hasChanged(hashCode())
             || HoodConstants.Tunables.motorkI.hasChanged(hashCode())
@@ -162,7 +142,7 @@ class Hood() : SysIdSubsystem("Hood") {
 
     /**
      * Creates a voltage request to the motor controller. Used within the [SysIdSubsystem] interface to
-     * run the characterization methods. [sysIdSetVoltage]
+     * run the characterization methods. [SysIdSubsystem.setVoltage]
      */
     override fun setVoltage(voltage: Voltage) {
         motorController.voltageRequest(voltage)
@@ -201,17 +181,6 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun setScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
         return RunCommand({ setScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
-    }
-
-    /**
-     * Matches the motor encoder angle with the absolute encoder angle.
-     * It is mainly used at the beginning of the robot so that the subsystem knows its position.
-     */
-    private fun matchRelativeToAbsolute() {
-        val absolutePosition = absoluteEncoder.position
-
-        motorController.getMotorInstance()
-            .setPosition(HoodConstants.PhysicalLimits.Reduction.unapply(absolutePosition))
     }
 
     // -------------------------------
@@ -261,12 +230,6 @@ class Hood() : SysIdSubsystem("Hood") {
     }
 
     /**
-     * Returns the absolute position of the subsystem
-     */
-    @AutoLogOutput(key = HoodConstants.Telemetry.HOOD_ABSOLUTE_ENCODER_ANGLE_FIELD, unit = "degrees")
-    private fun getEncoderAbsoluteAngle(): Double = absoluteEncoder.position.`in`(Degrees)
-
-    /**
      * Returns the [frc.robot.subsystems.hood.Hood] target angle.
      * This can be seen live in the "Hood" tab of AdvantageScope.
      */
@@ -305,13 +268,13 @@ class Hood() : SysIdSubsystem("Hood") {
      * - value  : Shooter velocity in [DegreesPerSecond]
      */
     private fun interpolationConfiguration() {
-        for (point in HoodConstants.Control.hoodScoreDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodScoreHighCurvatureInterpolationPoints) {
             hoodScoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }
 
-        for (point in HoodConstants.Control.hoodAssistDistanceInterpolationPoints) {
+        for (point in HoodConstants.Control.hoodAssistInterpolationPoints) {
             hoodAssistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
