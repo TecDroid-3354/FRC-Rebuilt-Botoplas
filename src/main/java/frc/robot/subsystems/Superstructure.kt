@@ -180,6 +180,25 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     /**
+     * Intended for Score State. Starts by enabling the [Shooter] and [Hood] interpolation, waiting until the [Shooter]
+     * RPS and [Drive] angle are within tolerance, then enabling the [Indexer]
+     * and finally enabling the [Intake] clustering for faster shooting.
+     * @return A [ParallelCommandGroup] with the above specifications.
+     */
+    fun scoreStateLowCurvatureSequenceDefaultCMD(): Command {
+        return ParallelCommandGroup(
+            scoreStateShooterLowCurvatureInterpolationCMD(), // Enables Shooter interpolation
+            scoreStateHoodLowCurvatureInterpolationCMD(), // Enables Hood interpolation
+            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
+                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
+            }.withTimeout(2.0.seconds)
+                .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
+                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
+                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
+        )
+    }
+
+    /**
      * Intended to call during Auto. Same as [scoreStateSequenceDefaultCMD], just without checking [Drive] angle,
      * as it is controlled by PathPlanner.
      * - A little [WaitCommand] is used to ensure drive has the right rotation.
@@ -253,12 +272,20 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return shooter.setScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
     }
 
+    private fun scoreStateShooterLowCurvatureInterpolationCMD(): Command {
+        return shooter.setLowCurvatureScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
+    }
+
     /**
      * Intended to run during Score State. Enables the [Hood] interpolation with respect to the HUB.
      * @return A [RunCommand] interpolating the [Hood] angle based on [getDriveToHubDistance].
      */
     private fun scoreStateHoodInterpolationCMD(): Command {
         return hood.setScoreDistanceInterpolatedAngleCMD { getDriveToHubDistance() }
+    }
+
+    private fun scoreStateHoodLowCurvatureInterpolationCMD(): Command {
+        return hood.setLowCurvatureScoreDistanceInterpolatedAngleCMD { getDriveToHubDistance() }
     }
 
     /*-------------------------------------------------------------------------------------------------*/
@@ -534,7 +561,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             drive,
             { MathUtil.applyDeadband(-controller.leftY, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            ::getAngleFromJoystick
+            { getAngleFromJoystick() }
         )
     }
 
@@ -594,14 +621,16 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         if (abs(-controller.rightY) < 0.3 && abs(controller.rightX) < 0.3) return lastDriveAngle
 
         val atan2Rad = atan2( // Gets the "raw" angle from the joysticks, after applying a dead band
-            MathUtil.applyDeadband(-controller.rightY, 0.3),
-            MathUtil.applyDeadband(controller.rightX, 0.3))
-            .plus(Math.PI / 2)
+            MathUtil.applyDeadband(
+                if (isFlipped.invoke()) -controller.rightY else controller.rightY, 0.3),
+            MathUtil.applyDeadband(
+                if (isFlipped.invoke()) controller.rightX else -controller.rightX, 0.3)
+        ).plus(Math.PI / 2)
 
         lastDriveAngle.mut_replace(atan2Rad.radians)
 
         // To ensure consistent rotation, 180.0 degrees are added when in Blue Alliance.
-        return if (isFlipped.invoke()) lastDriveAngle else lastDriveAngle.plus(180.0.degrees)
+        return lastDriveAngle
     }
 
     /**

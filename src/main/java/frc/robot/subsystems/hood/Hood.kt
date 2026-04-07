@@ -35,9 +35,13 @@ class Hood() : SysIdSubsystem("Hood") {
     // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetAngle         : Angle = Degrees.zero()
-    private val hoodScoringInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
-    private val hoodAssistInterpolation: InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private var targetAngle                             : Angle = Degrees.zero()
+    private val hoodScoringInterpolation                : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble>
+        = InterpolatingTreeMap()
+    private val hoodLowCurvatureScoringInterpolation    : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble>
+        = InterpolatingTreeMap()
+    private val hoodAssistInterpolation                 : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble>
+        = InterpolatingTreeMap()
 
     // -------------------------------
     // PRIVATE — Alerts
@@ -137,6 +141,20 @@ class Hood() : SysIdSubsystem("Hood") {
     private fun setScoreDistanceInterpolatedAngle(chassisDistanceToTarget: Distance) {
         val hoodSetpointDeg = hoodScoringInterpolation
             .getInterpolated(InterpolatingDouble(chassisDistanceToTarget.`in`(Meters)))
+
+        setAngle(hoodSetpointDeg.value.degrees)
+    }
+
+    /**
+     * Uses the interpolation object to get the suitable [Angle] of the hood for the FUELS to
+     * reach the target based on the [frc.robot.subsystems.drivetrain.Drive] current distance to the target.
+     * This [Angle] is then passed to [setAngle]
+     * @param chassisDistanceToTarget The current distance from Swerve to the target (HUB or passed the trench to assist).
+     */
+    private fun setLowCurvatureScoreDistanceInterpolatedAngle(chassisDistanceToTarget: Distance) {
+        val hoodSetpointDeg = hoodLowCurvatureScoringInterpolation
+            .getInterpolated(InterpolatingDouble(chassisDistanceToTarget.`in`(Meters)))
+
         setAngle(hoodSetpointDeg.value.degrees)
     }
 
@@ -181,6 +199,10 @@ class Hood() : SysIdSubsystem("Hood") {
      */
     fun setScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
         return RunCommand({ setScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
+    }
+
+    fun setLowCurvatureScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
+        return RunCommand({ setLowCurvatureScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) })
     }
 
     // -------------------------------
@@ -270,6 +292,12 @@ class Hood() : SysIdSubsystem("Hood") {
     private fun interpolationConfiguration() {
         for (point in HoodConstants.Control.hoodScoreHighCurvatureInterpolationPoints) {
             hoodScoringInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(Degrees)))
+        }
+
+        for (point in HoodConstants.Control.hoodScoreLowCurvatureInterpolationPoints) {
+            hoodLowCurvatureScoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }

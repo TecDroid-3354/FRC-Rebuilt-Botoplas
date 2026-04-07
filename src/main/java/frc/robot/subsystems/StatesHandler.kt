@@ -167,10 +167,24 @@ class StatesHandler(
             .onFalse(superstructure.disableSubsystemsCMD()
                 .alongWith(setDefaultLed()))
 
-        controller.leftTrigger(0.4).onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD()
-            .alongWith(setShootingLed()))
+        controller.leftTrigger(0.6).onTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+                    .alongWith(setShootingLed())
+            ),
+            { superstructure.getRobotCurrentZone() }
+        ))
             .onFalse(superstructure.disableSubsystemsCMD()
                 .alongWith(setDefaultLed()))
+
+//        controller.leftTrigger(0.4).onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD()
+//            .alongWith(setShootingLed()))
+//            .onFalse(superstructure.disableSubsystemsCMD()
+//                .alongWith(setDefaultLed()))
 
         controller.rightBumper().onTrue(superstructure.intakeStateCMD()
             .alongWith(setIntakeLed()))
