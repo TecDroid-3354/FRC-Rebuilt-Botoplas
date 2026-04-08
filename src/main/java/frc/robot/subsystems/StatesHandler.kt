@@ -15,7 +15,6 @@ import frc.robot.constants.RobotConstants
 import net.tecdroid.util.stateMachine.Phase
 import net.tecdroid.util.stateMachine.StateMachine
 import net.tecdroid.util.stateMachine.States.*
-import net.tecdroid.util.stateMachine.cancelCMD
 import org.littletonrobotics.junction.AutoLogOutput
 
 class StatesHandler(
