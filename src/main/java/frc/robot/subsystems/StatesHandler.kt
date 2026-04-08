@@ -15,6 +15,7 @@ import frc.robot.constants.RobotConstants
 import net.tecdroid.util.stateMachine.Phase
 import net.tecdroid.util.stateMachine.StateMachine
 import net.tecdroid.util.stateMachine.States.*
+import net.tecdroid.util.stateMachine.cancelCMD
 import org.littletonrobotics.junction.AutoLogOutput
 
 class StatesHandler(
@@ -25,7 +26,7 @@ class StatesHandler(
     private val stateMachine: StateMachine = StateMachine(NeutralState)
 
     init {
-        configureStatesConditions()
+        //configureStatesConditions()
         //configureStatesCommands()
         configureBindings()
     }
@@ -138,22 +139,8 @@ class StatesHandler(
             ), { if (isFlipped.invoke()) Alliance.Red else Alliance.Blue }
         )) // Reset rotation
 
-        controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
-            .ignoringDisable(true))   // Coast Intake + Hood
-        controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
-            .ignoringDisable(true)) // Brake Intake + Hood
 
-        //controller.x().onTrue(superstructure.noStateShootOnlyCMD()).onFalse(superstructure.disableShooterCMD())
-
-//        controller.b().onTrue(superstructure.noStateHopperBeltsOnly())
-//            .onFalse(superstructure.disableIndexerCMD())
-//
-//        controller.x().whileTrue(superstructure.noStateFeederRollersOnly())
-//            .onFalse(superstructure.disableIndexerCMD())
-
-        //controller.a().whileTrue(superstructure.driveTrackingTarget()).onFalse(superstructure.driveFollowingDriverInput())
-
-        controller.rightTrigger(0.6).onTrue(Commands.select(
+        controller.rightTrigger(0.8).whileTrue(Commands.select(
             mapOf<FieldZones, Command>(
                 FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD()
                     .alongWith(setShootingLed()),
@@ -164,32 +151,7 @@ class StatesHandler(
             ),
             { superstructure.getRobotCurrentZone() }
         ))
-            .onFalse(superstructure.disableSubsystemsCMD()
-                .alongWith(setDefaultLed()))
-
-        controller.leftTrigger(0.6).onTrue(Commands.select(
-            mapOf<FieldZones, Command>(
-                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
-                    .alongWith(setShootingLed())
-            ),
-            { superstructure.getRobotCurrentZone() }
-        ))
-            .onFalse(superstructure.disableSubsystemsCMD()
-                .alongWith(setDefaultLed()))
-
-//        controller.leftTrigger(0.4).onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD()
-//            .alongWith(setShootingLed()))
-//            .onFalse(superstructure.disableSubsystemsCMD()
-//                .alongWith(setDefaultLed()))
-
-        controller.rightBumper().onTrue(superstructure.intakeStateCMD()
-            .alongWith(setIntakeLed()))
-            .onFalse(superstructure.disableIntakeRollersCMD()
-                .alongWith(setDefaultLed()))
+            .onFalse(superstructure.disableSubsystemsCMD().alongWith(setDefaultLed()))
 
         controller.y().whileTrue(Commands.select(
             mapOf<FieldZones, Command>(
@@ -206,15 +168,61 @@ class StatesHandler(
                 superstructure.driveFollowingDriverInput()
                     .alongWith(setDefaultLed()))
 
-        //controller.a().whileTrue(superstructure.stopDriveWithX())
+        controller.leftBumper().onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD()
+            .alongWith(setShootingLed()))
+            .onFalse(superstructure.disableSubsystemsCMD()
+                .alongWith(setDefaultLed()))
 
-        //controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
+        controller.rightBumper().onTrue(superstructure.intakeStateCMD()
+            .alongWith(setIntakeLed()))
+            .onFalse(superstructure.disableIntakeRollersCMD()
+                .alongWith(setDefaultLed()))
 
 //        controller.x().whileTrue(superstructure.followTrajectory(
 //            superstructure.getOnTheFlyPathFromWaypoints(
 //                superstructure.getTrenchOnTheFlyWaypointList(), Degrees.zero()
 //            )
 //        ))
+
+        controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
+            .ignoringDisable(true))   // Coast Intake + Hood
+        controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
+            .ignoringDisable(true)) // Brake Intake + Hood
+    }
+
+    private fun configureRawBindings() {
+
+        controller.y().onTrue(superstructure.noStateShootOnlyCMD()).onFalse(superstructure.disableShooterCMD())
+
+        controller.b().onTrue(superstructure.noStateHopperBeltsOnly())
+            .onFalse(superstructure.disableIndexerCMD())
+
+        controller.x().whileTrue(superstructure.noStateFeederRollersOnly())
+            .onFalse(superstructure.disableIndexerCMD())
+
+        controller.a().whileTrue(superstructure.driveTrackingTarget()).onFalse(superstructure.driveFollowingDriverInput())
+
+        //controller.a().whileTrue(superstructure.stopDriveWithX())
+
+        //controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
+    }
+
+    private fun configureLowInterpolationBindings() {
+        // Low curvature interpolation
+
+        controller.leftTrigger().onTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+                    .alongWith(setShootingLed())
+            ),
+            { superstructure.getRobotCurrentZone() }
+        ))
+            .onFalse(superstructure.disableSubsystemsCMD()
+                .alongWith(setDefaultLed()))
     }
 
     fun driverControllerRumbleBoth(): Command = RunCommand({ controller.setRumble(GenericHID.RumbleType.kBothRumble, 0.5) })

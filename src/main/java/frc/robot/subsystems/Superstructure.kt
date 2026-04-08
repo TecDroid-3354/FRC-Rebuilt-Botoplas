@@ -461,6 +461,14 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return indexer.stopIndexerCMD()
     }
 
+    fun disableHopperBelts(): Command {
+        return indexer.stopHopperBeltsCMD()
+    }
+
+    fun disableFeederRollers(): Command {
+        return indexer.stopTowerRollersCMD()
+    }
+
     /**
      * Stops the [Shooter] rollers.
      * @return An [InstantCommand] stoping the [Shooter] rollers.
@@ -475,11 +483,13 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [ParallelCommandGroup] with the above requests.
      */
     fun disableSubsystemsCMD(): Command {
-        return ParallelCommandGroup(
-            storeHoodCMD(),
-            disableIndexerCMD(),
+        return SequentialCommandGroup(
+            intake.stopMotor(),
             intake.deployAndDisableIntakeCMD(),
-            disableShooterCMD()
+            storeHoodCMD(),
+            disableShooterCMD(),
+            disableFeederRollers(),
+            disableHopperBelts()
         )
     }
 

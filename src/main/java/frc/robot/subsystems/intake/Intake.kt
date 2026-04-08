@@ -281,7 +281,7 @@ class Intake() : SysIdSubsystem("Intake") {
     fun clusterIntakeCMD(): Command {
         return SequentialCommandGroup(
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
-            //WaitCommand(0.25.seconds),
+            //WaitCommand(0.1.seconds),
             setPositionCMD(IntakePositions.CLUSTERED),
         )
     }
@@ -292,6 +292,10 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     fun disableRollersCMD(): Command {
         return InstantCommand({ setRollersVoltage(0.0.volts) }, this)
+    }
+
+    fun stopMotor(): Command {
+        return InstantCommand({ deployableMotorController.stopMotor() }, this)
     }
 
     fun setDeployableDisplacementOnly(displacement: Distance): Command {
