@@ -19,10 +19,12 @@ import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.shooter.IntakeConstants
 import frc.robot.utils.subsystemUtils.generic.SysIdSubsystem
 import frc.robot.utils.subsystemUtils.identification.SysIdRoutines
+import frc.template.utils.amps
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
 import frc.template.utils.meters
+import frc.template.utils.rotationsPerSecond
 import frc.template.utils.seconds
 import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
@@ -341,6 +343,13 @@ class Intake() : SysIdSubsystem("Intake") {
     // PRIVATE — Telemetry methods
     // ---------------------------------
 
+
+    @AutoLogOutput(key = IntakeConstants.Telemetry.INTAKE_DEPLOYABLE_MOTOR_STALL_FLAG)
+    private fun isStalling(): Boolean {
+        return deployableMotorController.getMotorInstance().supplyCurrent.value.gte(25.0.amps) &&
+                deployableMotorController.getVelocity().lte(1.0.rotationsPerSecond) &&
+                 deployableMotorController.getMotorInstance().acceleration.value.lte(Units.RotationsPerSecondPerSecond.of(1.0))
+    }
     /**
      * The current deployable component position (in motor rotations).
      * This position can be seen live in the "Intake" tab of AdvantageScope.

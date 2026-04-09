@@ -116,7 +116,7 @@ object IntakeConstants {
         private val deployAcceleration        : Time = 0.1.seconds
         private val deployJerktime            : Time = 0.1.seconds
 
-        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.45)
+        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.5)
         private val clusterAcceleration       : Time = 1.0.seconds
         private val clusterJerkTime           : Time = 1.0.seconds
 
@@ -173,5 +173,6 @@ object IntakeConstants {
         const val INTAKE_DISPLACEMENT_FIELD         : String = "${INTAKE_TAB}/Deployable Component Displacement"
         const val INTAKE_TARGET_DISPLACEMENT_FIELD  : String = "${INTAKE_TAB}/Deployable Component Target Displacement"
         const val INTAKE_DEPLOYABLE_ERROR           : String = "${INTAKE_TAB}/Deployable Component Angle Error"
+        const val INTAKE_DEPLOYABLE_MOTOR_STALL_FLAG: String = "${INTAKE_TAB}/Deployable Stall Flag"
     }
 }

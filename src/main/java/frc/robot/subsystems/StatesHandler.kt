@@ -145,6 +145,11 @@ class StatesHandler(
                     .alongWith(setShootingLed()),
                 FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD()
                     .alongWith(setShootingLed()),
+
+//                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+//                    .alongWith(setShootingLed()),
+//                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+//                    .alongWith(setShootingLed()),
                 FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
                     .alongWith(setShootingLed())
             ),

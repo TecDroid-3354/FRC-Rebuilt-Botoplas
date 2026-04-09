@@ -475,10 +475,12 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [ParallelCommandGroup] with the above requests.
      */
     fun disableSubsystemsCMD(): Command {
-        return SequentialCommandGroup(
-            intake.stopMotor(),
-            intake.deployAndDisableIntakeCMD(),
+        return ParallelCommandGroup(
             storeHoodCMD(),
+            SequentialCommandGroup(
+                intake.stopMotor(),
+                intake.deployAndDisableIntakeCMD()
+            ),
             disableShooterCMD(),
             disableIndexerCMD()
         )
