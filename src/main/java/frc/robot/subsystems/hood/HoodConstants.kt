@@ -33,7 +33,7 @@ object HoodConstants {
      * Every physical aspect needed to be considered in code
      */
     object PhysicalLimits {
-        val Reduction           : Reduction = Reduction((142.0/13.0) * (60.0/9.0) * (37.0/22.0)) // Old: (11.2121 * 7.4) * 2
+        val Reduction           : Reduction = Reduction((142.0/13.0) * (60.0/9.0) * (36.0/22.0)) // Old: (11.2121 * 7.4) * 2
         val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 25.0.degrees)
     }
 
@@ -46,7 +46,7 @@ object HoodConstants {
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.125)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)
 
-        val hoodTunableAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 16.0)
+        val hoodTunableAngle: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Hood Angle", 20.0)
     }
 
     /**
@@ -57,9 +57,9 @@ object HoodConstants {
 
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
         val hoodScoreHighCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.397.meters to (06.0).degrees,
-            2.000.meters to (12.0).degrees,
-            2.500.meters to (14.4).degrees,
+            1.397.meters to (06.0.plus(0.3)).degrees,
+            2.000.meters to (12.0.plus(0.3)).degrees,
+            2.500.meters to (14.4.plus(0.3)).degrees,
             3.000.meters to (16.5 + 0.3).degrees,
             3.500.meters to (17.0 + 0.3).degrees,
             4.000.meters to (20.0 + 0.3).degrees,
@@ -68,15 +68,27 @@ object HoodConstants {
         )
 
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
+        // Original low curvature
+//        val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
+//            1.397.meters to (07.0).degrees,
+//            2.000.meters to (14.0).degrees,
+//            2.500.meters to (18.0).degrees,
+//            3.000.meters to (20.0).degrees,
+//            3.500.meters to (22.0).degrees,
+//            4.000.meters to (25.0).degrees,
+//            4.500.meters to (25.0).degrees,
+//            5.000.meters to (25.0).degrees,
+//        )
+
         val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.397.meters to (07.0).degrees,
-            2.000.meters to (14.0).degrees,
-            2.500.meters to (18.0).degrees,
-            3.000.meters to (20.0).degrees,
-            3.500.meters to (22.0).degrees,
-            4.000.meters to (25.0).degrees,
-            4.500.meters to (25.0).degrees,
-            5.000.meters to (25.0).degrees,
+            1.397.meters to (06.0.plus(0.3)).degrees,
+            2.000.meters to (12.0.plus(0.3)).degrees,
+            2.500.meters to (14.4.plus(0.3)).degrees,
+            3.000.meters to (16.5 + 0.3).degrees,
+            3.500.meters to (17.0 + 0.3).degrees,
+            4.000.meters to (20.0 + 0.3).degrees,
+            4.500.meters to (22.0 + 0.3).degrees,
+            5.000.meters to (24.5 + 0.3).degrees
         )
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)

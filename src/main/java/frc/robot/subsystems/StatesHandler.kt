@@ -28,6 +28,7 @@ class StatesHandler(
         //configureStatesConditions()
         //configureStatesCommands()
         configureBindings()
+        //configureRawBindings()
     }
 
     @AutoLogOutput(key = RobotConstants.Telemetry.STATES_CURRENT_STATE_FIELD)
@@ -139,17 +140,25 @@ class StatesHandler(
         )) // Reset rotation
 
 
+        controller.leftTrigger(0.8).whileTrue(Commands.select(
+            mapOf<FieldZones, Command>(
+                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
+                    .alongWith(setShootingLed()),
+                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
+                    .alongWith(setShootingLed())
+            ),
+            { superstructure.getRobotCurrentZone() }
+        ))
+            .onFalse(superstructure.disableSubsystemsCMD().alongWith(setDefaultLed()))
+
         controller.rightTrigger(0.8).whileTrue(Commands.select(
             mapOf<FieldZones, Command>(
                 FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD()
                     .alongWith(setShootingLed()),
                 FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateSequenceDefaultCMD()
                     .alongWith(setShootingLed()),
-
-//                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-//                    .alongWith(setShootingLed()),
-//                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-//                    .alongWith(setShootingLed()),
                 FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
                     .alongWith(setShootingLed())
             ),
@@ -182,12 +191,6 @@ class StatesHandler(
             .onFalse(superstructure.disableIntakeRollersCMD()
                 .alongWith(setDefaultLed()))
 
-//        controller.x().whileTrue(superstructure.followTrajectory(
-//            superstructure.getOnTheFlyPathFromWaypoints(
-//                superstructure.getTrenchOnTheFlyWaypointList(), Degrees.zero()
-//            )
-//        ))
-
         controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true))   // Coast Intake + Hood
         controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
@@ -196,7 +199,8 @@ class StatesHandler(
 
     private fun configureRawBindings() {
 
-        controller.y().onTrue(superstructure.noStateShootOnlyCMD()).onFalse(superstructure.disableShooterCMD())
+        controller.y().onTrue(superstructure.noStateShootOnlyCMD())
+            .onFalse(superstructure.disableShooterCMD())
 
         controller.b().onTrue(superstructure.noStateHopperBeltsOnly())
             .onFalse(superstructure.disableIndexerCMD())
@@ -204,11 +208,10 @@ class StatesHandler(
         controller.x().whileTrue(superstructure.noStateFeederRollersOnly())
             .onFalse(superstructure.disableIndexerCMD())
 
-        controller.a().whileTrue(superstructure.driveTrackingTarget()).onFalse(superstructure.driveFollowingDriverInput())
+        controller.a().onTrue(superstructure.noStateHoodOnlyCMD())
 
-        //controller.a().whileTrue(superstructure.stopDriveWithX())
-
-        //controller.y().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
+        controller.rightBumper().onTrue(superstructure.noStateIntakeDeployableOnlyEnableCMD())
+        controller.leftBumper().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
     }
 
     private fun configureLowInterpolationBindings() {

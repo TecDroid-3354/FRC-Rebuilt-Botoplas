@@ -119,7 +119,6 @@ class Indexer() : SubsystemBase() {
      * TowerRollersVoltage within the constants is used.
      */
     private fun enableTowerRollers(velocity: Supplier<AngularVelocity>) {
-        //leadTowerRollersMotor.velocityRequest(30.0.rotationsPerSecond)
         leadTowerRollersMotor.velocityRequest(velocity.get())
         towerEnabled   = true
     }

@@ -116,7 +116,7 @@ object IntakeConstants {
         private val deployAcceleration        : Time = 0.1.seconds
         private val deployJerktime            : Time = 0.1.seconds
 
-        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.5)
+        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.45)
         private val clusterAcceleration       : Time = 1.0.seconds
         private val clusterJerkTime           : Time = 1.0.seconds
 

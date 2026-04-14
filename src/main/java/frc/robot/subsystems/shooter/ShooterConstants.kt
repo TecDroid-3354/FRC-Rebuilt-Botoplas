@@ -68,23 +68,34 @@ object ShooterConstants {
             2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
             3.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
             3.500.meters to (2_650.0).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_700.0).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_800.0).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_850.0).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_745.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_815.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_870.0).div(60.0).rotationsPerSecond,
         )
 
         // Score with full much use of the Hood
         // The increment per step (0.5 meters) gets bigger as we meet the limit of Hood's range, relying on pure RPMs.
-        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
+        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)}
+        // Original low curvature
+//        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+//            1.397.meters to (2_150.0.minus(20.0)).div(60.0).rotationsPerSecond,
+//            2.000.meters to (2_300.0.minus(20.0)).div(60.0).rotationsPerSecond,
+//            2.500.meters to (2_350.0.minus(20.0)).div(60.0).rotationsPerSecond,
+//            3.000.meters to (2_450.0.minus(30.0)).div(60.0).rotationsPerSecond,
+//            3.500.meters to (2_450.0.minus(35.0)).div(60.0).rotationsPerSecond,
+//            4.000.meters to (2_475.0.minus(35.0)).div(60.0).rotationsPerSecond,
+//            4.500.meters to (2_575.0.minus(40.0)).div(60.0).rotationsPerSecond,
+//            5.000.meters to (2_825.0.minus(40.0)).div(60.0).rotationsPerSecond,
+//        )
         val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.397.meters to (2_150.0).div(60.0).rotationsPerSecond,
-            2.000.meters to (2_300.0).div(60.0).rotationsPerSecond,
-            2.500.meters to (2_350.0).div(60.0).rotationsPerSecond,
-            3.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
-            3.500.meters to (2_450.0).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_475.0).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_575.0).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_825.0).div(60.0).rotationsPerSecond,
+            1.397.meters to (2_400.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_450.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_500.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_550.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_650.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            4.000.meters to (2_745.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_815.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            5.000.meters to (2_870.0.minus(45.0)).div(60.0).rotationsPerSecond,
         )
 
         // Assist
@@ -121,7 +132,7 @@ object ShooterConstants {
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
-        private val supplyCurrentLimits : Current = Amps.of(30.0)
+        private val supplyCurrentLimits : Current = Amps.of(35.0)
         private val statorCurrentLimits : Current = Amps.of(40.0)
         private val statorCurrentEnable : Boolean = false
 

@@ -29,6 +29,7 @@ import frc.robot.constants.RobotConstants
 import frc.robot.subsystems.StatesHandler
 import frc.robot.subsystems.Superstructure
 import frc.template.utils.seconds
+import net.tecdroid.util.stateMachine.scheduleCMD
 import org.json.simple.parser.ParseException
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser
 import java.io.IOException
@@ -44,9 +45,6 @@ class RobotContainer {
     private val controller = CommandXboxController(RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_PORT)
     private val superstructure = Superstructure(controller)
     private val statesHandler = StatesHandler(superstructure, controller)
-    private val rumbleTrigger = Trigger({ isNearShiftEnd() })
-        .onTrue(statesHandler.driverControllerRumbleBoth())
-        .onFalse(statesHandler.disableControllerRumble())
 
     // Dashboard inputs
     // Set up auto routines
@@ -57,7 +55,9 @@ class RobotContainer {
     init {
         configureAutonomousEventTriggers()
         configureAutonomousRoutines()
-
+        Trigger { isNearShiftEnd() }
+            .onTrue(statesHandler.driverControllerRumbleBoth())
+            .onFalse(statesHandler.disableControllerRumble())
     }
 
     fun isNearShiftEnd(): Boolean {
@@ -70,7 +70,7 @@ class RobotContainer {
     fun teleopInitConfig() {
         statesHandler.setDefaultLed()
         superstructure.setDriveDefaultCommand(superstructure.driveFollowingDriverInput())
-        superstructure.disableSubsystemsInitCMD()
+        superstructure.disableSubsystemsInitCMD().scheduleCMD()
         //if (isFlipped.invoke()) superstructure.resetDrivePoseRed() else superstructure.resetDrivePoseBlue()
     }
 
@@ -116,8 +116,6 @@ class RobotContainer {
         try {
             autoChooser.addOption("Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
             autoChooser.addOption("Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
-            autoChooser.addOption("Right Multi Path Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_MULTI_PATH_AUTO))
-            autoChooser.addOption("Tuning Auto", PathPlannerAuto("Tuning-Auto"))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {
