@@ -9,7 +9,7 @@
       "prevControl": null,
       "nextControl": {
         "x": 8.391986222862737,
-        "y": -0.5731239640421363
+        "y": -0.5731239640421356
       },
       "isLocked": false,
       "linkedName": null
@@ -37,7 +37,7 @@
       },
       "prevControl": {
         "x": 11.110407893140511,
-        "y": -0.9031016472276129
+        "y": -0.9031016472276133
       },
       "nextControl": null,
       "isLocked": false,
@@ -124,13 +124,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -116.557
+    "rotation": -115.86900000000001
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0.0,
-    "rotation": -116.557
+    "rotation": -115.86900000000001
   },
   "useDefaultConstraints": true
 }

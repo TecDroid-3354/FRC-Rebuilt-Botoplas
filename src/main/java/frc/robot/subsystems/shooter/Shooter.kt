@@ -45,9 +45,10 @@ class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
     // PRIVATE — Useful variables
     // -------------------------------
-    private var targetVelocity          : AngularVelocity = DegreesPerSecond.zero()
-    private val scoringInterpolation    : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
-    private val assistInterpolation     : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private var targetVelocity              : AngularVelocity = DegreesPerSecond.zero()
+    private val scoringInterpolation        : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val lowCurvatureInterpolation   : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
+    private val assistInterpolation         : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
     
 
     // -------------------------------
@@ -152,6 +153,11 @@ class Shooter() : SysIdSubsystem("Shooter") {
         setVelocity(shooterSetpointRps.value.rotationsPerSecond)
     }
 
+    private fun setScoringLowCurvatureInterpolatedVelocity(distanceToTarget: Distance) {
+        val shooterPointRps = lowCurvatureInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
+        setVelocity(shooterPointRps.value.rotationsPerSecond)
+    }
+
     private fun setAssistInterpolatedVelocity(distanceToTarget: Distance) {
         val shooterSetpointRps = assistInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
         setVelocity(shooterSetpointRps.value.rotationsPerSecond)
@@ -168,8 +174,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
     override fun setVoltage(voltage: Voltage) {
         leadMotorController.voltageRequest(voltage)
     }
-
-    fun isShooterActive(): Boolean = abs(leadMotorController.getMotorInstance().get()) > 0.1
 
     // -------------------------------
     // PUBLIC — CMD Motors Control
@@ -191,6 +195,10 @@ class Shooter() : SysIdSubsystem("Shooter") {
      */
     fun setScoreInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
         return RunCommand({ setScoringInterpolatedVelocity(distanceToTarget.get()) }, this)
+    }
+
+    fun setLowCurvatureScoreInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
+        return RunCommand({ setScoringLowCurvatureInterpolatedVelocity(distanceToTarget.get()) }, this)
     }
     
     fun setAssistInterpolatedVelocity(distanceToTargetBump: Supplier<Distance>): Command {
@@ -289,11 +297,19 @@ class Shooter() : SysIdSubsystem("Shooter") {
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
         }
 
+        for (point in ShooterConstants.Control.shooterScoreLowCurvatureInterpolationPoints) {
+            lowCurvatureInterpolation.put(
+                InterpolatingDouble(point.key.`in`(Meters)),
+                InterpolatingDouble(point.value.`in`(RotationsPerSecond))
+            )
+        }
+
         for (point in ShooterConstants.Control.shooterAssistInterpolationPoints) {
             assistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
         }
+
     }
 
     /**

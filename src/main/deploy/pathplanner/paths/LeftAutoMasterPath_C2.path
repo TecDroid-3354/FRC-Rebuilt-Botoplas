@@ -138,13 +138,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 118.851
+    "rotation": 125.379
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 118.851
+    "rotation": 125.379
   },
   "useDefaultConstraints": true
 }
