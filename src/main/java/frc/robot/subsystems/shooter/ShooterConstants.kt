@@ -43,12 +43,12 @@ object ShooterConstants {
      */
     object Tunables {
         // Previous control gains: 0.7, 0.0, 0.0, 0.55
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.005)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.316) // 0.01
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.925)
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 2.5) // 5.0
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2600.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2700.0)
         val warmUpRPMs : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Warm Up RPMs", 1500.0)
     }
 
@@ -128,34 +128,35 @@ object ShooterConstants {
         // ---------------------------------
         private val neutralMode         : NeutralModeValue = NeutralModeValue.Coast
         private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+        private val peakDutyCycle       : Double = 0.75
 
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
         private val supplyCurrentLimits : Current = Amps.of(35.0)
-        private val statorCurrentLimits : Current = Amps.of(40.0)
-        private val statorCurrentEnable : Boolean = false
+        private val statorCurrentLimits : Current = Amps.of(60.0)
+        private val statorCurrentEnable : Boolean = true
 
         // ---------------------------------
         // PUBLIC — Slot 0
         // ---------------------------------
         val controlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
-            s = 0.25, v = 0.12, a = 0.01, g = 0.0)
+            s = 0.25, v = 0.12, a = 0.0, g = 0.0) // 0.25, 0.12, 0.1 -- 0.375, 0.1175, 0.05
 
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
         private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(100.0)
         private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.1.seconds
+        private val jerkTime            : Time = 0.0.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
         // -----------------------------------
         val motorsConfig = KrakenMotors.createTalonFXConfiguration(
             Optional.of(
-                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation, peakDutyCycle)),
             Optional.of(
                 KrakenMotors.configureCurrentLimits(
                     supplyCurrentLimits,
@@ -166,7 +167,7 @@ object ShooterConstants {
                 KrakenMotors.configureSlot0(controlGains)),
             Optional.of(
                 KrakenMotors.configureAngularMotionMagic(
-                    AngularMotionTargets(cruiseVelocity, acceleration,jerkTime),
+                    AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
                     PhysicalLimits.Reduction
             ))
         )

@@ -68,7 +68,7 @@ object RobotConstants {
     object Autonomous {
         object NameStrings {
             const val RIGHT_AUTO                    : String    = "RightAutoTwoCycles"
-            const val RIGHT_MULTI_PATH_AUTO         : String    = "Multi-Path-Right"
+            const val RIGHT_MULTI_PATH_AUTO         : String    = "MultiPathRight"
             const val LEFT_AUTO                     : String    = "LeftAutoTwoCycles"
         }
 

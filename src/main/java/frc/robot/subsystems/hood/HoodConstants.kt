@@ -34,14 +34,14 @@ object HoodConstants {
      */
     object PhysicalLimits {
         val Reduction           : Reduction = Reduction((142.0/13.0) * (60.0/9.0) * (36.0/22.0)) // Old: (11.2121 * 7.4) * 2
-        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 25.0.degrees)
+        val Limits              : MeasureLimits<AngleUnit> = MeasureLimits(0.0.degrees, 30.0.degrees)
     }
 
     /**
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 1.85)
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kP", 1.6) // 1.85
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kD", 0.125)
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.HOOD_TAB}/Motors kF", 0.0)

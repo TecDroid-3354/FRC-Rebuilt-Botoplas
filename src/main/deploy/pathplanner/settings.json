@@ -9,8 +9,8 @@
     "Right Two Cycles Auto Paths"
   ],
   "autoFolders": [],
-  "defaultMaxVel": 3.25,
-  "defaultMaxAccel": 4.0,
+  "defaultMaxVel": 2.0,
+  "defaultMaxAccel": 3.0,
   "defaultMaxAngVel": 200.0,
   "defaultMaxAngAccel": 225.0,
   "defaultNominalVoltage": 12.0,

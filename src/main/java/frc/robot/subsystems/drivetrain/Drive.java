@@ -143,7 +143,7 @@ public class Drive extends SubsystemBase {
         () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
         this);
 
-    Pathfinding.setPathfinder(new LocalADStarAK());
+    //Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
           Logger.recordOutput(
@@ -179,7 +179,7 @@ public class Drive extends SubsystemBase {
     }
     odometryLock.unlock();
 
-    updateTunableNumbers();
+    //updateTunableNumbers();
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
       for (var module : modules) {

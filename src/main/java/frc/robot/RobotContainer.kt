@@ -12,6 +12,7 @@
 // GNU General Public License for more details.
 package frc.robot
 
+import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.commands.PathPlannerAuto
 import com.pathplanner.lib.events.EventTrigger
 import edu.wpi.first.wpilibj.DriverStation
@@ -49,7 +50,7 @@ class RobotContainer {
     // Dashboard inputs
     // Set up auto routines
     private val autoChooser: LoggedDashboardChooser<Command?> =
-        LoggedDashboardChooser<Command?>("Auto Choices", superstructure.getAutoChooser())
+        LoggedDashboardChooser<Command?>("Auto Choices", AutoBuilder.buildAutoChooser())
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
@@ -116,6 +117,7 @@ class RobotContainer {
         try {
             autoChooser.addOption("Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
             autoChooser.addOption("Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
+            autoChooser.addOption("MultiPath Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_MULTI_PATH_AUTO))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {

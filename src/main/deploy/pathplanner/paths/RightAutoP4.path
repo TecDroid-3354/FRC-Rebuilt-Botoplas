@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.349586305278173,
-        "y": 0.48333808844507875
+        "x": 4.168,
+        "y": 0.742
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.27,
-        "y": 0.4315834522111266
+        "x": 3.1570325818549954,
+        "y": 0.9050274981089516
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.830085592011411,
-        "y": 0.95
+        "x": 2.693437945791726,
+        "y": 1.0655777460770333
       },
       "prevControl": {
-        "x": 7.571312410841653,
-        "y": 0.7559201141226821
+        "x": 2.4554855769540516,
+        "y": 1.142250232436479
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,14 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Score",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 2.0,
     "maxAcceleration": 3.0,
@@ -41,14 +48,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 3.0,
-    "rotation": 90.0
+    "velocity": 0,
+    "rotation": -122.00538320808352
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -97.907
   },
   "useDefaultConstraints": true
 }

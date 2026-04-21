@@ -139,18 +139,7 @@ class StatesHandler(
             ), { if (isFlipped.invoke()) Alliance.Red else Alliance.Blue }
         )) // Reset rotation
 
-
-        controller.leftTrigger(0.8).whileTrue(Commands.select(
-            mapOf<FieldZones, Command>(
-                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
-                    .alongWith(setShootingLed())
-            ),
-            { superstructure.getRobotCurrentZone() }
-        ))
+        controller.leftTrigger(0.8).whileTrue(superstructure.scoreStateSequenceWithoutOdometryCMD())
             .onFalse(superstructure.disableSubsystemsCMD().alongWith(setDefaultLed()))
 
         controller.rightTrigger(0.8).whileTrue(Commands.select(
@@ -212,24 +201,6 @@ class StatesHandler(
 
         controller.rightBumper().onTrue(superstructure.noStateIntakeDeployableOnlyEnableCMD())
         controller.leftBumper().onTrue(superstructure.noStateIntakeDeployableOnlyDisableCMD())
-    }
-
-    private fun configureLowInterpolationBindings() {
-        // Low curvature interpolation
-
-        controller.leftTrigger().onTrue(Commands.select(
-            mapOf<FieldZones, Command>(
-                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.RED_ALLIANCE_ZONE to superstructure.scoreStateLowCurvatureSequenceDefaultCMD()
-                    .alongWith(setShootingLed()),
-                FieldZones.NEUTRAL_ZONE to superstructure.assistStateSequenceDefaultCMD()
-                    .alongWith(setShootingLed())
-            ),
-            { superstructure.getRobotCurrentZone() }
-        ))
-            .onFalse(superstructure.disableSubsystemsCMD()
-                .alongWith(setDefaultLed()))
     }
 
     fun driverControllerRumbleBoth(): Command = RunCommand({ controller.setRumble(GenericHID.RumbleType.kBothRumble, 0.5) })

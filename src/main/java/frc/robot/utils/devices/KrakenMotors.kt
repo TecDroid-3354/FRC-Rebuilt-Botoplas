@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage
 import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
+import edu.wpi.first.math.MathUtil
 import edu.wpi.first.units.measure.Current
 import frc.template.utils.Sprocket
 import frc.template.utils.amps
@@ -98,12 +99,17 @@ object KrakenMotors {
      * configurations.
      * @param neutralModeValue The desired [NeutralModeValue], either Brake or Coast.
      * @param invertedValue The desired [InvertedValue], either CounterClockwise_Positive or Clockwise_Positive.
+     * @param peakDutyCycle (optional) The maximum duty cycle output for the motors. Keep this value positive, it is automatically
+     *          changed to negative for peak reverse duty cycle. Values for this parameter are [-1.0, 1.0].
      * @return A [MotorOutputConfigs] with the desired [NeutralModeValue] and [InvertedValue].
      */
-    fun configureMotorOutputs(neutralModeValue: NeutralModeValue, invertedValue: InvertedValue): MotorOutputConfigs {
+    fun configureMotorOutputs(neutralModeValue: NeutralModeValue, invertedValue: InvertedValue,
+                              peakDutyCycle: Double = 1.0): MotorOutputConfigs {
         return MotorOutputConfigs()
             .withNeutralMode(neutralModeValue)
             .withInverted(invertedValue)
+            .withPeakForwardDutyCycle(MathUtil.clamp(peakDutyCycle, -1.0, 1.0))
+            .withPeakReverseDutyCycle(MathUtil.clamp(peakDutyCycle.unaryMinus(), -1.0, 1.0))
     }
 
     /**
