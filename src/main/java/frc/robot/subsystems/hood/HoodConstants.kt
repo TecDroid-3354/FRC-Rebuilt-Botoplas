@@ -151,6 +151,7 @@ object HoodConstants {
                 )),
             Optional.of(
                 KrakenMotors.configureSlot0(controlGains)),
+            Optional.empty(),
             Optional.of(
                 KrakenMotors.configureAngularMotionMagic(
                     AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),

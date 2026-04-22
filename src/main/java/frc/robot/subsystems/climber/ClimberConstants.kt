@@ -76,6 +76,7 @@ object ClimberConstants {
                                         statorCurrentLimits
                                 )),
                         Optional.empty(), // slot0 (PID not used)
+                        Optional.empty(), // slot1 (PID not used)
                         Optional.empty()  // motionMagic (not used)
                 )
         }

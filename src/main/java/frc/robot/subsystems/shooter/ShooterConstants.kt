@@ -43,10 +43,13 @@ object ShooterConstants {
      */
     object Tunables {
         // Previous control gains: 0.7, 0.0, 0.0, 0.55
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.316) // 0.01
+        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.7) // 0.7
         val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
         val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 2.5) // 5.0
+        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 8.0) // 0.0
+
+        val motorkS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kS", 0.2) // 0.4
+        val motorkV: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kV", 0.122) //0.0
 
         val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2700.0)
         val warmUpRPMs : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Warm Up RPMs", 1500.0)
@@ -71,31 +74,6 @@ object ShooterConstants {
             4.000.meters to (2_745.0).div(60.0).rotationsPerSecond,
             4.500.meters to (2_815.0).div(60.0).rotationsPerSecond,
             5.000.meters to (2_870.0).div(60.0).rotationsPerSecond,
-        )
-
-        // Score with full much use of the Hood
-        // The increment per step (0.5 meters) gets bigger as we meet the limit of Hood's range, relying on pure RPMs.
-        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)}
-        // Original low curvature
-//        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-//            1.397.meters to (2_150.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            2.000.meters to (2_300.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            2.500.meters to (2_350.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            3.000.meters to (2_450.0.minus(30.0)).div(60.0).rotationsPerSecond,
-//            3.500.meters to (2_450.0.minus(35.0)).div(60.0).rotationsPerSecond,
-//            4.000.meters to (2_475.0.minus(35.0)).div(60.0).rotationsPerSecond,
-//            4.500.meters to (2_575.0.minus(40.0)).div(60.0).rotationsPerSecond,
-//            5.000.meters to (2_825.0.minus(40.0)).div(60.0).rotationsPerSecond,
-//        )
-        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.397.meters to (2_400.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            2.000.meters to (2_450.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            2.500.meters to (2_500.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            3.000.meters to (2_550.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            3.500.meters to (2_650.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_745.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_815.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_870.0.minus(45.0)).div(60.0).rotationsPerSecond,
         )
 
         // Assist
@@ -142,7 +120,7 @@ object ShooterConstants {
         // ---------------------------------
         val controlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
-            s = 0.25, v = 0.12, a = 0.0, g = 0.0) // 0.25, 0.12, 0.1 -- 0.375, 0.1175, 0.05
+            s = Tunables.motorkS.get(), v = Tunables.motorkS.get(), a = 0.0, g = 0.0) // 0.25, 0.12, 0.1 -- 0.375, 0.1175, 0.05
 
         // ---------------------------------
         // PRIVATE — Motion Magic
@@ -165,6 +143,7 @@ object ShooterConstants {
                 )),
             Optional.of(
                 KrakenMotors.configureSlot0(controlGains)),
+            Optional.empty(),
             Optional.of(
                 KrakenMotors.configureAngularMotionMagic(
                     AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),

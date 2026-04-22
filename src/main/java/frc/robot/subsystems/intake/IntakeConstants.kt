@@ -103,11 +103,15 @@ object IntakeConstants {
         private val statorCurrentEnable : Boolean = false
 
         // ---------------------------------
-        // PUBLIC — Slot 0
+        // PUBLIC — Slot Configs
         // ---------------------------------
         val deployControlGains                : ControlGains = ControlGains(
             p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
             s = 0.22427, v = 0.078651, a = 0.0069529, g = 0.063911)
+
+        val clusterControlGains               : ControlGains = ControlGains(
+            p = 0.185, i = 0.0, d = 0.0, f = 0.0,
+            s = 0.22427, v = 0.078651.div(4.5), a = 0.0069529, g = 0.063911)
 
         // ---------------------------------
         // PRIVATE — Motion Magic
@@ -116,22 +120,11 @@ object IntakeConstants {
         private val deployAcceleration        : Time = 0.1.seconds
         private val deployJerktime            : Time = 0.1.seconds
 
-        private val clusterCruiseVelocity     : LinearVelocity = Units.MetersPerSecond.of(0.45)
-        private val clusterAcceleration       : Time = 1.0.seconds
-        private val clusterJerkTime           : Time = 1.0.seconds
-
         val deployableMotorSprocket   : Sprocket = Sprocket.fromRadius(3.0.inches.div(2.0))
 
         val deployMotionMagic         : MotionMagicConfigs =
             KrakenMotors.configureLinearMotionMagic(
                 LinearMotionTargets(deployCruiseVelocity, deployAcceleration, deployJerktime),
-                PhysicalLimits.DeployableReduction,
-                deployableMotorSprocket
-            )
-
-        val clusteringMotionMagic     : MotionMagicConfigs =
-            KrakenMotors.configureLinearMotionMagic(
-                LinearMotionTargets(clusterCruiseVelocity, clusterAcceleration, clusterJerkTime),
                 PhysicalLimits.DeployableReduction,
                 deployableMotorSprocket
             )
@@ -146,6 +139,7 @@ object IntakeConstants {
                 statorCurrentEnable,
                 statorCurrentLimits)),
             Optional.of(KrakenMotors.configureSlot0(deployControlGains)),
+            Optional.of(KrakenMotors.configureSlot1(clusterControlGains)),
             Optional.of(deployMotionMagic)
         )
 
@@ -155,6 +149,7 @@ object IntakeConstants {
                 supplyCurrentLimits,
                 statorCurrentEnable,
                 statorCurrentLimits)),
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         )

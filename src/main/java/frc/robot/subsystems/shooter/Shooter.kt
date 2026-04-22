@@ -118,10 +118,13 @@ class Shooter() : SysIdSubsystem("Shooter") {
         if (ShooterConstants.Tunables.motorkP.hasChanged(hashCode())
             || ShooterConstants.Tunables.motorkI.hasChanged(hashCode())
             || ShooterConstants.Tunables.motorkD.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkF.hasChanged(hashCode())) {
-            updateMotorsPIDF(
+            || ShooterConstants.Tunables.motorkF.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorkS.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorkV.hasChanged(hashCode())) {
+            updateMotorsControlGains(
                 ShooterConstants.Tunables.motorkP.get(), ShooterConstants.Tunables.motorkI.get(),
-                ShooterConstants.Tunables.motorkD.get(), ShooterConstants.Tunables.motorkF.get())
+                ShooterConstants.Tunables.motorkD.get(), ShooterConstants.Tunables.motorkF.get(),
+                ShooterConstants.Tunables.motorkS.get(), ShooterConstants.Tunables.motorkV.get())
         }
     }
 
@@ -297,13 +300,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
                 InterpolatingDouble(point.value.`in`(RotationsPerSecond)))
         }
 
-        for (point in ShooterConstants.Control.shooterScoreLowCurvatureInterpolationPoints) {
-            lowCurvatureInterpolation.put(
-                InterpolatingDouble(point.key.`in`(Meters)),
-                InterpolatingDouble(point.value.`in`(RotationsPerSecond))
-            )
-        }
-
         for (point in ShooterConstants.Control.shooterAssistInterpolationPoints) {
             assistInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
@@ -336,11 +332,11 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * @param kD D coefficient received live
      * @param kF F coefficient received live
      */
-    private fun updateMotorsPIDF(kP: Double, kI: Double, kD: Double, kF: Double) {
+    private fun updateMotorsControlGains(kP: Double, kI: Double, kD: Double, kF: Double,
+                                         kS: Double, kV: Double) {
         val newSlot0Configs: Slot0Configs = KrakenMotors.configureSlot0(
             ControlGains(kP, kI, kD, kF,
-                ShooterConstants.Configuration.controlGains.s,
-                ShooterConstants.Configuration.controlGains.v,
+                kS, kV,
                 ShooterConstants.Configuration.controlGains.a,
                 ShooterConstants.Configuration.controlGains.g)
         )

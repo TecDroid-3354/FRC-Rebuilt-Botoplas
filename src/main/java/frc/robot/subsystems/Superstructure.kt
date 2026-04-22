@@ -330,8 +330,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     fun intakeClusterCMD(): Command {
         return SequentialCommandGroup(
             intake.clusterIntakeCMD(),
-            WaitUntilCommand { intake.getDeployableError().lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta)},
-            intake.deployAndDisableIntakeCMD()
+//            WaitUntilCommand { intake.getDeployableError().lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta)},
+//            WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTER_END),
+//            intake.deployAndDisableIntakeCMD()
         )
     }
 

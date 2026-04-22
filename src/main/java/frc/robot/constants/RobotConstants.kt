@@ -109,6 +109,7 @@ object RobotConstants {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle             = 3.0.degrees
         val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity   = 0.8.rotationsPerSecond
         val TIME_DELTA_BEFORE_CLUSTERING            : Time              = 0.0.seconds
+        val TIME_DELTA_BEFORE_CLUSTER_END           : Time              = 0.3.seconds
     }
 
     object LoopInfo {

@@ -1,22 +1,21 @@
 package frc.template.utils.devices
 
-import com.ctre.phoenix6.StatusSignal
 import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.controls.Follower
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage
 import com.ctre.phoenix6.controls.MotionMagicVoltage
+import com.ctre.phoenix6.controls.PositionVoltage
 import com.ctre.phoenix6.controls.VoltageOut
 import com.ctre.phoenix6.hardware.TalonFX
-import com.ctre.phoenix6.signals.ControlModeValue
 import com.ctre.phoenix6.signals.MotorAlignmentValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import edu.wpi.first.units.AngleUnit
 import edu.wpi.first.units.DistanceUnit
-import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Distance
+import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Voltage
 import frc.template.utils.Sprocket
 import frc.template.utils.hertz
@@ -32,6 +31,8 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
     private val motionMagicVoltageRequest = MotionMagicVoltage(0.0)
     private val motionMagicVelocityRequest = MotionMagicVelocityVoltage(0.0)
 
+    private val COMMAND_TO_FOLLOWER_TALON_EXCEPTION = IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.")
+
     init {
         optimizeMotorCan()
     }
@@ -44,38 +45,46 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
     fun getIsConnected(): Boolean { return motor.isConnected }
 
     fun voltageRequest(voltage: Voltage) {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.")}
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
         motor.setControl(voltageOutRequest.withOutput(voltage))
     }
 
     fun velocityRequest(velocity: AngularVelocity) {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.")}
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
         motor.setControl(motionMagicVelocityRequest.withVelocity(velocity))
     }
 
-    fun positionRequest(position: Angle) {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
-        motor.setControl(motionMagicVoltageRequest.withPosition(position))
+    private fun positionRequest(position: Angle, slot: Int) {
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
+        motor.setControl(motionMagicVoltageRequest.withPosition(position).withSlot(slot))
     }
 
-    fun positionRequestSubsystem(position: Angle, limits: MeasureLimits<AngleUnit>, reduction: Reduction) {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
+    fun positionRequestSubsystem(position: Angle, limits: MeasureLimits<AngleUnit>, reduction: Reduction,
+                                 slot: Int = 0) {
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
         val subsystemClampedAngle: Angle = limits.coerceIn(position) as Angle
         val motorTransformedAngle: Angle = reduction.unapply(subsystemClampedAngle)
-        positionRequest(motorTransformedAngle)
+        positionRequest(motorTransformedAngle, slot)
     }
 
-    fun positionRequestSubsystem(displacement: Distance, limits: MeasureLimits<DistanceUnit>, reduction: Reduction, sprocket: Sprocket) {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
-        val subsystemClampedDistance: Distance = limits.coerceIn(displacement) as Distance
+    fun positionRequestSubsystem(displacement: Distance, limits: MeasureLimits<DistanceUnit>, reduction: Reduction,
+                                 sprocket: Sprocket, slot: Int = 0) {
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
+        val subsystemClampedDisplacement: Distance = limits.coerceIn(displacement) as Distance
         val requestedLinearDisplacementToAngularDisplacement: Angle =
-            sprocket.linearDisplacementToAngularDisplacement(subsystemClampedDistance)
+            sprocket.linearDisplacementToAngularDisplacement(subsystemClampedDisplacement)
         val motorTransformedAngle: Angle = reduction.unapply(requestedLinearDisplacementToAngularDisplacement)
-        positionRequest(motorTransformedAngle)
+        positionRequest(motorTransformedAngle, slot)
     }
 
     fun stopMotor() {
-        if (isFollower) { throw IllegalCallerException("Tried to command a follower TalonFX [$id]. Use the lead TalonFX.") }
+        if (isFollower) { throw COMMAND_TO_FOLLOWER_TALON_EXCEPTION }
+
         motor.stopMotor()
     }
 

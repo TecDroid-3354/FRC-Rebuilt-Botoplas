@@ -5,6 +5,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs
 import com.ctre.phoenix6.configs.MotionMagicConfigs
 import com.ctre.phoenix6.configs.MotorOutputConfigs
 import com.ctre.phoenix6.configs.Slot0Configs
+import com.ctre.phoenix6.configs.Slot1Configs
 import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.controls.Follower
 import com.ctre.phoenix6.controls.MotionMagicVoltage
@@ -71,7 +72,7 @@ object KrakenMotors {
      * @return A [TalonFXConfiguration] with the desired configurations.
      */
     fun createTalonFXConfiguration(motorOutputs: Optional<MotorOutputConfigs>, currentLimits: Optional<CurrentLimitsConfigs>,
-                                   slot0: Optional<Slot0Configs>, motionMagic: Optional<MotionMagicConfigs>)
+                                   slot0: Optional<Slot0Configs>, slot1: Optional<Slot1Configs>, motionMagic: Optional<MotionMagicConfigs>)
             : TalonFXConfiguration {
         val talonConfig = TalonFXConfiguration()
 
@@ -86,6 +87,10 @@ object KrakenMotors {
         if (slot0.isPresent) {
             talonConfig.Slot0 = slot0.get()
         } else { talonConfig.Slot0 = defaultConfig.Slot0 }
+
+        if (slot1.isPresent) {
+            talonConfig.Slot1 = slot1.get()
+        } else { talonConfig.Slot1 = defaultConfig.Slot1 }
 
         if (motionMagic.isPresent) {
             talonConfig.MotionMagic = motionMagic.get()
@@ -135,6 +140,22 @@ object KrakenMotors {
      */
     fun configureSlot0(controlGains: ControlGains): Slot0Configs {
         return Slot0Configs()
+            .withKP(controlGains.p)
+            .withKI(controlGains.i)
+            .withKD(controlGains.d)
+            .withKS(controlGains.s)
+            .withKV(controlGains.v)
+            .withKA(controlGains.a)
+            .withKG(controlGains.g)
+    }
+
+    /**
+     * Takes the desired [ControlGains] and returns a [Slot1Configs] with said configurations.
+     * @param controlGains The desired [ControlGains].
+     * @return A [Slot1Configs] with the applied [ControlGains].
+     */
+    fun configureSlot1(controlGains: ControlGains): Slot1Configs {
+        return Slot1Configs()
             .withKP(controlGains.p)
             .withKI(controlGains.i)
             .withKD(controlGains.d)

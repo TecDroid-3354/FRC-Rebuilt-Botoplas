@@ -5,6 +5,7 @@ import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
+import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
@@ -148,14 +149,16 @@ class Intake() : SysIdSubsystem("Intake") {
      * [IntakeConstants.PhysicalLimits.DeployableLimits] set. It also considers reduction,
      * so it's just necessary to give it to the method.
      * @param displacement The desired intake displacement.
+     * @param slot The desired [ControlGains], previously configured in either Slot0, Slot1 or Slot3 configs.
      */
-    private fun setPosition(displacement: Distance) {
+    private fun setPosition(displacement: Distance, slot: Int = 0) {
         targetDisplacement = IntakeConstants.PhysicalLimits.DeployableLimits.coerceIn(displacement) as Distance
         deployableMotorController.positionRequestSubsystem(
             targetDisplacement,
             IntakeConstants.PhysicalLimits.DeployableLimits,
             IntakeConstants.PhysicalLimits.DeployableReduction,
-            IntakeConstants.Configuration.deployableMotorSprocket
+            IntakeConstants.Configuration.deployableMotorSprocket,
+            slot
         )
     }
 
@@ -188,11 +191,12 @@ class Intake() : SysIdSubsystem("Intake") {
     /**
      * Sets a desired [IntakePositions] which holds a known position for either retracted o deployed position.
      * Keeps track of the current requested position and assigns it to [targetDisplacement].
-     * @param position the desired pose to go to
+     * @param position The desired pose to go to
+     * @param slot The desired [ControlGains], previously configured in either Slot0, Slot1 or Slot3 configs.
      * @return A command requesting the given [IntakePositions].
      */
-    private fun setPositionWithDisplacementCMD(position: Distance): Command {
-        return InstantCommand({ setPosition(position) }, this)
+    private fun setPositionWithDisplacementCMD(position: Distance, slot: Int = 0): Command {
+        return InstantCommand({ setPosition(position, slot) }, this)
     }
 
     /**
@@ -205,27 +209,11 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     private fun setPositionCMD(position: IntakePositions): Command {
         return when (position) {
-            IntakePositions.CLUSTERED ->
-                SequentialCommandGroup(
-                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
-                            IntakeConstants.Configuration.deployableMotorsConfig.withMotionMagic(
-                                IntakeConstants.Configuration.clusteringMotionMagic
-                            )
-                        )
-                    }),
-                    WaitCommand(0.08.seconds),
-                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.ClusteredDisplacement)
-                )
+            IntakePositions.CLUSTERED -> setPositionWithDisplacementCMD(
+                IntakeConstants.RetractileAngles.ClusteredDisplacement, 1)
 
-            IntakePositions.DEPLOYED ->
-                SequentialCommandGroup(
-                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
-                        IntakeConstants.Configuration.deployableMotorsConfig
-                        )
-                    }),
-                    WaitCommand(0.08.seconds),
-                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.DeployedDisplacement)
-                )
+            IntakePositions.DEPLOYED -> setPositionWithDisplacementCMD (
+                IntakeConstants.RetractileAngles.DeployedDisplacement, 0)
         }
     }
 
@@ -283,7 +271,6 @@ class Intake() : SysIdSubsystem("Intake") {
     fun clusterIntakeCMD(): Command {
         return SequentialCommandGroup(
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
-            //WaitCommand(0.1.seconds),
             setPositionCMD(IntakePositions.CLUSTERED),
         )
     }
