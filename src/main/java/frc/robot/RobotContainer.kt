@@ -16,12 +16,8 @@ import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.commands.PathPlannerAuto
 import com.pathplanner.lib.events.EventTrigger
 import edu.wpi.first.wpilibj.DriverStation
-import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
 import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
 import edu.wpi.first.wpilibj2.command.button.Trigger
@@ -34,7 +30,6 @@ import net.tecdroid.util.stateMachine.scheduleCMD
 import org.json.simple.parser.ParseException
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser
 import java.io.IOException
-import java.util.function.BooleanSupplier
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -96,11 +91,11 @@ class RobotContainer {
         EventTrigger(Autonomous.EventTriggerStrings.SCORE)
             .onTrue(
                 superstructure.scoreStateSequenceAutoRightCMD().alongWith(statesHandler.setShootingLed())
-                    .withTimeout(5.0.seconds)
-                        .andThen(superstructure.disableSubsystemsCMD().alongWith(statesHandler.setDefaultLed()))
+                    .alongWith(WaitCommand(5.0.seconds))
+                        .andThen(superstructure.disableSubsystemsAutoCMD().alongWith(statesHandler.setDefaultLed()))
                 )
         EventTrigger("Align")
-            .onTrue(superstructure.driveTargetingHUB())
+            .onTrue(superstructure.driveTargetingHUBAuto().withTimeout(3.0.seconds))
 
         EventTrigger(Autonomous.EventTriggerStrings.ENABLE_SHOOTER)
             .onTrue(superstructure.noStateShootOnlyCMD(2000.0))

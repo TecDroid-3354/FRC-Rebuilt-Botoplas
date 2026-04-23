@@ -3,41 +3,57 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.1,
-        "y": 0.85
+        "x": 3.2886162624821687,
+        "y": 2.7087874465049935
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.391986222862737,
-        "y": -0.573123964042135
+        "x": 2.344094151212553,
+        "y": 1.0397004279600572
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.630843373493977,
-        "y": 4.067783132530121
+        "x": 4.6730527817403695,
+        "y": 0.4962767475035662
       },
       "prevControl": {
-        "x": 7.634467976591687,
-        "y": 4.073365497678712
+        "x": 3.1051534780433023,
+        "y": 0.46868907647077285
       },
       "nextControl": {
-        "x": 5.263164756028394,
-        "y": 4.060175824553564
+        "x": 9.085135520684736,
+        "y": 0.5739087018544944
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.1,
-        "y": 0.85
+        "x": 6.484465049928673,
+        "y": 4.028530670470756
       },
       "prevControl": {
-        "x": 11.110407893140511,
-        "y": -0.9031016472276133
+        "x": 7.687760342368046,
+        "y": 3.7180028530670475
+      },
+      "nextControl": {
+        "x": 5.706508891517769,
+        "y": 4.2292935500606665
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.2886162624821687,
+        "y": 2.7087874465049935
+      },
+      "prevControl": {
+        "x": 7.22196861626248,
+        "y": 1.583124108416548
       },
       "nextControl": null,
       "isLocked": false,
@@ -49,17 +65,7 @@
   "pointTowardsZones": [
     {
       "fieldPosition": {
-        "x": 9.0,
-        "y": 0.6
-      },
-      "rotationOffset": 0.0,
-      "minWaypointRelativePos": 0.07,
-      "maxWaypointRelativePos": 0.1392081736909334,
-      "name": "Point Towards Zone"
-    },
-    {
-      "fieldPosition": {
-        "x": 6.0,
+        "x": 3.5,
         "y": 5.5
       },
       "rotationOffset": 0.0,
@@ -69,47 +75,47 @@
     },
     {
       "fieldPosition": {
-        "x": 6.0,
-        "y": 0.0
+        "x": 6.4,
+        "y": 7.8
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 1.2,
-      "maxWaypointRelativePos": 1.35,
+      "minWaypointRelativePos": 1.1,
+      "maxWaypointRelativePos": 1.55,
       "name": "Point Towards Zone"
     },
     {
       "fieldPosition": {
-        "x": 0.4,
-        "y": 0.8
+        "x": 6.4,
+        "y": 0.5
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 1.7943805874840355,
-      "maxWaypointRelativePos": 1.98,
+      "minWaypointRelativePos": 2.5,
+      "maxWaypointRelativePos": 2.6,
       "name": "Point Towards Zone"
     }
   ],
   "eventMarkers": [
     {
       "name": "Intake Deploy",
-      "waypointRelativePos": 0.0,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "Enable Shooter",
-      "waypointRelativePos": 1.7994891443167327,
+      "waypointRelativePos": 1.0614449696151205,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
       "name": "Disable Intake Rollers",
-      "waypointRelativePos": 1.8464467005076088,
+      "waypointRelativePos": 2.7,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
       "name": "Score",
-      "waypointRelativePos": 2.0,
+      "waypointRelativePos": 2.99,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Align",
+      "waypointRelativePos": 3.0,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -124,13 +130,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -115.86900000000001
+    "rotation": -89.2724736486493
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
   "idealStartingState": {
     "velocity": 0.0,
-    "rotation": -115.86900000000001
+    "rotation": -115.20112364547508
   },
   "useDefaultConstraints": true
 }

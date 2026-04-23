@@ -82,8 +82,8 @@ object RobotConstants {
         }
 
         object ShootingConstants {
-            val RIGHT_SIDE_SHOOTER_RPS              : AngularVelocity   = 2_700.0.div(60.0).rotationsPerSecond
-            val RIGHT_SIDE_HOOD_ANGLE               : Angle             = 18.91.degrees
+            val RIGHT_SIDE_SHOOTER_RPS              : AngularVelocity   = 2_050.0.div(60.0).rotationsPerSecond
+            val RIGHT_SIDE_HOOD_ANGLE               : Angle             = 18.0.degrees
         }
     }
 

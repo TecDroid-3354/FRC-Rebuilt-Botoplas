@@ -44,8 +44,7 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.Constants.isFlipped;
 
 public class DriveCommands {
@@ -163,6 +162,112 @@ public class DriveCommands {
         // Reset PID controller when command starts
         .beforeStarting(angleController::reset);
   }
+
+    /**
+     * Field relative drive command using joystick for linear control and PID for angular control.
+     * Possible use cases include snapping to an angle, aiming at a vision target, or controlling
+     * absolute rotation with a joystick.
+     */
+    public static Command joystickDriveAtAngleAuto(
+            Drive drive,
+            DoubleSupplier xSupplier,
+            DoubleSupplier ySupplier,
+            Supplier<Angle> rotationSupplier) {
+
+        // Create PID controller
+        PIDController angleController =
+                new PIDController(
+                        ANGLE_KP.get(),
+                        0.0,
+                        ANGLE_KD.get());
+        angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+        // Construct command
+        return Commands.run(
+                        () -> {
+                            // Get linear velocity
+                            Translation2d linearVelocity =
+                                    getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+                            // Calculate angular speed
+                            double omega =
+                                    angleController.calculate(
+                                            drive.getRotation().getRadians(), rotationSupplier.get().in(Radians));
+
+                            // Convert to field relative speeds & send command
+                            ChassisSpeeds speeds =
+                                    new ChassisSpeeds(
+                                            linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                                            linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                                            omega);
+                            boolean isFlipped =
+                                    DriverStation.getAlliance().isPresent()
+                                            && DriverStation.getAlliance().get() == Alliance.Red;
+                            drive.runVelocity(
+                                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                                            speeds,
+                                            isFlipped
+                                                    ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                                                    : drive.getRotation()));
+                        })
+
+                // Reset PID controller when command starts
+                .beforeStarting(angleController::reset);
+    }
+
+    /**
+     * Field relative drive command using joystick for linear control and PID for angular control.
+     * Possible use cases include snapping to an angle, aiming at a vision target, or controlling
+     * absolute rotation with a joystick.
+     */
+    public static Command alignDriveAtAngle(
+            Drive drive,
+            Angle targetRotation) {
+
+        // Create PID controller
+        PIDController angleController =
+                new PIDController(
+                        ANGLE_KP.get(),
+                        0.0,
+                        ANGLE_KD.get());
+        angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+        // Construct command
+        return Commands.run(
+                        () -> {
+                            // Calculate angular speed
+                            double omega =
+                                    angleController.calculate(
+                                            drive.getRotation().getRadians(), targetRotation.in(Radians));
+
+                            // Convert to field relative speeds & send command
+                            ChassisSpeeds speeds =
+                                    new ChassisSpeeds(
+                                            0.0, 0.0,
+                                            omega);
+                            boolean isFlipped =
+                                    DriverStation.getAlliance().isPresent()
+                                            && DriverStation.getAlliance().get() == Alliance.Red;
+                            drive.runVelocity(
+                                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                                            speeds,
+                                            isFlipped
+                                                    ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                                                    : drive.getRotation()));
+                        },
+                        drive)
+//                .until(() -> drive.getRotation().minus(Rotation2d.fromDegrees(targetRotation.in(Degrees)))
+//                        .getDegrees() <= 3.0)
+
+                // Reset PID controller when command starts
+                .beforeStarting(angleController::reset);
+//                .until(() -> (DriverStation.getAlliance().isPresent()
+//                                 && DriverStation.getAlliance().get() == Alliance.Red) ?
+//                        drive.getRotation().plus(Rotation2d.kPi).minus(Rotation2d.fromDegrees(targetRotation.in(Degrees)))
+//                        .getDegrees() <= 3.0
+//                        : drive.getRotation().minus(Rotation2d.fromDegrees(targetRotation.in(Degrees)))
+//                        .getDegrees() <= 3.0);
+    }
 
   /**
    * Measures the velocity feedforward constants for the drive motors.

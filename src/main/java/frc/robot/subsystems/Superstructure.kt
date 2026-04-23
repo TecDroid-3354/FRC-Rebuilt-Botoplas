@@ -489,6 +489,23 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     /**
      * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
+     * [Shooter] and [Intake] rollers. [Intake] is NOT deployed again.
+     * @return A [ParallelCommandGroup] with the above requests.
+     */
+    fun disableSubsystemsAutoCMD(): Command {
+        return ParallelCommandGroup(
+            storeHoodCMD(),
+            SequentialCommandGroup(
+                intake.stopMotor(),
+                disableIntakeRollersCMD()
+            ),
+            disableShooterCMD(),
+            disableIndexerCMD()
+        )
+    }
+
+    /**
+     * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
      * [Shooter] and [Intake] ROLLERS. This method does NOT request an [Intake] position.
      * @return A [ParallelCommandGroup] with the above requests.
      */
@@ -526,9 +543,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     /**
      * Intended to be Initial Command of Score State. Locks the [Drive] angle to track the HUB's coordinates.
      * During this command the driver won't be able to rotate the chassis, however, the translation is still under
-     * his control. Translation max velocity is limited during this command. Once the [Drive] is within tolerance,
-     * it will stop with an X-arrangement, making it virtually impossible for other robots to move it.
-     * TODO() = Check stopWithX behaviour. Might use a RunCommand that checks whether in tolerance or not if this freezes.
+     * his control. Translation max velocity is limited during this command.
      * @return A [RunCommand] that locks the [Drive] angle to target the HUB.
      */
     fun driveTargetingHUB(): Command {
@@ -537,8 +552,22 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
             ::getDriveToHubAngle
-        )//.until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
-//            .andThen(InstantCommand({ drive.stopWithX() }))
+        )
+    }
+
+    /**
+     * Intended to be Initial Command of Score State. Locks the [Drive] angle to track the HUB's coordinates.
+     * During this command the driver won't be able to rotate the chassis, however, the translation is still under
+     * his control. Translation max velocity is limited during this command.
+     * @return A [RunCommand] that locks the [Drive] angle to target the HUB.
+     */
+    fun driveTargetingHUBAuto(): Command {
+        return DriveCommands.joystickDriveAtAngleAuto(
+            drive,
+            { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
+            { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
+            ::getDriveToHubAngle
+        )
     }
 
     /**
@@ -567,6 +596,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
             { getAngleFromJoystick() }
         )
+    }
+
+    fun alignChassisToHubAuto(): Command {
+        return DriveCommands.alignDriveAtAngle(drive, getDriveToHubAngle())
     }
 
     /**
