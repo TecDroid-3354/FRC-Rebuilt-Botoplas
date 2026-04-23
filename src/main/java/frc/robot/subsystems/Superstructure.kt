@@ -206,7 +206,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun scoreStateSequenceAutoRightCMD(): Command {
         return ParallelCommandGroup(
-            //WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
+            WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
             shooter.setVelocityCMD { RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_SHOOTER_RPS }, // Enables Shooter
             hood.setAngleCMD(RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_HOOD_ANGLE), // Enables Hood
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached

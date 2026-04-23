@@ -99,6 +99,8 @@ class RobotContainer {
                     .withTimeout(5.0.seconds)
                         .andThen(superstructure.disableSubsystemsCMD().alongWith(statesHandler.setDefaultLed()))
                 )
+        EventTrigger("Align")
+            .onTrue(superstructure.driveTargetingHUB())
 
         EventTrigger(Autonomous.EventTriggerStrings.ENABLE_SHOOTER)
             .onTrue(superstructure.noStateShootOnlyCMD(2000.0))

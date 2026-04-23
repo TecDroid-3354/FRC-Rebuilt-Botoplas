@@ -15,12 +15,6 @@
           "data": {
             "waitTime": 4.5
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RightAutoMasterPath_C2"
-          }
         }
       ]
     }

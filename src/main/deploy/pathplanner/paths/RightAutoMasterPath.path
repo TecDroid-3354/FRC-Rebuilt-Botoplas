@@ -8,36 +8,36 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 9.305450035016857,
-        "y": -0.07340245529703238
+        "x": 9.378196915776986,
+        "y": -0.058873072360616896
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.480741797432238,
-        "y": 3.0
+        "x": 7.444397435897437,
+        "y": 3.6047564102564102
       },
       "prevControl": {
-        "x": 7.932382806617013,
-        "y": 3.895627086010488
+        "x": 7.750441976322369,
+        "y": 4.5599863394615
       },
       "nextControl": {
-        "x": 6.717360912981454,
-        "y": 1.4861768901569197
+        "x": 7.060666666666667,
+        "y": 2.407051282051283
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.1,
-        "y": 0.85
+        "x": 3.2117307692307704,
+        "y": 2.6163589743589752
       },
       "prevControl": {
-        "x": 9.436763590409827,
-        "y": -0.5975590486250891
+        "x": 6.304833333333335,
+        "y": 2.69775641025641
       },
       "nextControl": null,
       "isLocked": false,
@@ -67,7 +67,7 @@
         "y": 0.0
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 1.15,
+      "minWaypointRelativePos": 1.067552602436323,
       "maxWaypointRelativePos": 1.35,
       "name": "Point Towards Zone"
     },
@@ -80,28 +80,12 @@
       "minWaypointRelativePos": 0.25,
       "maxWaypointRelativePos": 0.75,
       "name": "Point Towards Zone"
-    },
-    {
-      "fieldPosition": {
-        "x": 0.4,
-        "y": 0.7
-      },
-      "rotationOffset": 0.0,
-      "minWaypointRelativePos": 1.8330188679245245,
-      "maxWaypointRelativePos": 1.98,
-      "name": "Point Towards Zone"
     }
   ],
   "eventMarkers": [
     {
       "name": "Intake Deploy",
       "waypointRelativePos": 0.02,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "Enable Shooter",
-      "waypointRelativePos": 1.789272030651341,
       "endWaypointRelativePos": null,
       "command": null
     },
@@ -113,14 +97,20 @@
     },
     {
       "name": "Score",
+      "waypointRelativePos": 1.99,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Align",
       "waypointRelativePos": 2.0,
       "endWaypointRelativePos": null,
       "command": null
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.0,
+    "maxAcceleration": 5.2,
     "maxAngularVelocity": 200.0,
     "maxAngularAcceleration": 225.0,
     "nominalVoltage": 12.0,
@@ -128,7 +118,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -115.86900000000001
+    "rotation": -90.0
   },
   "reversed": false,
   "folder": "Autonomous Test-Solo",
