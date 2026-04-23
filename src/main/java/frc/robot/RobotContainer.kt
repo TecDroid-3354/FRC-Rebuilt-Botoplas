@@ -91,7 +91,7 @@ class RobotContainer {
         EventTrigger(Autonomous.EventTriggerStrings.SCORE)
             .onTrue(
                 superstructure.scoreStateSequenceAutoRightCMD().alongWith(statesHandler.setShootingLed())
-                    .alongWith(WaitCommand(5.0.seconds))
+                    .alongWith(WaitCommand(4.5.seconds))
                         .andThen(superstructure.disableSubsystemsAutoCMD().alongWith(statesHandler.setDefaultLed()))
                 )
         EventTrigger("Align")
