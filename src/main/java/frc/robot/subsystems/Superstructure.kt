@@ -180,25 +180,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     /**
-     * Intended for Score State. Starts by enabling the [Shooter] and [Hood] interpolation, waiting until the [Shooter]
-     * RPS and [Drive] angle are within tolerance, then enabling the [Indexer]
-     * and finally enabling the [Intake] clustering for faster shooting.
-     * @return A [ParallelCommandGroup] with the above specifications.
-     */
-    fun scoreStateLowCurvatureSequenceDefaultCMD(): Command {
-        return ParallelCommandGroup(
-            scoreStateShooterLowCurvatureInterpolationCMD(), // Enables Shooter interpolation
-            scoreStateHoodLowCurvatureInterpolationCMD(), // Enables Hood interpolation
-            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
-                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(2.0.seconds)
-                .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
-                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
-        )
-    }
-
-    /**
      * Intended to call during Auto. Same as [scoreStateSequenceDefaultCMD], just without checking [Drive] angle,
      * as it is controlled by PathPlanner.
      * - A little [WaitCommand] is used to ensure drive has the right rotation.
@@ -207,8 +188,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     fun scoreStateSequenceAutoRightCMD(): Command {
         return ParallelCommandGroup(
             WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
-            shooter.setVelocityCMD { RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_SHOOTER_RPS }, // Enables Shooter
-            hood.setAngleCMD(RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_HOOD_ANGLE), // Enables Hood
+            scoreStateShooterInterpolationCMD(),
+            scoreStateHoodInterpolationCMD(),
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(1.2.seconds)
@@ -270,10 +251,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     private fun scoreStateShooterInterpolationCMD(): Command {
         return shooter.setScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
-    }
-
-    private fun scoreStateShooterLowCurvatureInterpolationCMD(): Command {
-        return shooter.setLowCurvatureScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
     }
 
     /**

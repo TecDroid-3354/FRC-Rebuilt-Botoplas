@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftAutoMasterPath_C2"
+            "pathName": "SimpleLeft"
           }
         }
       ]

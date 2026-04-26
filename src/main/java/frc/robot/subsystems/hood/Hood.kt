@@ -198,7 +198,7 @@ class Hood() : SysIdSubsystem("Hood") {
      * @return a [RunCommand] calling [setScoreDistanceInterpolatedAngle]
      */
     fun setScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
-        return RunCommand({ setScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
+        return InstantCommand({ setScoreDistanceInterpolatedAngle(chassisDistanceToHUB.get()) }, this)
     }
 
     fun setLowCurvatureScoreDistanceInterpolatedAngleCMD(chassisDistanceToHUB: Supplier<Distance>): Command {
@@ -292,12 +292,6 @@ class Hood() : SysIdSubsystem("Hood") {
     private fun interpolationConfiguration() {
         for (point in HoodConstants.Control.hoodScoreHighCurvatureInterpolationPoints) {
             hoodScoringInterpolation.put(
-                InterpolatingDouble(point.key.`in`(Meters)),
-                InterpolatingDouble(point.value.`in`(Degrees)))
-        }
-
-        for (point in HoodConstants.Control.hoodScoreLowCurvatureInterpolationPoints) {
-            hoodLowCurvatureScoringInterpolation.put(
                 InterpolatingDouble(point.key.`in`(Meters)),
                 InterpolatingDouble(point.value.`in`(Degrees)))
         }

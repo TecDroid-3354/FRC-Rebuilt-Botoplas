@@ -74,7 +74,7 @@ object IntakeConstants {
         val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Motors kF", 0.0)
 
         val enabledRollersVoltage      : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Enabled Rollers Voltage", 10.0)
-        val clusteringRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers Voltage", 7.0)
+        val clusteringRollersVoltage   : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Clustering Rollers Voltage", 8.5)
         val idleRollersVoltage         : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.INTAKE_TAB}/Idle Rollers Voltage", 0.0)
     }
 
@@ -110,7 +110,7 @@ object IntakeConstants {
             s = 0.22427, v = 0.078651, a = 0.0069529, g = 0.063911)
 
         val clusterControlGains               : ControlGains = ControlGains(
-            p = 0.135, i = 0.0, d = 0.0, f = 0.0,
+            p = 0.175, i = 0.0, d = 0.0, f = 0.0,
             s = 0.22427, v = 0.078651.div(4.5), a = 0.0069529, g = 0.063911)
 
         // ---------------------------------

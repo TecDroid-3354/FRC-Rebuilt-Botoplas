@@ -17,6 +17,7 @@ import frc.template.utils.degrees
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.mechanical.Reduction
 import frc.template.utils.meters
+import frc.template.utils.rotationsPerSecond
 import frc.template.utils.safety.MeasureLimits
 import frc.template.utils.seconds
 import java.util.Optional
@@ -57,38 +58,23 @@ object HoodConstants {
 
         // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
         val hoodScoreHighCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.397.meters to (06.0.plus(0.3)).degrees,
-            2.000.meters to (12.0.plus(0.3)).degrees,
-            2.500.meters to (14.4.plus(0.3)).degrees,
-            3.000.meters to (16.5 + 0.3).degrees,
-            3.500.meters to (17.0 + 0.3).degrees,
-            4.000.meters to (20.0 + 0.3).degrees,
-            4.500.meters to (22.0 + 0.3).degrees,
-            5.000.meters to (24.5 + 0.3).degrees,
-        )
-
-        // Pair() containing: Distance to target (meters) -> Hood target angle (degrees)
-        // Original low curvature
-//        val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-//            1.397.meters to (07.0).degrees,
-//            2.000.meters to (14.0).degrees,
-//            2.500.meters to (18.0).degrees,
-//            3.000.meters to (20.0).degrees,
-//            3.500.meters to (22.0).degrees,
-//            4.000.meters to (25.0).degrees,
-//            4.500.meters to (25.0).degrees,
-//            5.000.meters to (25.0).degrees,
-//        )
-
-        val hoodScoreLowCurvatureInterpolationPoints: Map<Distance, Angle> = mapOf<Distance, Angle>(
-            1.397.meters to (06.0.plus(0.3)).degrees,
-            2.000.meters to (12.0.plus(0.3)).degrees,
-            2.500.meters to (14.4.plus(0.3)).degrees,
-            3.000.meters to (16.5 + 0.3).degrees,
-            3.500.meters to (17.0 + 0.3).degrees,
-            4.000.meters to (20.0 + 0.3).degrees,
-            4.500.meters to (22.0 + 0.3).degrees,
-            5.000.meters to (24.5 + 0.3).degrees
+            1.250.meters to (15.0).degrees,
+            1.500.meters to (14.0).degrees,
+            1.750.meters to (17.5).degrees,
+            2.000.meters to (20.0).degrees,
+            2.250.meters to (21.5).degrees,
+            2.500.meters to (23.0).degrees,
+            2.750.meters to (24.5).degrees,
+            3.000.meters to (24.5).degrees,
+            3.250.meters to (29.5).degrees,
+            3.500.meters to (25.8).degrees,
+            3.750.meters to (28.6).degrees,
+            4.000.meters to (27.5).degrees,
+            4.250.meters to (30.0).degrees,
+            4.500.meters to (30.0).degrees,
+            4.750.meters to (30.0).degrees,
+            5.000.meters to (30.0).degrees,
+            5.250.meters to (30.0).degrees,
         )
 
         // Pair() containing: Shooter velocity (rotationsPerSecond) -> Hood target angle (degrees)

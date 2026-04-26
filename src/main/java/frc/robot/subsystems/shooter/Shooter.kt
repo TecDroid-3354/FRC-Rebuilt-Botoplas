@@ -47,7 +47,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
     // -------------------------------
     private var targetVelocity              : AngularVelocity = DegreesPerSecond.zero()
     private val scoringInterpolation        : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
-    private val lowCurvatureInterpolation   : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
     private val assistInterpolation         : InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> = InterpolatingTreeMap()
     
 
@@ -115,16 +114,16 @@ class Shooter() : SysIdSubsystem("Shooter") {
         followerRightFirstAlert.set(followerRightMotorFirst.getIsConnected().not())
         followerRightSecondAlert.set(followerRightMotorSecond.getIsConnected().not())
 
-        if (ShooterConstants.Tunables.motorkP.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkI.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkD.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkF.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkS.hasChanged(hashCode())
-            || ShooterConstants.Tunables.motorkV.hasChanged(hashCode())) {
+        if (ShooterConstants.Tunables.motorNearkP.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorNearkI.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorNearkD.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorNearkF.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorNearkS.hasChanged(hashCode())
+            || ShooterConstants.Tunables.motorNearkV.hasChanged(hashCode())) {
             updateMotorsControlGains(
-                ShooterConstants.Tunables.motorkP.get(), ShooterConstants.Tunables.motorkI.get(),
-                ShooterConstants.Tunables.motorkD.get(), ShooterConstants.Tunables.motorkF.get(),
-                ShooterConstants.Tunables.motorkS.get(), ShooterConstants.Tunables.motorkV.get())
+                ShooterConstants.Tunables.motorNearkP.get(), ShooterConstants.Tunables.motorNearkI.get(),
+                ShooterConstants.Tunables.motorNearkD.get(), ShooterConstants.Tunables.motorNearkF.get(),
+                ShooterConstants.Tunables.motorNearkS.get(), ShooterConstants.Tunables.motorNearkV.get())
         }
     }
 
@@ -154,11 +153,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
     private fun setScoringInterpolatedVelocity(distanceToTarget: Distance) {
         val shooterSetpointRps = scoringInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
         setVelocity(shooterSetpointRps.value.rotationsPerSecond)
-    }
-
-    private fun setScoringLowCurvatureInterpolatedVelocity(distanceToTarget: Distance) {
-        val shooterPointRps = lowCurvatureInterpolation.getInterpolated(InterpolatingDouble(distanceToTarget.`in`(Meters)))
-        setVelocity(shooterPointRps.value.rotationsPerSecond)
     }
 
     private fun setAssistInterpolatedVelocity(distanceToTarget: Distance) {
@@ -197,11 +191,7 @@ class Shooter() : SysIdSubsystem("Shooter") {
      * @return a [RunCommand] calling [setScoringInterpolatedVelocity]
      */
     fun setScoreInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
-        return RunCommand({ setScoringInterpolatedVelocity(distanceToTarget.get()) }, this)
-    }
-
-    fun setLowCurvatureScoreInterpolatedVelocityCMD(distanceToTarget: Supplier<Distance>): Command {
-        return RunCommand({ setScoringLowCurvatureInterpolatedVelocity(distanceToTarget.get()) }, this)
+        return InstantCommand({ setScoringInterpolatedVelocity(distanceToTarget.get()) }, this)
     }
     
     fun setAssistInterpolatedVelocity(distanceToTargetBump: Supplier<Distance>): Command {
