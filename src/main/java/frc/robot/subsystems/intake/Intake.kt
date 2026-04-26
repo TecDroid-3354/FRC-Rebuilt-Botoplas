@@ -250,6 +250,7 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     fun deployAndEnableIntakeCMD(): Command {
         return SequentialCommandGroup(
+            coastCMD(),
             setPositionCMD(IntakePositions.DEPLOYED),
             WaitUntilCommand { getDeployableError()
                 .lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta) },
@@ -272,6 +273,14 @@ class Intake() : SysIdSubsystem("Intake") {
         return SequentialCommandGroup(
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
             setPositionCMD(IntakePositions.CLUSTERED),
+        )
+    }
+
+    fun retractAndBrakeIntakeCMD(): Command {
+        return SequentialCommandGroup(
+            setDeployableDisplacementOnly(IntakeConstants.RetractileAngles.ClusteredDisplacement),
+            InstantCommand({ setRollersVoltage(Units.Volts.zero()) }),
+            brakeCMD()
         )
     }
 
@@ -407,6 +416,7 @@ class Intake() : SysIdSubsystem("Intake") {
     private fun getRollersVelocity(): AngularVelocity {
         return rollersLeadMotorController.getVelocity().times(60.0)
     }
+
 
     // -------------------------------
     // PUBLIC — Neutral Mode control

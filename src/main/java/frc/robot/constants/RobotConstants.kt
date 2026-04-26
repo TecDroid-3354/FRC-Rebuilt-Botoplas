@@ -68,14 +68,15 @@ object RobotConstants {
     object Autonomous {
         object NameStrings {
             const val RIGHT_AUTO                    : String    = "RightAutoTwoCycles"
-            const val RIGHT_MULTI_PATH_AUTO         : String    = "MultiPathRight"
             const val LEFT_AUTO                     : String    = "LeftAutoTwoCycles"
+            const val SECOND_PICK_RIGHT_AUT0        : String    = "SecondPickRightAuto"
         }
 
         object EventTriggerStrings {
             const val INTAKE_DEPLOY                 : String    = "Intake Deploy"
             const val DISABLE_INTAKE_ROLLERS        : String    = "Disable Intake Rollers"
             const val SCORE                         : String    = "Score"
+            const val SECOND_PICK_SCORE             : String    = "SecondPickScore"
             const val ENABLE_SHOOTER                : String    = "Enable Shooter"
             const val INTAKE_LEDS                   : String    = "Intake LEDs"
             const val SCORE_LEDS                    : String    = "Score LEDs"

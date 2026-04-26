@@ -300,6 +300,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return intake.deployAndEnableIntakeCMD()
     }
 
+    fun retractIntakeCMD(): Command {
+        return intake.retractAndBrakeIntakeCMD()
+    }
+
     /**
      * In the interest of shooting faster, the [Intake] retracts, causing the hopper to cluster the FUELS towards the tower.
      * @return A [SequentialCommandGroup] requesting the [Intake] to retract, and then deploying it again.
@@ -824,7 +828,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun brakeSubsystems(): Command {
         return ParallelCommandGroup(
-            intake.brakeCMD(),
             hood.brakeCMD()
         )
     }

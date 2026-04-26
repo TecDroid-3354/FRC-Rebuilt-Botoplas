@@ -94,6 +94,13 @@ class RobotContainer {
                     .alongWith(WaitCommand(4.5.seconds))
                         .andThen(superstructure.disableSubsystemsAutoCMD().alongWith(statesHandler.setDefaultLed()))
                 )
+        EventTrigger(Autonomous.EventTriggerStrings.SECOND_PICK_SCORE)
+            .onTrue(
+                superstructure.scoreStateSequenceAutoRightCMD().alongWith(statesHandler.setShootingLed())
+                    .alongWith(WaitCommand(6.0.seconds))
+                    .andThen(superstructure.disableSubsystemsAutoCMD().alongWith(statesHandler.setDefaultLed()))
+            )
+
         EventTrigger("Align")
             .onTrue(superstructure.driveTargetingHUBAuto().withTimeout(3.0.seconds))
 
@@ -114,7 +121,7 @@ class RobotContainer {
         try {
             autoChooser.addOption("Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_AUTO))
             autoChooser.addOption("Left Auto", PathPlannerAuto(Autonomous.NameStrings.LEFT_AUTO))
-            autoChooser.addOption("MultiPath Right Auto", PathPlannerAuto(Autonomous.NameStrings.RIGHT_MULTI_PATH_AUTO))
+            autoChooser.addOption("2nd Pick Right Auto", PathPlannerAuto(Autonomous.NameStrings.SECOND_PICK_RIGHT_AUT0))
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: ParseException) {

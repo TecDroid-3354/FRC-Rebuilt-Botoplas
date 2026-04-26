@@ -170,15 +170,12 @@ class StatesHandler(
                 superstructure.driveFollowingDriverInput()
                     .alongWith(setDefaultLed()))
 
-        controller.leftBumper().onTrue(superstructure.scoreStateSequenceWithoutOdometryCMD()
-            .alongWith(setShootingLed()))
-            .onFalse(superstructure.disableSubsystemsCMD()
-                .alongWith(setDefaultLed()))
-
         controller.rightBumper().onTrue(superstructure.intakeStateCMD()
             .alongWith(setIntakeLed()))
             .onFalse(superstructure.disableIntakeRollersCMD()
                 .alongWith(setDefaultLed()))
+
+        controller.leftBumper().onTrue(superstructure.retractIntakeCMD().alongWith(setIntakeLed()))
 
         controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
             .ignoringDisable(true))   // Coast Intake + Hood
