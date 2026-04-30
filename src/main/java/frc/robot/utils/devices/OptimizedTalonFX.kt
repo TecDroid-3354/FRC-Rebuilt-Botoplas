@@ -112,7 +112,7 @@ class OpTalonFX(private val id: Int, private val canBusName: String = "rio") {
             motorVoltage.setUpdateFrequency(100.0.hertz)    // Required by followers (Phoenix 6 documentation)
             supplyCurrent.setUpdateFrequency(100.0.hertz)
             acceleration.setUpdateFrequency(50.0.hertz)
-            controlMode.setUpdateFrequency(10.0.hertz)
+            controlMode.setUpdateFrequency(100.0.hertz)
             dutyCycle.setUpdateFrequency(100.0.hertz)       // Required by followers (Phoenix 6 documentation)
             torqueCurrent.setUpdateFrequency(100.0.hertz)   // Required by followers (Phoenix 6 documentation)
             version.setUpdateFrequency(100.0.hertz)
