@@ -73,6 +73,7 @@ object ShooterConstants {
         // Score without too much use of the Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterScoreHighCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
+            // TODO Re-measure all of the points as in an official field our shooting seems to be short.
             1.500.meters to (1_950.0).div(60.0).rotationsPerSecond,
             1.750.meters to (1_950.0).div(60.0).rotationsPerSecond,
             2.000.meters to (1_950.0).div(60.0).rotationsPerSecond,

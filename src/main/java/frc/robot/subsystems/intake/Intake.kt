@@ -46,7 +46,7 @@ class Intake() : SysIdSubsystem("Intake") {
     // -----------------------------------
     // PRIVATE — Intake motors Declaration
     // -----------------------------------
-    private val rollersLeadMotorController  : OpTalonFX =
+    private val rollersLeadMotorController      : OpTalonFX =
         OpTalonFX(IntakeConstants.Identification.LEAD_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
     private val rollersFollowerMotorController  : OpTalonFX =
         OpTalonFX(IntakeConstants.Identification.FOLLOWER_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
