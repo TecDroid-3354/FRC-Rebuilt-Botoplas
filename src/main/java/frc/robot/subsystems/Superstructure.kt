@@ -301,7 +301,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     fun retractIntakeCMD(): Command {
-        return intake.retractAndBrakeIntakeCMD()
+        return intake.retractIntakeCMD()
     }
 
     /**

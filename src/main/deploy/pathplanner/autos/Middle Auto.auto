@@ -5,15 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 3.5
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "SecondPickRightAuto"
+            "pathName": "MiddleAuto"
           }
         }
       ]

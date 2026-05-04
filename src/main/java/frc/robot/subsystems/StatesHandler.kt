@@ -1,6 +1,5 @@
 package frc.robot.subsystems
 
-import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj2.command.Command
@@ -177,10 +176,10 @@ class StatesHandler(
 
         controller.leftBumper().onTrue(superstructure.retractIntakeCMD().alongWith(setIntakeLed()))
 
-        controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
-            .ignoringDisable(true))   // Coast Intake + Hood
-        controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
-            .ignoringDisable(true)) // Brake Intake + Hood
+//        controller.povUp().onTrue(superstructure.coastSubsystems().onlyIf { DriverStation.isDisabled() }
+//            .ignoringDisable(true))   // Coast Intake + Hood
+//        controller.povDown().onTrue(superstructure.brakeSubsystems().onlyIf { DriverStation.isDisabled() }
+//            .ignoringDisable(true)) // Brake Intake + Hood
     }
 
     private fun configureRawBindings() {

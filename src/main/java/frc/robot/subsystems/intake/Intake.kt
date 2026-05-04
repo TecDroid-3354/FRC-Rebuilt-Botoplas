@@ -5,7 +5,6 @@ import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Distance
-import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Voltage
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
@@ -13,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
-import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.constants.RobotConstants
@@ -24,9 +22,10 @@ import frc.template.utils.amps
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.inches
 import frc.template.utils.meters
+import frc.template.utils.rotations
 import frc.template.utils.rotationsPerSecond
-import frc.template.utils.seconds
 import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.Supplier
@@ -276,11 +275,12 @@ class Intake() : SysIdSubsystem("Intake") {
         )
     }
 
-    fun retractAndBrakeIntakeCMD(): Command {
+    fun retractIntakeCMD(): Command {
         return SequentialCommandGroup(
-            setDeployableDisplacementOnly(IntakeConstants.RetractileAngles.ClusteredDisplacement),
-            InstantCommand({ setRollersVoltage(Units.Volts.zero()) }),
-            brakeCMD()
+            setRollersVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage),
+            setPositionCMD(IntakePositions.CLUSTERED),
+            WaitUntilCommand { getDeployableError().lte(2.0.inches) },
+            InstantCommand({ setRollersVoltage(Units.Volts.zero()) })
         )
     }
 

@@ -76,11 +76,11 @@ object ShooterConstants {
             // TODO Re-measure all of the points as in an official field our shooting seems to be short.
             1.250.meters to (1_950.0).div(60.0).rotationsPerSecond,
 
-            1.500.meters to (1_900.0).div(60.0).rotationsPerSecond,
-            1.750.meters to (1_965.0).div(60.0).rotationsPerSecond,
-            2.000.meters to (2_000.0).div(60.0).rotationsPerSecond,
-            2.250.meters to (2_065.0).div(60.0).rotationsPerSecond,
-            2.500.meters to (2_100.0).div(60.0).rotationsPerSecond,
+            1.500.meters to (1_900.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            1.750.meters to (1_965.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_000.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            2.250.meters to (2_065.0.plus(30.0)).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_100.0.plus(30.0)).div(60.0).rotationsPerSecond,
             2.750.meters to (2_300.0).div(60.0).rotationsPerSecond,
             3.000.meters to (2_400.0).div(60.0).rotationsPerSecond,
             3.250.meters to (2_475.0).div(60.0).rotationsPerSecond,
