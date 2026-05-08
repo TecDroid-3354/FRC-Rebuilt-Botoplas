@@ -180,25 +180,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     }
 
     /**
-     * Intended for Score State. Starts by enabling the [Shooter] and [Hood] interpolation, waiting until the [Shooter]
-     * RPS and [Drive] angle are within tolerance, then enabling the [Indexer]
-     * and finally enabling the [Intake] clustering for faster shooting.
-     * @return A [ParallelCommandGroup] with the above specifications.
-     */
-    fun scoreStateLowCurvatureSequenceDefaultCMD(): Command {
-        return ParallelCommandGroup(
-            scoreStateShooterLowCurvatureInterpolationCMD(), // Enables Shooter interpolation
-            scoreStateHoodLowCurvatureInterpolationCMD(), // Enables Hood interpolation
-            WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
-                .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
-            }.withTimeout(2.0.seconds)
-                .andThen(indexerEnableCMD()) // Enables the Indexer, both hopper and tower rollers
-                .andThen(WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTERING)
-                    .andThen(intakeClusterCMD())) // Enables Intake clustering to push FUELS towards the tower
-        )
-    }
-
-    /**
      * Intended to call during Auto. Same as [scoreStateSequenceDefaultCMD], just without checking [Drive] angle,
      * as it is controlled by PathPlanner.
      * - A little [WaitCommand] is used to ensure drive has the right rotation.
@@ -206,9 +187,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun scoreStateSequenceAutoRightCMD(): Command {
         return ParallelCommandGroup(
-            //WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
-            shooter.setVelocityCMD { RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_SHOOTER_RPS }, // Enables Shooter
-            hood.setAngleCMD(RobotConstants.Autonomous.ShootingConstants.RIGHT_SIDE_HOOD_ANGLE), // Enables Hood
+            WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
+            scoreStateShooterInterpolationCMD(),
+            scoreStateHoodInterpolationCMD(),
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(1.2.seconds)
@@ -272,10 +253,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return shooter.setScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
     }
 
-    private fun scoreStateShooterLowCurvatureInterpolationCMD(): Command {
-        return shooter.setLowCurvatureScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
-    }
-
     /**
      * Intended to run during Score State. Enables the [Hood] interpolation with respect to the HUB.
      * @return A [RunCommand] interpolating the [Hood] angle based on [getDriveToHubDistance].
@@ -323,6 +300,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
         return intake.deployAndEnableIntakeCMD()
     }
 
+    fun retractIntakeCMD(): Command {
+        return intake.retractIntakeCMD()
+    }
+
     /**
      * In the interest of shooting faster, the [Intake] retracts, causing the hopper to cluster the FUELS towards the tower.
      * @return A [SequentialCommandGroup] requesting the [Intake] to retract, and then deploying it again.
@@ -330,8 +311,9 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     fun intakeClusterCMD(): Command {
         return SequentialCommandGroup(
             intake.clusterIntakeCMD(),
-            WaitUntilCommand { intake.getDeployableError().lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta)},
-            intake.deployAndDisableIntakeCMD()
+//            WaitUntilCommand { intake.getDeployableError().lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta)},
+//            WaitCommand(RobotConstants.Control.TIME_DELTA_BEFORE_CLUSTER_END),
+//            intake.deployAndDisableIntakeCMD()
         )
     }
 
@@ -488,6 +470,23 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
 
     /**
      * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
+     * [Shooter] and [Intake] rollers. [Intake] is NOT deployed again.
+     * @return A [ParallelCommandGroup] with the above requests.
+     */
+    fun disableSubsystemsAutoCMD(): Command {
+        return ParallelCommandGroup(
+            storeHoodCMD(),
+            SequentialCommandGroup(
+                intake.stopMotor(),
+                disableIntakeRollersCMD()
+            ),
+            disableShooterCMD(),
+            disableIndexerCMD()
+        )
+    }
+
+    /**
+     * Intended to use any time the driver is done shooting. This method stores the [Hood], disables the [Indexer],
      * [Shooter] and [Intake] ROLLERS. This method does NOT request an [Intake] position.
      * @return A [ParallelCommandGroup] with the above requests.
      */
@@ -525,9 +524,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     /**
      * Intended to be Initial Command of Score State. Locks the [Drive] angle to track the HUB's coordinates.
      * During this command the driver won't be able to rotate the chassis, however, the translation is still under
-     * his control. Translation max velocity is limited during this command. Once the [Drive] is within tolerance,
-     * it will stop with an X-arrangement, making it virtually impossible for other robots to move it.
-     * TODO() = Check stopWithX behaviour. Might use a RunCommand that checks whether in tolerance or not if this freezes.
+     * his control. Translation max velocity is limited during this command.
      * @return A [RunCommand] that locks the [Drive] angle to target the HUB.
      */
     fun driveTargetingHUB(): Command {
@@ -536,8 +533,22 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
             ::getDriveToHubAngle
-        )//.until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
-//            .andThen(InstantCommand({ drive.stopWithX() }))
+        )
+    }
+
+    /**
+     * Intended to be Initial Command of Score State. Locks the [Drive] angle to track the HUB's coordinates.
+     * During this command the driver won't be able to rotate the chassis, however, the translation is still under
+     * his control. Translation max velocity is limited during this command.
+     * @return A [RunCommand] that locks the [Drive] angle to target the HUB.
+     */
+    fun driveTargetingHUBAuto(): Command {
+        return DriveCommands.joystickDriveAtAngleAuto(
+            drive,
+            { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
+            { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
+            ::getDriveToHubAngle
+        )
     }
 
     /**
@@ -566,6 +577,10 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
             { getAngleFromJoystick() }
         )
+    }
+
+    fun alignChassisToHubAuto(): Command {
+        return DriveCommands.alignDriveAtAngle(drive, getDriveToHubAngle())
     }
 
     /**
@@ -813,7 +828,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun brakeSubsystems(): Command {
         return ParallelCommandGroup(
-            intake.brakeCMD(),
             hood.brakeCMD()
         )
     }

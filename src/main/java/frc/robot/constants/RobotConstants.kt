@@ -68,22 +68,23 @@ object RobotConstants {
     object Autonomous {
         object NameStrings {
             const val RIGHT_AUTO                    : String    = "RightAutoTwoCycles"
-            const val RIGHT_MULTI_PATH_AUTO         : String    = "Multi-Path-Right"
             const val LEFT_AUTO                     : String    = "LeftAutoTwoCycles"
+            const val SECOND_PICK_RIGHT_AUT0        : String    = "SecondPickRightAuto"
         }
 
         object EventTriggerStrings {
             const val INTAKE_DEPLOY                 : String    = "Intake Deploy"
             const val DISABLE_INTAKE_ROLLERS        : String    = "Disable Intake Rollers"
             const val SCORE                         : String    = "Score"
+            const val SECOND_PICK_SCORE             : String    = "SecondPickScore"
             const val ENABLE_SHOOTER                : String    = "Enable Shooter"
             const val INTAKE_LEDS                   : String    = "Intake LEDs"
             const val SCORE_LEDS                    : String    = "Score LEDs"
         }
 
         object ShootingConstants {
-            val RIGHT_SIDE_SHOOTER_RPS              : AngularVelocity   = 2_700.0.div(60.0).rotationsPerSecond
-            val RIGHT_SIDE_HOOD_ANGLE               : Angle             = 18.91.degrees
+            val RIGHT_SIDE_SHOOTER_RPS              : AngularVelocity   = 2_050.0.div(60.0).rotationsPerSecond
+            val RIGHT_SIDE_HOOD_ANGLE               : Angle             = 17.5.degrees
         }
     }
 
@@ -109,6 +110,7 @@ object RobotConstants {
         val DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING: Angle             = 3.0.degrees
         val SHOOTER_VELOCITY_TOLERANCE              : AngularVelocity   = 0.8.rotationsPerSecond
         val TIME_DELTA_BEFORE_CLUSTERING            : Time              = 0.0.seconds
+        val TIME_DELTA_BEFORE_CLUSTER_END           : Time              = 0.3.seconds
     }
 
     object LoopInfo {

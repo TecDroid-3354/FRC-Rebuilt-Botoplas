@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
 import edu.wpi.first.wpilibj2.command.RunCommand
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
-import edu.wpi.first.wpilibj2.command.WaitCommand
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import frc.robot.constants.RobotConstants
@@ -23,9 +22,10 @@ import frc.template.utils.amps
 import frc.template.utils.controlProfiles.ControlGains
 import frc.template.utils.devices.KrakenMotors
 import frc.template.utils.devices.OpTalonFX
+import frc.template.utils.inches
 import frc.template.utils.meters
+import frc.template.utils.rotations
 import frc.template.utils.rotationsPerSecond
-import frc.template.utils.seconds
 import frc.template.utils.volts
 import org.littletonrobotics.junction.AutoLogOutput
 import java.util.function.Supplier
@@ -45,7 +45,7 @@ class Intake() : SysIdSubsystem("Intake") {
     // -----------------------------------
     // PRIVATE — Intake motors Declaration
     // -----------------------------------
-    private val rollersLeadMotorController  : OpTalonFX =
+    private val rollersLeadMotorController      : OpTalonFX =
         OpTalonFX(IntakeConstants.Identification.LEAD_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
     private val rollersFollowerMotorController  : OpTalonFX =
         OpTalonFX(IntakeConstants.Identification.FOLLOWER_ROLLERS_MOTOR_ID, RobotConstants.Identification.ALTERNATE_CANBUS)
@@ -148,14 +148,16 @@ class Intake() : SysIdSubsystem("Intake") {
      * [IntakeConstants.PhysicalLimits.DeployableLimits] set. It also considers reduction,
      * so it's just necessary to give it to the method.
      * @param displacement The desired intake displacement.
+     * @param slot The desired [ControlGains], previously configured in either Slot0, Slot1 or Slot3 configs.
      */
-    private fun setPosition(displacement: Distance) {
+    private fun setPosition(displacement: Distance, slot: Int = 0) {
         targetDisplacement = IntakeConstants.PhysicalLimits.DeployableLimits.coerceIn(displacement) as Distance
         deployableMotorController.positionRequestSubsystem(
             targetDisplacement,
             IntakeConstants.PhysicalLimits.DeployableLimits,
             IntakeConstants.PhysicalLimits.DeployableReduction,
-            IntakeConstants.Configuration.deployableMotorSprocket
+            IntakeConstants.Configuration.deployableMotorSprocket,
+            slot
         )
     }
 
@@ -188,11 +190,12 @@ class Intake() : SysIdSubsystem("Intake") {
     /**
      * Sets a desired [IntakePositions] which holds a known position for either retracted o deployed position.
      * Keeps track of the current requested position and assigns it to [targetDisplacement].
-     * @param position the desired pose to go to
+     * @param position The desired pose to go to
+     * @param slot The desired [ControlGains], previously configured in either Slot0, Slot1 or Slot3 configs.
      * @return A command requesting the given [IntakePositions].
      */
-    private fun setPositionWithDisplacementCMD(position: Distance): Command {
-        return InstantCommand({ setPosition(position) }, this)
+    private fun setPositionWithDisplacementCMD(position: Distance, slot: Int = 0): Command {
+        return InstantCommand({ setPosition(position, slot) }, this)
     }
 
     /**
@@ -205,27 +208,11 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     private fun setPositionCMD(position: IntakePositions): Command {
         return when (position) {
-            IntakePositions.CLUSTERED ->
-                SequentialCommandGroup(
-                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
-                            IntakeConstants.Configuration.deployableMotorsConfig.withMotionMagic(
-                                IntakeConstants.Configuration.clusteringMotionMagic
-                            )
-                        )
-                    }),
-                    WaitCommand(0.08.seconds),
-                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.ClusteredDisplacement)
-                )
+            IntakePositions.CLUSTERED -> setPositionWithDisplacementCMD(
+                IntakeConstants.RetractileAngles.ClusteredDisplacement, 1)
 
-            IntakePositions.DEPLOYED ->
-                SequentialCommandGroup(
-                    InstantCommand({ deployableMotorController.applyConfigAndClearFaults(
-                        IntakeConstants.Configuration.deployableMotorsConfig
-                        )
-                    }),
-                    WaitCommand(0.08.seconds),
-                    setPositionWithDisplacementCMD (IntakeConstants.RetractileAngles.DeployedDisplacement)
-                )
+            IntakePositions.DEPLOYED -> setPositionWithDisplacementCMD (
+                IntakeConstants.RetractileAngles.DeployedDisplacement, 0)
         }
     }
 
@@ -262,6 +249,7 @@ class Intake() : SysIdSubsystem("Intake") {
      */
     fun deployAndEnableIntakeCMD(): Command {
         return SequentialCommandGroup(
+            coastCMD(),
             setPositionCMD(IntakePositions.DEPLOYED),
             WaitUntilCommand { getDeployableError()
                 .lte(IntakeConstants.RetractileAngles.DeployableDisplacementDelta) },
@@ -283,8 +271,16 @@ class Intake() : SysIdSubsystem("Intake") {
     fun clusterIntakeCMD(): Command {
         return SequentialCommandGroup(
             InstantCommand({ setRollersVoltage(IntakeConstants.VoltageTargets.ClusteringRollersVoltage) }),
-            //WaitCommand(0.1.seconds),
             setPositionCMD(IntakePositions.CLUSTERED),
+        )
+    }
+
+    fun retractIntakeCMD(): Command {
+        return SequentialCommandGroup(
+            setRollersVoltageCMD(IntakeConstants.VoltageTargets.EnabledRollersVoltage),
+            setPositionCMD(IntakePositions.CLUSTERED),
+            WaitUntilCommand { getDeployableError().lte(2.0.inches) },
+            InstantCommand({ setRollersVoltage(Units.Volts.zero()) })
         )
     }
 
@@ -420,6 +416,7 @@ class Intake() : SysIdSubsystem("Intake") {
     private fun getRollersVelocity(): AngularVelocity {
         return rollersLeadMotorController.getVelocity().times(60.0)
     }
+
 
     // -------------------------------
     // PUBLIC — Neutral Mode control

@@ -18,7 +18,6 @@ import frc.template.utils.meters
 import frc.template.utils.seconds
 import java.util.Optional
 import frc.template.utils.rotationsPerSecond
-
 data class ShooterPoint(val hubDistance: Distance, val shooterRPS: AngularVelocity)
 
 object ShooterConstants {
@@ -43,13 +42,24 @@ object ShooterConstants {
      * Contains all tunable fields. These can be changed live through Elastic and displayed through AdvantageScope.
      */
     object Tunables {
-        val motorkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kP", 0.7)
-        val motorkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kI", 0.0)
-        val motorkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kD", 0.0)
-        val motorkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Motors kF", 0.55)
+        // Previous control gains: 0.7, 0.0, 0.0, 0.55
+        val motorNearkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kP", 0.1816) // 0.7
+        val motorNearkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kI", 0.0)
+        val motorNearkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kD", 0.0)
+        val motorNearkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kF", 12.0) // 0.0
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2600.0)
-        val warmUpRPMs : LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Warm Up RPMs", 1500.0)
+        val motorNearkS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kS", 0.116) // 0.4
+        val motorNearkV: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kV", 0.1193) //0.0
+
+//        val motorFarkP: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kP", 0.1816) // 0.7
+//        val motorFarkI: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kI", 0.0)
+//        val motorFarkD: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kD", 0.0)
+//        val motorFarkF: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kF", 12.0) // 0.0
+//
+//        val motorFarkS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kS", 0.116) // 0.4
+//        val motorFarkV: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kV", 0.1193) //0.0
+
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2400.0)
     }
 
     /**
@@ -63,39 +73,26 @@ object ShooterConstants {
         // Score without too much use of the Hood
         // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)
         val shooterScoreHighCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.397.meters to (2_400.0).div(60.0).rotationsPerSecond,
-            2.000.meters to (2_450.0).div(60.0).rotationsPerSecond,
-            2.500.meters to (2_500.0).div(60.0).rotationsPerSecond,
-            3.000.meters to (2_550.0).div(60.0).rotationsPerSecond,
-            3.500.meters to (2_650.0).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_745.0).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_815.0).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_870.0).div(60.0).rotationsPerSecond,
-        )
+            // TODO Re-measure all of the points as in an official field our shooting seems to be short.
+            1.250.meters to (1_950.0).div(60.0).rotationsPerSecond,
 
-        // Score with full much use of the Hood
-        // The increment per step (0.5 meters) gets bigger as we meet the limit of Hood's range, relying on pure RPMs.
-        // Pair() containing: Distance to target (meters) -> Shooter target velocity (rotations per second)}
-        // Original low curvature
-//        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-//            1.397.meters to (2_150.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            2.000.meters to (2_300.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            2.500.meters to (2_350.0.minus(20.0)).div(60.0).rotationsPerSecond,
-//            3.000.meters to (2_450.0.minus(30.0)).div(60.0).rotationsPerSecond,
-//            3.500.meters to (2_450.0.minus(35.0)).div(60.0).rotationsPerSecond,
-//            4.000.meters to (2_475.0.minus(35.0)).div(60.0).rotationsPerSecond,
-//            4.500.meters to (2_575.0.minus(40.0)).div(60.0).rotationsPerSecond,
-//            5.000.meters to (2_825.0.minus(40.0)).div(60.0).rotationsPerSecond,
-//        )
-        val shooterScoreLowCurvatureInterpolationPoints: Map<Distance, AngularVelocity> = mapOf<Distance, AngularVelocity>(
-            1.397.meters to (2_400.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            2.000.meters to (2_450.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            2.500.meters to (2_500.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            3.000.meters to (2_550.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            3.500.meters to (2_650.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            4.000.meters to (2_745.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            4.500.meters to (2_815.0.minus(45.0)).div(60.0).rotationsPerSecond,
-            5.000.meters to (2_870.0.minus(45.0)).div(60.0).rotationsPerSecond,
+            1.500.meters to (1_900.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            1.750.meters to (1_965.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            2.000.meters to (2_000.0.plus(60.0)).div(60.0).rotationsPerSecond,
+            2.250.meters to (2_065.0.plus(30.0)).div(60.0).rotationsPerSecond,
+            2.500.meters to (2_100.0.plus(30.0)).div(60.0).rotationsPerSecond,
+            2.750.meters to (2_300.0).div(60.0).rotationsPerSecond,
+            3.000.meters to (2_400.0).div(60.0).rotationsPerSecond,
+            3.250.meters to (2_475.0).div(60.0).rotationsPerSecond,
+            3.500.meters to (2_600.0).div(60.0).rotationsPerSecond,
+            3.700.meters to (2_700.0).div(60.0).rotationsPerSecond,
+
+            4.000.meters to (2_500.0).div(60.0).rotationsPerSecond,
+            4.250.meters to (2_525.0).div(60.0).rotationsPerSecond,
+            4.500.meters to (2_675.0).div(60.0).rotationsPerSecond,
+            4.750.meters to (2_925.0).div(60.0).rotationsPerSecond,
+            5.000.meters to (3_100.0).div(60.0).rotationsPerSecond,
+            5.250.meters to (3_350.0).div(60.0).rotationsPerSecond,
         )
 
         // Assist
@@ -128,34 +125,35 @@ object ShooterConstants {
         // ---------------------------------
         private val neutralMode         : NeutralModeValue = NeutralModeValue.Coast
         private val motorOrientation    : InvertedValue = InvertedValue.Clockwise_Positive
+        private val peakDutyCycle       : Double = 0.75
 
         // ---------------------------------
         // PRIVATE — Current Limits
         // ---------------------------------
         private val supplyCurrentLimits : Current = Amps.of(35.0)
-        private val statorCurrentLimits : Current = Amps.of(40.0)
-        private val statorCurrentEnable : Boolean = false
+        private val statorCurrentLimits : Current = Amps.of(60.0)
+        private val statorCurrentEnable : Boolean = true
 
         // ---------------------------------
         // PUBLIC — Slot 0
         // ---------------------------------
         val controlGains                : ControlGains = ControlGains(
-            p = Tunables.motorkP.get(), i = Tunables.motorkI.get(), d = Tunables.motorkD.get(), f = Tunables.motorkF.get(),
-            s = 0.25, v = 0.12, a = 0.01, g = 0.0)
+            p = Tunables.motorNearkP.get(), i = Tunables.motorNearkI.get(), d = Tunables.motorNearkD.get(), f = Tunables.motorNearkF.get(),
+            s = Tunables.motorNearkS.get(), v = Tunables.motorNearkV.get(), a = 0.026527, g = 0.0) // 0.25, 0.12, 0.1 -- 0.375, 0.1175, 0.05
 
         // ---------------------------------
         // PRIVATE — Motion Magic
         // ---------------------------------
         private val cruiseVelocity      : AngularVelocity = RotationsPerSecond.of(100.0)
         private val acceleration        : Time = 0.1.seconds
-        private val jerkTime            : Time = 0.1.seconds
+        private val jerkTime            : Time = 0.0.seconds
 
         // -----------------------------------
         // PUBLIC — Motor Configuration Object
         // -----------------------------------
         val motorsConfig = KrakenMotors.createTalonFXConfiguration(
             Optional.of(
-                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation)),
+                KrakenMotors.configureMotorOutputs(neutralMode, motorOrientation, peakDutyCycle)),
             Optional.of(
                 KrakenMotors.configureCurrentLimits(
                     supplyCurrentLimits,
@@ -164,9 +162,10 @@ object ShooterConstants {
                 )),
             Optional.of(
                 KrakenMotors.configureSlot0(controlGains)),
+            Optional.empty(),
             Optional.of(
                 KrakenMotors.configureAngularMotionMagic(
-                    AngularMotionTargets(cruiseVelocity, acceleration,jerkTime),
+                    AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
                     PhysicalLimits.Reduction
             ))
         )

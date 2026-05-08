@@ -5,12 +5,14 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs
 import com.ctre.phoenix6.configs.MotionMagicConfigs
 import com.ctre.phoenix6.configs.MotorOutputConfigs
 import com.ctre.phoenix6.configs.Slot0Configs
+import com.ctre.phoenix6.configs.Slot1Configs
 import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.controls.Follower
 import com.ctre.phoenix6.controls.MotionMagicVoltage
 import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
+import edu.wpi.first.math.MathUtil
 import edu.wpi.first.units.measure.Current
 import frc.template.utils.Sprocket
 import frc.template.utils.amps
@@ -70,7 +72,7 @@ object KrakenMotors {
      * @return A [TalonFXConfiguration] with the desired configurations.
      */
     fun createTalonFXConfiguration(motorOutputs: Optional<MotorOutputConfigs>, currentLimits: Optional<CurrentLimitsConfigs>,
-                                   slot0: Optional<Slot0Configs>, motionMagic: Optional<MotionMagicConfigs>)
+                                   slot0: Optional<Slot0Configs>, slot1: Optional<Slot1Configs>, motionMagic: Optional<MotionMagicConfigs>)
             : TalonFXConfiguration {
         val talonConfig = TalonFXConfiguration()
 
@@ -86,6 +88,10 @@ object KrakenMotors {
             talonConfig.Slot0 = slot0.get()
         } else { talonConfig.Slot0 = defaultConfig.Slot0 }
 
+        if (slot1.isPresent) {
+            talonConfig.Slot1 = slot1.get()
+        } else { talonConfig.Slot1 = defaultConfig.Slot1 }
+
         if (motionMagic.isPresent) {
             talonConfig.MotionMagic = motionMagic.get()
         } else { talonConfig.MotionMagic = defaultConfig.MotionMagic }
@@ -98,12 +104,17 @@ object KrakenMotors {
      * configurations.
      * @param neutralModeValue The desired [NeutralModeValue], either Brake or Coast.
      * @param invertedValue The desired [InvertedValue], either CounterClockwise_Positive or Clockwise_Positive.
+     * @param peakDutyCycle (optional) The maximum duty cycle output for the motors. Keep this value positive, it is automatically
+     *          changed to negative for peak reverse duty cycle. Values for this parameter are [-1.0, 1.0].
      * @return A [MotorOutputConfigs] with the desired [NeutralModeValue] and [InvertedValue].
      */
-    fun configureMotorOutputs(neutralModeValue: NeutralModeValue, invertedValue: InvertedValue): MotorOutputConfigs {
+    fun configureMotorOutputs(neutralModeValue: NeutralModeValue, invertedValue: InvertedValue,
+                              peakDutyCycle: Double = 1.0): MotorOutputConfigs {
         return MotorOutputConfigs()
             .withNeutralMode(neutralModeValue)
             .withInverted(invertedValue)
+            .withPeakForwardDutyCycle(MathUtil.clamp(peakDutyCycle, -1.0, 1.0))
+            .withPeakReverseDutyCycle(MathUtil.clamp(peakDutyCycle.unaryMinus(), -1.0, 1.0))
     }
 
     /**
@@ -129,6 +140,22 @@ object KrakenMotors {
      */
     fun configureSlot0(controlGains: ControlGains): Slot0Configs {
         return Slot0Configs()
+            .withKP(controlGains.p)
+            .withKI(controlGains.i)
+            .withKD(controlGains.d)
+            .withKS(controlGains.s)
+            .withKV(controlGains.v)
+            .withKA(controlGains.a)
+            .withKG(controlGains.g)
+    }
+
+    /**
+     * Takes the desired [ControlGains] and returns a [Slot1Configs] with said configurations.
+     * @param controlGains The desired [ControlGains].
+     * @return A [Slot1Configs] with the applied [ControlGains].
+     */
+    fun configureSlot1(controlGains: ControlGains): Slot1Configs {
+        return Slot1Configs()
             .withKP(controlGains.p)
             .withKI(controlGains.i)
             .withKD(controlGains.d)
