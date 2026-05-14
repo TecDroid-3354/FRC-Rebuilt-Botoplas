@@ -154,20 +154,6 @@ class StatesHandler(
         ))
             .onFalse(superstructure.disableSubsystemsCMD().alongWith(setDefaultLed()))
 
-        controller.y().whileTrue(Commands.select(
-            mapOf<FieldZones, Command>(
-                FieldZones.BLUE_ALLIANCE_ZONE to superstructure.driveTargetingHUB()
-                    .onlyWhile { superstructure.isDriveAtScoreSetpoint().not() },
-                FieldZones.RED_ALLIANCE_ZONE to superstructure.driveTargetingHUB()
-                    .onlyWhile { superstructure.isDriveAtScoreSetpoint().not() },
-                FieldZones.NEUTRAL_ZONE to superstructure.driveTargetingBump()
-            ),
-            { superstructure.getRobotCurrentZone() })
-            .andThen(superstructure.stopDriveWithX()
-                .alongWith(setDriveLockedLed())))
-            .onFalse(
-                superstructure.driveFollowingDriverInput()
-                    .alongWith(setDefaultLed()))
 
         controller.rightBumper().onTrue(superstructure.intakeStateCMD()
             .alongWith(setIntakeLed()))

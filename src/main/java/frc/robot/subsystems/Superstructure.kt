@@ -7,6 +7,7 @@ import edu.wpi.first.math.MathUtil
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
+import edu.wpi.first.units.Units
 import edu.wpi.first.units.Units.Degrees
 import edu.wpi.first.units.Units.Meters
 import edu.wpi.first.units.Units.Radians
@@ -14,6 +15,7 @@ import edu.wpi.first.units.measure.Angle
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.MutAngle
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup
@@ -168,8 +170,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      */
     fun scoreStateSequenceDefaultCMD(): Command {
         return ParallelCommandGroup(
-            scoreStateShooterInterpolationCMD(), // Enables Shooter interpolation
-            scoreStateHoodInterpolationCMD(), // Enables Hood interpolation
+            noStateShootOnlyCMD(), // Enables Shooter
+            noStateHoodOnlyCMD(), // Enables Hood
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(2.0.seconds)
@@ -188,8 +190,8 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     fun scoreStateSequenceAutoRightCMD(): Command {
         return ParallelCommandGroup(
             WaitCommand(1.0.seconds), // Quick timeout for drive to target the HUB, as per PathPlanner path
-            scoreStateShooterInterpolationCMD(),
-            scoreStateHoodInterpolationCMD(),
+            noStateShootOnlyCMD(),
+            noStateHoodOnlyCMD(),
             WaitUntilCommand { shooter.getShooterAngularVelocityError() // Waits until required velocity is reached
                 .lte(RobotConstants.Control.SHOOTER_VELOCITY_TOLERANCE)
             }.withTimeout(1.2.seconds)
@@ -245,21 +247,6 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
     /*---------------------------------------- SCORING COMMANDS ----------------------------------------*/
     /*--------------------------------------------------------------------------------------------------*/
 
-    /**
-     * Intended to run during Score State. Enables the [Shooter] interpolation with respect to the HUB.
-     * @return A [RunCommand] interpolating the [Shooter] velocity based on [getDriveToHubDistance].
-     */
-    private fun scoreStateShooterInterpolationCMD(): Command {
-        return shooter.setScoreInterpolatedVelocityCMD { getDriveToHubDistance() }
-    }
-
-    /**
-     * Intended to run during Score State. Enables the [Hood] interpolation with respect to the HUB.
-     * @return A [RunCommand] interpolating the [Hood] angle based on [getDriveToHubDistance].
-     */
-    private fun scoreStateHoodInterpolationCMD(): Command {
-        return hood.setScoreDistanceInterpolatedAngleCMD { getDriveToHubDistance() }
-    }
 
     private fun scoreStateHoodLowCurvatureInterpolationCMD(): Command {
         return hood.setLowCurvatureScoreDistanceInterpolatedAngleCMD { getDriveToHubDistance() }
@@ -512,11 +499,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [RunCommand] that locks the [Drive] angle to track the target.
      */
     fun driveTrackingTarget(): Command {
-        return DriveCommands.joystickDriveAtAngle(
+        return DriveCommands.joystickDrive(
             drive,
             { -controller.leftY * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_Y_MULTIPLIER },
             { -controller.leftX * RobotConstants.DriverControllerConstants.SWERVE_LOCKED_ANGLE_X_MULTIPLIER },
-            { shootingCalcs.getLatestShootingParameters().driveAngle }
+                { shootingCalcs.getLatestShootingParameters().driveAngle.`in`(Units.Degree) }
         )//.until { getDriveRotationError().lte(RobotConstants.Control.DRIVE_ROTATION_TOLERANCE_BEFORE_SHOOTING) }
 //            .andThen(InstantCommand({ drive.stopWithX() }))
     }
@@ -571,11 +558,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [RunCommand] with the [Drive]'s default command.
      */
     fun driveFollowingDriverInput(): Command {
-        return DriveCommands.joystickDriveAtAngle (
+        return DriveCommands.joystickDrive (
             drive,
             { MathUtil.applyDeadband(-controller.leftY, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            { getAngleFromJoystick() }
+            { MathUtil.applyDeadband(-controller.rightX,0.05)  }
         )
     }
 

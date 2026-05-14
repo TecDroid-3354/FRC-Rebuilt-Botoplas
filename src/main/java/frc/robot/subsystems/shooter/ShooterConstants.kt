@@ -59,7 +59,7 @@ object ShooterConstants {
 //        val motorFarkS: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kS", 0.116) // 0.4
 //        val motorFarkV: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/(Near) kV", 0.1193) //0.0
 
-        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 2400.0)
+        val enabledRPMs: LoggedTunableNumber = LoggedTunableNumber("${Telemetry.SHOOTER_TAB}/Manual RPMs", 1200.0)
     }
 
     /**
