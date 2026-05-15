@@ -562,7 +562,7 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
             drive,
             { MathUtil.applyDeadband(-controller.leftY, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            { MathUtil.applyDeadband(-controller.rightX,0.05)  }
+            { MathUtil.applyDeadband(-controller.rightX * 0.25,0.01)  }
         )
     }
 
