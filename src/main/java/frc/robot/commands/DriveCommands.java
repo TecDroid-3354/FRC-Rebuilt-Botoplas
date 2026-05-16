@@ -49,7 +49,7 @@ import static frc.robot.constants.Constants.isFlipped;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final LoggedTunableNumber ANGLE_KP = new LoggedTunableNumber("Drive/AngleKP", 6.0);
+  private static final LoggedTunableNumber ANGLE_KP = new LoggedTunableNumber("Drive/AngleKP", 4.5);
     private static final LoggedTunableNumber ANGLE_KD = new LoggedTunableNumber("Drive/AngleKD", 0.0);
   private static final double ANGLE_MAX_VELOCITY = 9.42;
   private static final double ANGLE_MAX_ACCELERATION = 12.57;

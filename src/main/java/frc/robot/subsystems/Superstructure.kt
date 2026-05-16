@@ -558,11 +558,11 @@ class Superstructure(private val controller: CommandXboxController) : Subsystem 
      * @return A [RunCommand] with the [Drive]'s default command.
      */
     fun driveFollowingDriverInput(): Command {
-        return DriveCommands.joystickDrive (
+        return DriveCommands.joystickDriveAtAngle(
             drive,
             { MathUtil.applyDeadband(-controller.leftY, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_Y_MULTIPLIER },
             { MathUtil.applyDeadband(-controller.leftX, 0.05) * RobotConstants.DriverControllerConstants.DRIVER_CONTROLLER_X_MULTIPLIER },
-            { MathUtil.applyDeadband(-controller.rightX * 0.6,0.01)  }
+            { getAngleFromJoystick() }
         )
     }
 
