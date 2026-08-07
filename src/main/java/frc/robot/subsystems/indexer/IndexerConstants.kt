@@ -136,5 +136,7 @@ object IndexerConstants {
                 const val HOPPER_ENABLED_FIELD: String = "${INDEXER_TAB}/Hopper Enabled"
                 const val TOWER_ENABLED_FIELD: String = "${INDEXER_TAB}/Tower Enabled"
                 const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
+                const val HOPPER_SUPPLY : String = "{$INDEXER_TAB}/Hopper Supply"
+                const val TOWER_SUPPLY : String = "{$INDEXER_TAB}/Tower Supply"
         }
 }

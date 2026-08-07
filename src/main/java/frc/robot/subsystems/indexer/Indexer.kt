@@ -247,12 +247,12 @@ class Indexer() : SubsystemBase() {
         return IndexerConstants.RPSTargets.HopperRollersVelocity
     }
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_SUPPLY)
     fun getHopperSupplyCurrent(): Current {
         return leadTowerRollersMotor.getSupplyCurrent()
     }
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.TOWER_SUPPLY)
     fun getTowerSupplyCurrent():Current{
         return hopperRollersMotor.getSupplyCurrent()
     }
