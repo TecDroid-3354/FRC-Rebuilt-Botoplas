@@ -252,12 +252,6 @@ class Shooter() : SysIdSubsystem("Shooter") {
         return leadMotorController.getVelocity()
     }
 
-    @AutoLogOutput(key = ShooterConstants.Telemetry.SHOOTER_SUPPLY)
-    fun getShooterSupply() : Double{
-        return leadMotorController.getPower()
-    }
-
-
     /**
      * Returns the target [AngularVelocity].
      * This can be seen live in the "Shooter" tab of AdvantageScope.

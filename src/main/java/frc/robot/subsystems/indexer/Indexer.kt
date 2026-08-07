@@ -3,6 +3,7 @@ package frc.robot.subsystems.indexer
 import com.ctre.phoenix6.configs.Slot0Configs
 import edu.wpi.first.units.Units
 import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.units.measure.Current
 import edu.wpi.first.wpilibj.Alert
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.InstantCommand
@@ -244,6 +245,16 @@ class Indexer() : SubsystemBase() {
     @AutoLogOutput
     fun getTargetHopperVelocity(): AngularVelocity {
         return IndexerConstants.RPSTargets.HopperRollersVelocity
+    }
+
+    @AutoLogOutput
+    fun getHopperSupplyCurrent(): Current {
+        return leadTowerRollersMotor.getSupplyCurrent()
+    }
+
+    @AutoLogOutput
+    fun getTowerSupplyCurrent():Current{
+        return hopperRollersMotor.getSupplyCurrent()
     }
 
     /**
