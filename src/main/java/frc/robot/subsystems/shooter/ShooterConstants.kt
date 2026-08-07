@@ -177,6 +177,7 @@ object ShooterConstants {
      */
     object Telemetry {
         const val SHOOTER_TAB: String = "Shooter"
+        const val SHOOTER_SUPPLY : String = "{$SHOOTER_TAB}/Supply"
         const val SHOOTER_RPM_FIELD: String = "${SHOOTER_TAB}/Shooter RPMs"
         const val SHOOTER_TARGET_RPM_FIELD: String = "${SHOOTER_TAB}/Shooter Target RPMs"
         const val SHOOTER_CONNECTED_ALERTS_FIELD: String = "${SHOOTER_TAB}/Shooter Connection Alerts"
