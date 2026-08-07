@@ -227,22 +227,22 @@ class Indexer() : SubsystemBase() {
     // -------------------------------
 
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.TOWER_RPM)
     fun getTowerVelocity(): AngularVelocity {
         return IndexerConstants.PhysicalLimits.TowerReduction.apply(leadTowerRollersMotor.getVelocity())
     }
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_RPM)
     fun getHopperVelocity(): AngularVelocity {
         return IndexerConstants.PhysicalLimits.HopperReduction.apply(hopperRollersMotor.getVelocity())
     }
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.TOWER_TARGET_RPM)
     fun getTargetTowerVelocity(): AngularVelocity {
         return IndexerConstants.RPSTargets.TowerRollersVelocity
     }
 
-    @AutoLogOutput
+    @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_TARGET_RPM)
     fun getTargetHopperVelocity(): AngularVelocity {
         return IndexerConstants.RPSTargets.HopperRollersVelocity
     }
