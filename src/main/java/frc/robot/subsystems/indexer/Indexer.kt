@@ -67,6 +67,14 @@ class Indexer() : SubsystemBase() {
      * Called every 20ms loop. Used to update alerts and keep track of changes in voltage target values.
      */
     override fun periodic() {
+        val hopperVelocity = getHopperVelocity()
+        val towerVelocity = getTowerVelocity()
+
+        val targetHopperVelocity = getTargetHopperVelocity()
+        val targetTowerVelocity = getTargetTowerVelocity()
+
+        val hopperSupply = getHopperSupplyCurrent()
+        val towerSupply = getTowerSupplyCurrent()
         indexerRollersAlert.set(hopperRollersMotor.getIsConnected().not())
         leadTowerRollersAlert.set(leadTowerRollersMotor.getIsConnected().not())
         followerTowerRollersAlert.set(towerFollowerRollersMotor.getIsConnected().not())
@@ -92,6 +100,7 @@ class Indexer() : SubsystemBase() {
                 IndexerConstants.Tunables.motorkD.get(), IndexerConstants.Tunables.motorkF.get()
             )
         }
+
     }
 
     // --------------------------------
@@ -158,11 +167,11 @@ class Indexer() : SubsystemBase() {
      * Command version of [enableHopperBelts].
      */
     fun enableHopperBeltsCMD(): Command {
-        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersVelocity } })
+        return InstantCommand({ enableHopperBelts { IndexerConstants.PhysicalLimits.HopperReduction.unapply( IndexerConstants.RPSTargets.HopperRollersVelocity) } })
     }
 
     fun enableHopperBeltsIdleCMD(): Command {
-        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersIdleVelocity } })
+        return InstantCommand({ enableHopperBelts { IndexerConstants.RPSTargets.HopperRollersIdleVelocity  } })
     }
 
     /**
@@ -249,12 +258,12 @@ class Indexer() : SubsystemBase() {
 
     @AutoLogOutput(key = IndexerConstants.Telemetry.HOPPER_SUPPLY)
     fun getHopperSupplyCurrent(): Current {
-        return leadTowerRollersMotor.getSupplyCurrent()
+        return hopperRollersMotor.getSupplyCurrent()
     }
 
     @AutoLogOutput(key = IndexerConstants.Telemetry.TOWER_SUPPLY)
     fun getTowerSupplyCurrent():Current{
-        return hopperRollersMotor.getSupplyCurrent()
+        return leadTowerRollersMotor.getSupplyCurrent()
     }
 
     /**

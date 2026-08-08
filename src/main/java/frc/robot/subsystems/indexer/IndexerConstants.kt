@@ -138,9 +138,9 @@ object IndexerConstants {
                 const val INDEXER_CONNECTED_ALERTS_FIELD: String = "${INDEXER_TAB}/Indexer Alerts"
                 const val HOPPER_SUPPLY : String = "{$INDEXER_TAB}/Hopper Supply"
                 const val TOWER_SUPPLY : String = "{$INDEXER_TAB}/Tower Supply"
-                const val HOPPER_RPM : String = "{$INDEXER_TAB}/Hopper RPMs"
-                const val TOWER_RPM : String = "{$INDEXER_TAB}/Tower RPMs"
-                const val HOPPER_TARGET_RPM : String = "{$INDEXER_TAB}/Hopper RPMs"
-                const val TOWER_TARGET_RPM : String = "{$INDEXER_TAB}/Tower RPMs"
+                const val HOPPER_RPM : String = "{$INDEXER_TAB}/Hopper RPS"
+                const val TOWER_RPM : String = "{$INDEXER_TAB}/Tower RPS"
+                const val HOPPER_TARGET_RPM : String = "{$INDEXER_TAB}/Hopper Target RPS"
+                const val TOWER_TARGET_RPM : String = "{$INDEXER_TAB}/Tower Target RPS"
         }
 }
