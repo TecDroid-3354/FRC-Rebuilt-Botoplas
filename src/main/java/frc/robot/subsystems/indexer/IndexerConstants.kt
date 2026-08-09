@@ -80,7 +80,7 @@ object IndexerConstants {
                 // ---------------------------------
                 // PRIVATE — Current Limits
                 // ---------------------------------
-                private val supplyCurrentLimits : Current = Amps.of(20.0)
+                private val supplyCurrentLimits : Current = Amps.of(40.0)
                 private val statorCurrentLimits : Current = Amps.of(20.0)
                 private val statorCurrentEnable : Boolean = false
 
@@ -118,12 +118,24 @@ object IndexerConstants {
                 )
 
                 val towerRollersConfig =
-                        hopperRollersConfig
-                                .withMotorOutput(KrakenMotors.configureMotorOutputs(neutralMode, towerMotorOrientation))
-                                .withMotionMagic(KrakenMotors.configureAngularMotionMagic(
-                                        AngularMotionTargets(cruiseVelocity, acceleration, jerkTime),
-                                        PhysicalLimits.TowerReduction
-                                ))
+                        KrakenMotors.createTalonFXConfiguration(
+                                Optional.of(KrakenMotors.configureMotorOutputs(neutralMode, towerMotorOrientation)),
+                                Optional.of(
+                                        KrakenMotors.configureCurrentLimits(
+                                                supplyCurrentLimits,
+                                                statorCurrentEnable,
+                                                statorCurrentLimits
+                                        )),
+                                Optional.of(KrakenMotors.configureSlot0(controlGains)),
+                                Optional.empty(),
+                                Optional.of(
+                                        KrakenMotors.configureAngularMotionMagic(
+                                                AngularMotionTargets(cruiseVelocity,acceleration,jerkTime),
+                                                PhysicalLimits.TowerReduction
+                                        )
+                                )
+
+                                )
 
         }
 
